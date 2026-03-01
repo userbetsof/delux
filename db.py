@@ -1,23 +1,32 @@
 import sqlite3
 import os
-import asyncio
-from telegram import Bot
 import pandas as pd
 import openpyxl
+from dotenv import load_dotenv
 
-# Флаг для переключения между режимами:
-# - DEBUG_MODE = True: только вывод вероятностей, без сохранения в БД
-# - DEBUG_MODE = False: сохранение вероятностей в БД (рабочий режим)
-DEBUG_MODE = False  # Установите False для реального добавления в БД
+from telegram_client import TelegramNotifier
 
-async def send_telegram_message(bot_token, chat_id, message):
-    """Асинхронная функция для отправки сообщения в Telegram"""
-    bot = Bot(token=bot_token)
-    await bot.send_message(chat_id=chat_id, text=message)
+load_dotenv()
+
+
+def _env_bool(name, default=False):
+    """Читает булево значение из переменной окружения."""
+    v = os.environ.get(name, str(default)).strip().lower()
+    return v in ('1', 'true', 'yes')
+
+
+# Настройки из .env (токены, пути, названия листов)
+DEBUG_MODE = _env_bool('DEBUG_MODE', False)
+DATABASE_PATH = os.environ.get('DATABASE_PATH', 'matches.db')
+SHEET_ANALYSIS = os.environ.get('SHEET_ANALYSIS', 'Анализ')
+SHEET_ARCHIVE = os.environ.get('SHEET_ARCHIVE', 'Архив')
+SHEET_ODDS = os.environ.get('SHEET_ODDS', 'Коэффициенты')
+EXCEL_FILENAME = os.environ.get('EXCEL_FILENAME', 'DeluX_IncoProrok_new.xlsm')
+EXCEL_FALLBACK_PATH = os.environ.get('EXCEL_FALLBACK_PATH', r'C:\papki\work\Bets\DeluX_IncoProrok_new.xlsm')
 
 def create_database():
     """Создание базы данных и таблиц"""
-    conn = sqlite3.connect('matches.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
     
     # Таблица для стран
@@ -387,12 +396,12 @@ def insert_goal_probabilities(excel_file_path, match_id):
         # Открываем Excel файл
         wb = openpyxl.load_workbook(excel_file_path, data_only=True)
         
-        # Проверяем наличие листа 'Анализ'
-        if 'Анализ' not in wb.sheetnames:
-            print("❌ Лист 'Анализ' не найден")
+        # Проверяем наличие листа анализа
+        if SHEET_ANALYSIS not in wb.sheetnames:
+            print(f"❌ Лист '{SHEET_ANALYSIS}' не найден")
             return False
         
-        sheet_analysis = wb['Анализ']
+        sheet_analysis = wb[SHEET_ANALYSIS]
         
         # Извлекаем вероятности голов
         home_goals, away_goals = extract_goal_probabilities(sheet_analysis)
@@ -422,7 +431,7 @@ def insert_goal_probabilities(excel_file_path, match_id):
             return True
         
         # Режим реального сохранения в БД
-        conn = sqlite3.connect('matches.db')
+        conn = sqlite3.connect(DATABASE_PATH)
         cursor = conn.cursor()
         
         # УМНОЖАЕМ НА 100 для сохранения в процентах
@@ -610,15 +619,15 @@ def insert_outcome_probabilities_from_analysis(excel_file_path, match_id):
         # Открываем Excel файл
         wb = openpyxl.load_workbook(excel_file_path, data_only=True)
         
-        # Проверяем наличие листа 'Анализ'
-        if 'Анализ' not in wb.sheetnames:
-            print("❌ Лист 'Анализ' не найден")
+        # Проверяем наличие листа анализа
+        if SHEET_ANALYSIS not in wb.sheetnames:
+            print(f"❌ Лист '{SHEET_ANALYSIS}' не найден")
             return False
         
-        sheet_analysis = wb['Анализ']
+        sheet_analysis = wb[SHEET_ANALYSIS]
         
         # Получаем список всех подстратегий из базы данных
-        conn = sqlite3.connect('matches.db')
+        conn = sqlite3.connect(DATABASE_PATH)
         cursor = conn.cursor()
         
         # Получаем все подстратегии
@@ -738,7 +747,7 @@ def insert_outcome_probabilities_from_analysis(excel_file_path, match_id):
     
 def verify_strategies_in_db():
     """Проверяет, что в базе есть все 10 подстратегий"""
-    conn = sqlite3.connect('matches.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
     
     cursor.execute('SELECT COUNT(*) FROM sub_strategies')
@@ -798,7 +807,7 @@ def insert_match_data_with_probabilities(item, excel_file_path):
 # Если вам нужно получить вероятности для конкретной стратегии
 def get_strategy_probabilities(match_id, strategy_name):
     """Получает вероятности для конкретной стратегии"""
-    conn = sqlite3.connect('matches.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
     
     cursor.execute('''
@@ -821,7 +830,7 @@ def get_strategy_probabilities(match_id, strategy_name):
 
 def get_goal_probabilities(match_id):
     """Получает вероятности голов для матча"""
-    conn = sqlite3.connect('matches.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
     
     cursor.execute('''
@@ -864,17 +873,17 @@ def read_excel_file(file_path):
         # Открываем Excel файл
         wb = openpyxl.load_workbook(file_path, data_only=True)
         
-        # Проверяем наличие листа 'Архив'
-        if 'Архив' not in wb.sheetnames:
-            print("Лист 'Архив' не найден")
+        # Проверяем наличие листа архива
+        if SHEET_ARCHIVE not in wb.sheetnames:
+            print(f"Лист '{SHEET_ARCHIVE}' не найден")
             return None
         
-        sheet_archive = wb['Архив']
+        sheet_archive = wb[SHEET_ARCHIVE]
         
         # Получаем последнюю строку с данными
         max_row = sheet_archive.max_row
         if max_row < 2:  # Если есть только заголовки или пусто
-            print("Лист 'Архив' не содержит данных")
+            print(f"Лист '{SHEET_ARCHIVE}' не содержит данных")
             return None
         
         last_row = max_row
@@ -924,22 +933,22 @@ def read_excel_file(file_path):
             
             data[data_key] = get_cell_value(sheet_archive, data_row, col_num)
         
-        # Читаем дополнительные коэффициенты из листа 'Коэффициенты'
-        if 'Коэффициенты' in wb.sheetnames:
-            sheet_odds = wb['Коэффициенты']
+        # Читаем дополнительные коэффициенты из листа коэффициентов
+        if SHEET_ODDS in wb.sheetnames:
+            sheet_odds = wb[SHEET_ODDS]
             
             data['1x_odds'] = get_cell_value(sheet_odds, 3, 8)  # H3
             data['12_odds'] = get_cell_value(sheet_odds, 3, 9)  # I3
             data['2x_odds'] = get_cell_value(sheet_odds, 3, 10)  # J3
         else:
-            print("Лист 'Коэффициенты' не найден")
+            print(f"Лист '{SHEET_ODDS}' не найден")
             data['1x_odds'] = ''
             data['12_odds'] = ''
             data['2x_odds'] = ''
         
         wb.close()
         
-        print(f"Прочитана строка {data_row} из листа 'Архив':")
+        print(f"Прочитана строка {data_row} из листа '{SHEET_ARCHIVE}':")
         for key, value in data.items():
             print(f"  {key}: {value}")
         
@@ -954,7 +963,7 @@ def read_excel_file(file_path):
     
 def clear_table(table_name):
     """Очищает все данные из таблицы, но сохраняет структуру"""
-    conn = sqlite3.connect('matches.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
     
     try:
@@ -981,16 +990,15 @@ if __name__ == "__main__":
         print(f"РЕЖИМ РАБОТЫ: {'ОТЛАДКА (только вывод)' if DEBUG_MODE else 'РАБОЧИЙ (сохранение в БД)'}")
         print(f"{'=' * 60}\n")
         
-        # Определяем путь к Excel файлу в той же папке, что и скрипт
+        # Определяем путь к Excel файлу (из .env или рядом со скриптом)
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        excel_file_path = os.path.join(script_dir, "DeluX_IncoProrok_new.xlsm")
+        excel_file_path = os.path.join(script_dir, EXCEL_FILENAME)
         
         # Проверяем существование файла
         if not os.path.exists(excel_file_path):
             print(f"Файл не найден по пути: {excel_file_path}")
-            # Пробуем абсолютный путь как запасной вариант
-            excel_file_path = r"C:\papki\work\Bets\DeluX_IncoProrok_new.xlsm"
-            print(f"Пробуем абсолютный путь: {excel_file_path}")
+            excel_file_path = EXCEL_FALLBACK_PATH
+            print(f"Пробуем запасной путь: {excel_file_path}")
         
         # Читаем данные из Excel файла
         data = read_excel_file(excel_file_path)
@@ -1000,11 +1008,8 @@ if __name__ == "__main__":
             success = insert_match_data(data)
             insert_match_data_with_probabilities(data, excel_file_path)
 
-            if success:
-                BOT_TOKEN = "6055776005:AAGPEEGBcTlKNgKkee1CEUmdAyhBiCvnciw"
-                CHAT_ID = "736114046"
-                
-                # Форматируем сообщение для лучшей читаемости
+            telegram = TelegramNotifier()
+            if success and telegram.is_configured:
                 message_text = f"""
 📊 Прогноз на матч:
 Дата: {data.get('match_date', 'Н/Д')}
@@ -1016,12 +1021,11 @@ if __name__ == "__main__":
   • X: {data.get('draw_odds', 'Н/Д')}
   • 2: {data.get('away_win_odds', 'Н/Д')}
 """
-                
-                # Отправляем сообщение в Telegram
-                asyncio.run(send_telegram_message(BOT_TOKEN, CHAT_ID, message_text))
-                
-                print("Данные успешно отправлены в Telegram!")
-                print(f"Отправлено из файла: {excel_file_path}")
+                if telegram.send(message_text):
+                    print("Данные успешно отправлены в Telegram!")
+                    print(f"Отправлено из файла: {excel_file_path}")
+            elif success and not telegram.is_configured:
+                print("Данные добавлены в БД. Для отправки в Telegram укажите BOT_TOKEN и CHAT_ID в .env")
             else:
                 print("Не удалось добавить данные в базу данных")
         else:
