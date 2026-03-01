@@ -1,11 +1,14 @@
 import sqlite3
-import json
 import os
-import sys
 import asyncio
 from telegram import Bot
 import pandas as pd
 import openpyxl
+
+# Флаг для переключения между режимами:
+# - DEBUG_MODE = True: только вывод вероятностей, без сохранения в БД
+# - DEBUG_MODE = False: сохранение вероятностей в БД (рабочий режим)
+DEBUG_MODE = False  # Установите False для реального добавления в БД
 
 async def send_telegram_message(bot_token, chat_id, message):
     """Асинхронная функция для отправки сообщения в Telegram"""
@@ -107,7 +110,7 @@ def create_database():
     CREATE TABLE IF NOT EXISTS sub_strategies (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         strategy_name VARCHAR(50) UNIQUE NOT NULL,
-        description TEXT,
+        description TEXT
     )
     ''')
 
@@ -188,7 +191,12 @@ def insert_match_data(item):
         home_win_odds = item.get('home_win_odds', '')
         draw_odds = item.get('draw_odds', '')
         away_win_odds = item.get('away_win_odds', '')
-        
+
+        # Прогнозы по стратегиям
+        strategy_pred_1 = item.get('strategy_pred_1', '')  # AJ
+        strategy_pred_2 = item.get('strategy_pred_2', '')  # AK
+        strategy_pred_3 = item.get('strategy_pred_3', '')  # BK
+
         # Новые коэффициенты
         odds_1x = item.get('1x_odds', '')
         odds_12 = item.get('12_odds', '')
@@ -216,7 +224,14 @@ def insert_match_data(item):
         (match_id, home_win_odds, draw_odds, away_win_odds, odds_1x, odds_12, odds_2x)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (match_id, home_win_odds, draw_odds, away_win_odds, odds_1x, odds_12, odds_2x))
-        
+
+        # Вставляем прогнозы по стратегиям
+        insert_strategy_predictions(conn, match_id, {
+            1: strategy_pred_1,
+            2: strategy_pred_2,
+            3: strategy_pred_3
+        })
+
         conn.commit()
         
         # Выводим статистику
@@ -249,80 +264,682 @@ def insert_match_data(item):
     finally:
         conn.close()
 
-def read_excel_file(file_path):
-    """Чтение данных из Excel файла и получение последней строки листа 'Архив' и данных из листа 'Коэффициенты'"""
+def insert_strategy_predictions(conn, match_id, strategy_predictions):
+    """
+    Вставляет прогнозы по стратегиям в таблицу strategy_predictions
+    
+    strategy_predictions: словарь {strategy_id: prediction}
+    где strategy_id: 1, 2, 3 (соответствуют AJ, AK, BK)
+    """
+    cursor = conn.cursor()
+    
+    for strategy_id, prediction in strategy_predictions.items():
+        if prediction and prediction.strip():  # Проверяем, что прогноз не пустой
+            try:
+                cursor.execute('''
+                INSERT OR REPLACE INTO strategy_predictions 
+                (match_id, strategy_id, prediction)
+                VALUES (?, ?, ?)
+                ''', (match_id, strategy_id, prediction.strip()))
+                print(f"    ✅ Прогноз для стратегии ID {strategy_id}: {prediction}")
+            except Exception as e:
+                print(f"    ❌ Ошибка при вставке прогноза для стратегии ID {strategy_id}: {e}")
+
+def get_merged_cell_value(sheet, cell_address):
+    """Получает значение из объединенной ячейки"""
+    cell = sheet[cell_address]
+    
+    # Если ячейка объединена, берем значение из верхней левой ячейки диапазона
+    if cell.coordinate in sheet.merged_cells:
+        for merged_range in sheet.merged_cells.ranges:
+            if cell.coordinate in merged_range:
+                # Берем значение из первой ячейки объединенного диапазона
+                top_left_cell = sheet.cell(row=merged_range.min_row, column=merged_range.min_col)
+                return top_left_cell.value
+    return cell.value
+
+def extract_goal_probabilities(sheet):
+    """
+    Извлекает вероятности голов для хозяев (столбцы V-AA) и гостей (столбцы AI-AN)
+    Все ячейки имеют объединение по 2 строки, всего 2 строки данных
+    
+    Возвращает:
+    - home_goals: список вероятностей для хозяев [0,1,2,3,4,5+]
+    - away_goals: список вероятностей для гостей [0,1,2,3,4,5+]
+    """
+    
+    # Колонки для хозяев: V=22, W=23, X=24, Y=25, Z=26, AA=27
+    home_columns = [22, 23, 24, 25, 26, 27]  # V, W, X, Y, Z, AA
+    
+    # Колонки для гостей: AI=35, AJ=36, AK=37, AL=38, AM=39, AN=40
+    away_columns = [35, 36, 37, 38, 39, 40]  # AI, AJ, AK, AL, AM, AN
+    
+    # Строки для данных (всего 2 строки, объединенные)
+    data_rows = [10, 11]  # Строки 10 и 11
+    
+    print(f"\n📊 Чтение вероятностей голов:")
+    print("=" * 60)
+    
+    home_goals = []
+    away_goals = []
+    
+    try:
+        # Читаем вероятности для хозяев
+        print(f"\n🏠 Вероятности голов хозяев (столбцы V-AA):")
+        for i, col in enumerate(home_columns):
+            # Пробуем прочитать из первой строки объединенного диапазона
+            cell_value = sheet.cell(row=data_rows[0], column=col).value
+            
+            # Если в первой строке пусто, пробуем вторую
+            if cell_value is None:
+                cell_value = sheet.cell(row=data_rows[1], column=col).value
+            
+            try:
+                prob = float(cell_value) if cell_value is not None else 0
+                goal_label = f"{i} голов" if i < 5 else "5+ голов"
+                print(f"  • {goal_label:8}: {prob:.4f} ({prob*100:.2f}%)")
+                home_goals.append(prob)
+            except (ValueError, TypeError):
+                print(f"  • {goal_label:8}: Н/Д")
+                home_goals.append(0)
+        
+        # Читаем вероятности для гостей
+        print(f"\n🚌 Вероятности голов гостей (столбцы AI-AN):")
+        for i, col in enumerate(away_columns):
+            # Пробуем прочитать из первой строки объединенного диапазона
+            cell_value = sheet.cell(row=data_rows[0], column=col).value
+            
+            # Если в первой строке пусто, пробуем вторую
+            if cell_value is None:
+                cell_value = sheet.cell(row=data_rows[1], column=col).value
+            
+            try:
+                prob = float(cell_value) if cell_value is not None else 0
+                goal_label = f"{i} голов" if i < 5 else "5+ голов"
+                print(f"  • {goal_label:8}: {prob:.4f} ({prob*100:.2f}%)")
+                away_goals.append(prob)
+            except (ValueError, TypeError):
+                print(f"  • {goal_label:8}: Н/Д")
+                away_goals.append(0)
+        
+        # Проверяем суммы вероятностей (должны быть близки к 1.0)
+        home_total = sum(home_goals)
+        away_total = sum(away_goals)
+        
+        print(f"\n📈 Проверка сумм:")
+        print(f"  • Сумма вероятностей хозяев: {home_total:.4f} ({home_total*100:.2f}%) {'✅' if abs(home_total - 1.0) < 0.05 else '⚠️'}")
+        print(f"  • Сумма вероятностей гостей: {away_total:.4f} ({away_total*100:.2f}%) {'✅' if abs(away_total - 1.0) < 0.05 else '⚠️'}")
+        
+    except Exception as e:
+        print(f"❌ Ошибка при чтении вероятностей голов: {e}")
+        # В случае ошибки возвращаем нулевые значения
+        home_goals = [0] * 6
+        away_goals = [0] * 6
+    
+    print("\n" + "=" * 60)
+    return home_goals, away_goals
+
+def insert_goal_probabilities(excel_file_path, match_id):
+    """
+    Читает вероятности голов из листа "Анализ" и вставляет их в таблицу goal_probabilities
+    """
     try:
         # Открываем Excel файл
-        df_archive = pd.read_excel(file_path, sheet_name='Архив')
+        wb = openpyxl.load_workbook(excel_file_path, data_only=True)
         
-        if df_archive.empty:
-            print("Лист 'Архив' пуст или не существует")
+        # Проверяем наличие листа 'Анализ'
+        if 'Анализ' not in wb.sheetnames:
+            print("❌ Лист 'Анализ' не найден")
+            return False
+        
+        sheet_analysis = wb['Анализ']
+        
+        # Извлекаем вероятности голов
+        home_goals, away_goals = extract_goal_probabilities(sheet_analysis)
+        
+        # В режиме отладки только выводим вероятности, не сохраняем
+        if DEBUG_MODE:
+            print("\n" + "=" * 70)
+            print("🔍 РЕЖИМ ОТЛАДКИ: Вероятности голов НЕ сохраняются в БД")
+            print("=" * 70)
+            print(f"📊 Данные для матча {match_id}:")
+            print("-" * 70)
+            
+            print("\n🏠 Хозяева (вероятности голов):")
+            goals_labels = ['0', '1', '2', '3', '4', '5+']
+            for i, prob in enumerate(home_goals):
+                print(f"  • {goals_labels[i]:2} голов: {prob:.4f} ({prob*100:.2f}%)")
+            
+            print("\n🚌 Гости (вероятности голов):")
+            for i, prob in enumerate(away_goals):
+                print(f"  • {goals_labels[i]:2} голов: {prob:.4f} ({prob*100:.2f}%)")
+            
+            print("\n" + "=" * 70)
+            print("✅ Для сохранения в БД установите DEBUG_MODE = False")
+            print("=" * 70)
+            
+            wb.close()
+            return True
+        
+        # Режим реального сохранения в БД
+        conn = sqlite3.connect('matches.db')
+        cursor = conn.cursor()
+        
+        # УМНОЖАЕМ НА 100 для сохранения в процентах
+        home_goals_percent = [p * 100 for p in home_goals]
+        away_goals_percent = [p * 100 for p in away_goals]
+        
+        try:
+            cursor.execute('''
+            INSERT OR REPLACE INTO goal_probabilities 
+            (match_id, home_goals_0, home_goals_1, home_goals_2, home_goals_3, home_goals_4, home_goals_5,
+             away_goals_0, away_goals_1, away_goals_2, away_goals_3, away_goals_4, away_goals_5)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                match_id,
+                home_goals_percent[0], home_goals_percent[1], home_goals_percent[2],
+                home_goals_percent[3], home_goals_percent[4], home_goals_percent[5],
+                away_goals_percent[0], away_goals_percent[1], away_goals_percent[2],
+                away_goals_percent[3], away_goals_percent[4], away_goals_percent[5]
+            ))
+            
+            conn.commit()
+            print(f"\n✅ Вероятности голов успешно сохранены в БД для матча {match_id}")
+            
+            # Проверяем сохраненные данные
+            cursor.execute('''
+            SELECT home_goals_0, home_goals_1, home_goals_2, home_goals_3, home_goals_4, home_goals_5,
+                   away_goals_0, away_goals_1, away_goals_2, away_goals_3, away_goals_4, away_goals_5
+            FROM goal_probabilities
+            WHERE match_id = ?
+            ''', (match_id,))
+            
+            result = cursor.fetchone()
+            if result:
+                print("\n📊 Проверка сохраненных данных (в процентах):")
+                print("-" * 60)
+                
+                print("Хозяева:")
+                for i in range(6):
+                    label = f"{i} голов" if i < 5 else "5+ голов"
+                    print(f"  • {label:8}: {result[i]:6.2f}%")
+                
+                print("\nГости:")
+                for i in range(6, 12):
+                    label = f"{i-6} голов" if i-6 < 5 else "5+ голов"
+                    print(f"  • {label:8}: {result[i]:6.2f}%")
+                
+                home_total = sum(result[:6])
+                away_total = sum(result[6:])
+                print(f"\nСумма хозяев: {home_total:.2f}% {'✅' if abs(home_total - 100) < 5 else '⚠️'}")
+                print(f"Сумма гостей: {away_total:.2f}% {'✅' if abs(away_total - 100) < 5 else '⚠️'}")
+            
+        except Exception as e:
+            print(f"❌ Ошибка при сохранении вероятностей голов: {e}")
+            conn.rollback()
+            return False
+        finally:
+            conn.close()
+            wb.close()
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Ошибка при обработке данных: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+def extract_probabilities_from_analysis(sheet):
+    """
+    Извлекает вероятности для 10 подстратегий из листа "Анализ"
+    
+    Структура листа:
+    - Столбцы H-L (колонки 8-12) содержат данные для 10 подстратегий
+    - Строки 8-28 содержат данные
+    - Для каждой подстратегии:
+        * Домашняя команда: объединенные ячейки 2x2 (вероятность победы хозяев)
+        * Ничья: 1 колонка x 2 строки (вероятность ничьей)
+        * Гостевая команда: объединенные ячейки 2x2 (вероятность победы гостей)
+    
+    Возвращает значения как ДОЛИ (0-1), а не проценты
+    """
+    
+    probabilities = []
+    
+    # Фиксированные колонки: H=8, I=9, J=10, K=11, L=12
+    columns = [8, 9, 10, 11, 12]  # H, I, J, K, L
+    
+    # Начальная строка для данных
+    start_row = 8
+    
+    print(f"\n📊 Чтение вероятностей из столбцов H-L (8-12), строки {start_row}-28:")
+    print("=" * 60)
+    
+    # 10 подстратегий (идут последовательно сверху вниз)
+    for strategy_idx in range(10):
+        # Вычисляем строку для текущей стратегии
+        # Каждая стратегия занимает 2 строки (из-за объединенных ячеек)
+        current_row = start_row + (strategy_idx * 2)
+        
+        if current_row + 1 > 28:  # Проверяем, не вышли ли за пределы (макс строка 28)
+            print(f"⚠️ Достигнут конец диапазона на стратегии {strategy_idx + 1}")
+            break
+        
+        try:
+            print(f"\n📌 Стратегия {strategy_idx + 1} (строки {current_row}-{current_row+1}):")
+            
+            # Домашняя команда (объединенные ячейки H? : I?+1) - 2x2
+            # Используем левую верхнюю ячейку объединенного диапазона
+            home_cell_h = sheet.cell(row=current_row, column=8)  # H8, H10, H12, ...
+            home_cell_i = sheet.cell(row=current_row, column=9)  # I8, I10, I12, ...
+            
+            # Объединенные ячейки обычно имеют значение только в верхней левой
+            home_prob = home_cell_h.value if home_cell_h.value is not None else home_cell_i.value
+            
+            # Ничья (ячейки J? и J?+1) - 1 колонка x 2 строки
+            draw_cell_top = sheet.cell(row=current_row, column=10)      # J8, J10, J12, ...
+            draw_cell_bottom = sheet.cell(row=current_row + 1, column=10)  # J9, J11, J13, ...
+            draw_prob = draw_cell_top.value if draw_cell_top.value is not None else draw_cell_bottom.value
+            
+            # Гостевая команда (объединенные ячейки K? : L?+1) - 2x2
+            away_cell_k = sheet.cell(row=current_row, column=11)  # K8, K10, K12, ...
+            away_cell_l = sheet.cell(row=current_row, column=12)  # L8, L10, L12, ...
+            
+            # Объединенные ячейки обычно имеют значение только в верхней левой
+            away_prob = away_cell_k.value if away_cell_k.value is not None else away_cell_l.value
+            
+            # Преобразуем в числа, если возможно
+            try:
+                home_prob = float(home_prob) if home_prob is not None else 0
+                print(f"  • Дома (H{current_row}/I{current_row}): {home_prob:.4f}")
+            except (ValueError, TypeError):
+                home_prob = 0
+                print(f"  • Дома (H{current_row}/I{current_row}): Н/Д")
+                
+            try:
+                draw_prob = float(draw_prob) if draw_prob is not None else 0
+                print(f"  • Ничья (J{current_row}/J{current_row+1}): {draw_prob:.4f}")
+            except (ValueError, TypeError):
+                draw_prob = 0
+                print(f"  • Ничья (J{current_row}/J{current_row+1}): Н/Д")
+                
+            try:
+                away_prob = float(away_prob) if away_prob is not None else 0
+                print(f"  • Гости (K{current_row}/L{current_row}): {away_prob:.4f}")
+            except (ValueError, TypeError):
+                away_prob = 0
+                print(f"  • Гости (K{current_row}/L{current_row}): Н/Д")
+            
+            # Проверяем сумму вероятностей (как доли, должно быть близко к 1.0)
+            total = home_prob + draw_prob + away_prob
+            if abs(total - 1.0) > 0.01:  # Допускаем погрешность в 0.01 (1%)
+                print(f"  ⚠️ Сумма долей: {total:.4f} (должна быть ~1.0)")
+                print(f"    В процентах: {total*100:.2f}% (должно быть ~100%)")
+            else:
+                print(f"  ✅ Сумма долей: {total:.4f} (~1.0)")
+                print(f"    В процентах: {total*100:.2f}% (~100%)")
+            
+            probabilities.append({
+                'strategy_idx': strategy_idx,
+                'home_prob': home_prob,  # Сохраняем как доли (0-1)
+                'draw_prob': draw_prob,  # Сохраняем как доли (0-1)
+                'away_prob': away_prob,  # Сохраняем как доли (0-1)
+                'row': current_row
+            })
+            
+        except Exception as e:
+            print(f"❌ Ошибка при чтении стратегии {strategy_idx + 1}: {e}")
+            probabilities.append({
+                'strategy_idx': strategy_idx,
+                'home_prob': 0,
+                'draw_prob': 0,
+                'away_prob': 0,
+                'row': current_row
+            })
+    
+    print("\n" + "=" * 60)
+    return probabilities
+
+def insert_outcome_probabilities_from_analysis(excel_file_path, match_id):
+    """
+    Читает вероятности из листа "Анализ" (столбцы H-L, строки 8-28) 
+    и вставляет их в таблицу outcome_probabilities для всех 10 подстратегий
+    """
+    try:
+        # Открываем Excel файл
+        wb = openpyxl.load_workbook(excel_file_path, data_only=True)
+        
+        # Проверяем наличие листа 'Анализ'
+        if 'Анализ' not in wb.sheetnames:
+            print("❌ Лист 'Анализ' не найден")
+            return False
+        
+        sheet_analysis = wb['Анализ']
+        
+        # Получаем список всех подстратегий из базы данных
+        conn = sqlite3.connect('matches.db')
+        cursor = conn.cursor()
+        
+        # Получаем все подстратегии
+        cursor.execute('SELECT id, strategy_name FROM sub_strategies ORDER BY id')
+        strategies = cursor.fetchall()
+        
+        if len(strategies) < 10:
+            print(f"⚠️ В базе только {len(strategies)} подстратегий из 10")
+            # Добавляем недостающие стратегии, если нужно
+            insert_default_strategies()
+            # Повторно получаем список стратегий
+            cursor.execute('SELECT id, strategy_name FROM sub_strategies ORDER BY id')
+            strategies = cursor.fetchall()
+        
+        # Извлекаем вероятности из листа Анализ
+        print(f"\n📊 Чтение вероятностей для матча {match_id}:")
+        probabilities = extract_probabilities_from_analysis(sheet_analysis)
+        
+        # В режиме отладки только выводим вероятности, не сохраняем
+        if DEBUG_MODE:
+            print("\n" + "=" * 70)
+            print("🔍 РЕЖИМ ОТЛАДКИ: Вероятности НЕ сохраняются в БД")
+            print("=" * 70)
+            print(f"📊 Данные для матча {match_id}:")
+            print("-" * 70)
+            
+            for i, prob_data in enumerate(probabilities):
+                if i < len(strategies):
+                    strategy_name = strategies[i][1]
+                    # Показываем исходные значения (как доли)
+                    print(f"\n  📍 {strategy_name} (строки {prob_data['row']}-{prob_data['row']+1}):")
+                    print(f"      Исходные значения (доли):")
+                    print(f"        Победа хозяев: {prob_data['home_prob']:.4f}")
+                    print(f"        Ничья:         {prob_data['draw_prob']:.4f}")
+                    print(f"        Победа гостей: {prob_data['away_prob']:.4f}")
+                    # Показываем значения в процентах
+                    print(f"      В процентах:")
+                    print(f"        Победа хозяев: {prob_data['home_prob'] * 100:.2f}%")
+                    print(f"        Ничья:         {prob_data['draw_prob'] * 100:.2f}%")
+                    print(f"        Победа гостей: {prob_data['away_prob'] * 100:.2f}%")
+                    total_doles = prob_data['home_prob'] + prob_data['draw_prob'] + prob_data['away_prob']
+                    total_percent = total_doles * 100
+                    print(f"      {'✅' if abs(total_doles - 1.0) < 0.01 else '⚠️'} Сумма (доли): {total_doles:.4f}")
+                    print(f"      {'✅' if abs(total_percent - 100) < 1 else '⚠️'} Сумма (%):    {total_percent:.2f}%")
+            
+            print("\n" + "=" * 70)
+            print("✅ Для сохранения в БД установите DEBUG_MODE = False")
+            print("=" * 70)
+            
+            conn.close()
+            wb.close()
+            return True
+        
+        # Режим реального сохранения в БД
+        print("\n💾 Сохранение вероятностей в базу данных...")
+        success_count = 0
+        for i, prob_data in enumerate(probabilities):
+            if i < len(strategies):
+                strategy_id = strategies[i][0]
+                strategy_name = strategies[i][1]
+                
+                # УМНОЖАЕМ НА 100 для сохранения в процентах
+                home_prob_percent = prob_data['home_prob'] * 100
+                draw_prob_percent = prob_data['draw_prob'] * 100
+                away_prob_percent = prob_data['away_prob'] * 100
+                
+                try:
+                    cursor.execute('''
+                    INSERT OR REPLACE INTO outcome_probabilities 
+                    (match_id, strategy_id, home_win_prob, draw_prob, away_win_prob)
+                    VALUES (?, ?, ?, ?, ?)
+                    ''', (
+                        match_id, 
+                        strategy_id, 
+                        home_prob_percent,
+                        draw_prob_percent,
+                        away_prob_percent
+                    ))
+                    success_count += 1
+                    print(f"  ✅ {strategy_name}: {home_prob_percent:.2f}% / {draw_prob_percent:.2f}% / {away_prob_percent:.2f}%")
+                    
+                except Exception as e:
+                    print(f"  ❌ Ошибка при вставке для стратегии {strategy_name}: {e}")
+        
+        conn.commit()
+        
+        print(f"\n✅ Успешно сохранены вероятности для {success_count} подстратегий")
+        
+        # Проверяем, что данные сохранились
+        cursor.execute('''
+        SELECT s.strategy_name, o.home_win_prob, o.draw_prob, o.away_win_prob 
+        FROM outcome_probabilities o
+        JOIN sub_strategies s ON o.strategy_id = s.id
+        WHERE o.match_id = ?
+        ORDER BY s.id
+        ''', (match_id,))
+        
+        results = cursor.fetchall()
+        if results:
+            print("\n📊 Проверка сохраненных данных (в процентах):")
+            print("-" * 60)
+            for row in results:
+                total = row[1] + row[2] + row[3]
+                print(f"  • {row[0]:12}: {row[1]:6.2f}% / {row[2]:6.2f}% / {row[3]:6.2f}%")
+                print(f"    Сумма: {total:6.2f}% {'✅' if abs(total - 100) < 1 else '⚠️'}")
+        
+        conn.close()
+        wb.close()
+        
+        return True
+        
+    except Exception as e:
+        print(f"❌ Ошибка при обработке данных: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+    
+def verify_strategies_in_db():
+    """Проверяет, что в базе есть все 10 подстратегий"""
+    conn = sqlite3.connect('matches.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT COUNT(*) FROM sub_strategies')
+    count = cursor.fetchone()[0]
+    
+    if count < 10:
+        print(f"⚠️ В базе только {count} подстратегий из 10")
+        print("Добавьте недостающие подстратегии:")
+        
+        # Список имен для 10 подстратегий (замените на ваши реальные названия)
+        default_strategies = [
+            'sub_strat_1', 'sub_strat_2', 'sub_strat_3', 'sub_strat_4', 'sub_strat_5',
+            'sub_strat_6', 'sub_strat_7', 'sub_strat_8', 'sub_strat_9', 'sub_strat_10'
+        ]
+        
+        for i, strat_name in enumerate(default_strategies, 1):
+            try:
+                cursor.execute('''
+                INSERT OR IGNORE INTO sub_strategies (strategy_name, description)
+                VALUES (?, ?)
+                ''', (strat_name, f'Подстратегия {i}'))
+                print(f"  • Добавлена: {strat_name}")
+            except:
+                pass
+        
+        conn.commit()
+    
+    # Показываем все стратегии
+    cursor.execute('SELECT id, strategy_name FROM sub_strategies ORDER BY id')
+    strategies = cursor.fetchall()
+    
+    print("\n📋 Стратегии в базе:")
+    for strat in strategies:
+        print(f"  ID {strat[0]}: {strat[1]}")
+    
+    conn.close()
+    return strategies
+
+def insert_match_data_with_probabilities(item, excel_file_path):
+    """
+    Вставка данных матча вместе с вероятностями из листа Анализ
+    """
+    # Сначала вставляем основные данные матча
+    success = insert_match_data(item)
+    
+    if success:
+        match_id = str(item.get('id', '')) if 'id' in item else str(item.get('match_id', ''))
+
+        # Вставляем вероятности из листа Анализ
+        insert_outcome_probabilities_from_analysis(excel_file_path, match_id)
+        
+        # Вставляем вероятности голов
+        insert_goal_probabilities(excel_file_path, match_id)
+    
+    return success
+
+# Если вам нужно получить вероятности для конкретной стратегии
+def get_strategy_probabilities(match_id, strategy_name):
+    """Получает вероятности для конкретной стратегии"""
+    conn = sqlite3.connect('matches.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+    SELECT o.home_win_prob, o.draw_prob, o.away_prob
+    FROM outcome_probabilities o
+    JOIN sub_strategies s ON o.strategy_id = s.id
+    WHERE o.match_id = ? AND s.strategy_name = ?
+    ''', (match_id, strategy_name))
+    
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        return {
+            'home': result[0],
+            'draw': result[1],
+            'away': result[2]
+        }
+    return None
+
+def get_goal_probabilities(match_id):
+    """Получает вероятности голов для матча"""
+    conn = sqlite3.connect('matches.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+    SELECT home_goals_0, home_goals_1, home_goals_2, home_goals_3, home_goals_4, home_goals_5,
+           away_goals_0, away_goals_1, away_goals_2, away_goals_3, away_goals_4, away_goals_5
+    FROM goal_probabilities
+    WHERE match_id = ?
+    ''', (match_id,))
+    
+    result = cursor.fetchone()
+    conn.close()
+    
+    if result:
+        return {
+            'home': result[:6],
+            'away': result[6:]
+        }
+    return None
+
+def get_cell_value(sheet, row, column):
+    """Безопасное получение значения ячейки"""
+    try:
+        cell = sheet.cell(row=row, column=column)
+        return str(cell.value) if cell.value is not None else ''
+    except:
+        return ''
+
+def get_column_letter(col_num):
+    """Преобразует номер колонки в букву (1 -> A, 2 -> B, etc.)"""
+    result = ""
+    while col_num > 0:
+        col_num -= 1
+        result = chr(col_num % 26 + 65) + result
+        col_num //= 26
+    return result
+
+def read_excel_file(file_path):
+    """Чтение данных из Excel файла с использованием только openpyxl"""
+    try:
+        # Открываем Excel файл
+        wb = openpyxl.load_workbook(file_path, data_only=True)
+        
+        # Проверяем наличие листа 'Архив'
+        if 'Архив' not in wb.sheetnames:
+            print("Лист 'Архив' не найден")
             return None
         
-        # Получаем последнюю строку из листа Архив
-        last_row = df_archive.iloc[-1]
+        sheet_archive = wb['Архив']
         
-        # Собираем данные в нужном формате
+        # Получаем последнюю строку с данными
+        max_row = sheet_archive.max_row
+        if max_row < 2:  # Если есть только заголовки или пусто
+            print("Лист 'Архив' не содержит данных")
+            return None
+        
+        last_row = max_row
+        
+        # Маппинг колонок: (буква, номер_колонки)
         column_mapping = {
-            'A': 'match_date',
-            'B': 'league', 
-            'C': 'home',
-            'D': 'away',
-            'E': 'id',
-            'AJ': 'prediction',
-            'AN': 'home_win_odds',
-            'AO': 'draw_odds',
-            'AP': 'away_win_odds',
-            'BJ': 'sport',
+            'A': 1,   # match_date
+            'B': 2,   # league
+            'C': 3,   # home
+            'D': 4,   # away
+            'E': 5,   # id
+            'AJ': 36, # prediction (A=1, J=10, AJ = 1 + 9*3 = 36)
+            'AK': 37, # strategy_pred_1 (AJ + 1)
+            'BK': 63, # strategy_pred_2 (проверим: B=2, K=11, BK = 2*26 + 11 = 63)
+            'AN': 40, # home_win_odds (A=1, N=14, AN = 1 + 13*3 = 40)
+            'AO': 41, # draw_odds
+            'AP': 42, # away_win_odds
+            'BJ': 62, # sport (A=1, J=10, BJ = 2*26 + 10 = 62)
         }
+        
+        # Проверяем, есть ли заголовки в первой строке
+        has_headers = sheet_archive.cell(row=1, column=1).value is not None
         
         # Создаем словарь для данных
         data = {}
         
-        # Если файл имеет заголовки, используем их
-        if df_archive.columns[0] != 0:
-            for excel_col, data_key in column_mapping.items():
-                try:
-                    col_idx = openpyxl.utils.column_index_from_string(excel_col) - 1
-                    if col_idx < len(df_archive.columns):
-                        col_name = df_archive.columns[col_idx]
-                        data[data_key] = str(last_row[col_name]) if pd.notna(last_row[col_name]) else ''
-                    else:
-                        data[data_key] = ''
-                except:
-                    data[data_key] = ''
-        else:
-            for excel_col, data_key in column_mapping.items():
-                try:
-                    col_idx = openpyxl.utils.column_index_from_string(excel_col) - 1
-                    if col_idx < len(df_archive.columns):
-                        data[data_key] = str(last_row[col_idx]) if pd.notna(last_row[col_idx]) else ''
-                    else:
-                        data[data_key] = ''
-                except:
-                    data[data_key] = ''
+        # Определяем начальную строку для данных
+        data_row = last_row if not has_headers else last_row
+        
+        # Получаем значения из листа Архив
+        for excel_col, col_num in column_mapping.items():
+            data_key = {
+                1: 'match_date',
+                2: 'league',
+                3: 'home',
+                4: 'away',
+                5: 'id',
+                36: 'prediction',
+                36: 'strategy_pred_1',  # AJ - стратегия 1
+                37: 'strategy_pred_2', 
+                63: 'strategy_pred_3',  # BK - стратегия 2 (нужно проверить точную колонку)
+                40: 'home_win_odds',
+                41: 'draw_odds',
+                42: 'away_win_odds',
+                62: 'sport'
+            }.get(col_num, f'col_{col_num}')
+            
+            data[data_key] = get_cell_value(sheet_archive, data_row, col_num)
         
         # Читаем дополнительные коэффициенты из листа 'Коэффициенты'
-        try:
-            df_odds = pd.read_excel(file_path, sheet_name='Коэффициенты', header=None)
+        if 'Коэффициенты' in wb.sheetnames:
+            sheet_odds = wb['Коэффициенты']
             
-            # Получаем данные из ячеек J3, K3, L3 (индексы: J=9, K=10, L=11, строки: 2 для 0-based)
-            if len(df_odds) > 2 and len(df_odds.columns) > 11:
-                data['1x_odds'] = str(df_odds.iloc[2, 9]) if pd.notna(df_odds.iloc[2, 9]) else ''
-                data['12_odds'] = str(df_odds.iloc[2, 10]) if pd.notna(df_odds.iloc[2, 10]) else ''
-                data['2x_odds'] = str(df_odds.iloc[2, 11]) if pd.notna(df_odds.iloc[2, 11]) else ''
-            else:
-                data['1x_odds'] = ''
-                data['12_odds'] = ''
-                data['2x_odds'] = ''
-                
-        except Exception as e:
-            print(f"Ошибка при чтении листа 'Коэффициенты': {e}")
+            data['1x_odds'] = get_cell_value(sheet_odds, 3, 8)  # H3
+            data['12_odds'] = get_cell_value(sheet_odds, 3, 9)  # I3
+            data['2x_odds'] = get_cell_value(sheet_odds, 3, 10)  # J3
+        else:
+            print("Лист 'Коэффициенты' не найден")
             data['1x_odds'] = ''
             data['12_odds'] = ''
             data['2x_odds'] = ''
         
-        print(f"Прочитана последняя строка из листа 'Архив':")
+        wb.close()
+        
+        print(f"Прочитана строка {data_row} из листа 'Архив':")
         for key, value in data.items():
             print(f"  {key}: {value}")
         
@@ -335,11 +952,45 @@ def read_excel_file(file_path):
         print(f"Ошибка при чтении Excel файла: {e}")
         return None
     
+def clear_table(table_name):
+    """Очищает все данные из таблицы, но сохраняет структуру"""
+    conn = sqlite3.connect('matches.db')
+    cursor = conn.cursor()
+    
+    try:
+        # Удаляем все строки из таблицы
+        cursor.execute(f'DELETE FROM {table_name}')
+        
+        # Сбрасываем счетчик автоинкремента (чтобы ID начинались с 1)
+        cursor.execute(f'DELETE FROM sqlite_sequence WHERE name = ?', (table_name,))
+        
+        conn.commit()
+        print(f"✅ Таблица '{table_name}' успешно очищена")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Ошибка при очистке таблицы '{table_name}': {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
 if __name__ == "__main__":
     try:
+        print(f"\n{'=' * 60}")
+        print(f"РЕЖИМ РАБОТЫ: {'ОТЛАДКА (только вывод)' if DEBUG_MODE else 'РАБОЧИЙ (сохранение в БД)'}")
+        print(f"{'=' * 60}\n")
+        
         # Определяем путь к Excel файлу в той же папке, что и скрипт
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        excel_file_path = os.path.join(script_dir, "C:\papki\work\Bets\DeluX_IncoProrok_fix_05-2025.xlsm")
+        excel_file_path = os.path.join(script_dir, "DeluX_IncoProrok_new.xlsm")
+        
+        # Проверяем существование файла
+        if not os.path.exists(excel_file_path):
+            print(f"Файл не найден по пути: {excel_file_path}")
+            # Пробуем абсолютный путь как запасной вариант
+            excel_file_path = r"C:\papki\work\Bets\DeluX_IncoProrok_new.xlsm"
+            print(f"Пробуем абсолютный путь: {excel_file_path}")
         
         # Читаем данные из Excel файла
         data = read_excel_file(excel_file_path)
@@ -347,7 +998,8 @@ if __name__ == "__main__":
         if data is not None:
             # Вставляем данные в базу данных
             success = insert_match_data(data)
-            
+            insert_match_data_with_probabilities(data, excel_file_path)
+
             if success:
                 BOT_TOKEN = "6055776005:AAGPEEGBcTlKNgKkee1CEUmdAyhBiCvnciw"
                 CHAT_ID = "736114046"
