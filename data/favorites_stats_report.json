@@ -1,0 +1,982 @@
+{
+  "generated_at": "2026-08-31T11:17:38.320032+00:00",
+  "module": "favorites_stats",
+  "description": "Статистика ставок на фаворитов: оптимальные кф победы и форы по видам спорта. Сигналы не генерируются.",
+  "params": {
+    "favorite_leagues_only": false,
+    "odds_grid": {
+      "min": 1.1,
+      "max": 4.0,
+      "step": 0.1
+    },
+    "fetch_injuries": false,
+    "fetch_injuries_limit": 50
+  },
+  "backtest": {
+    "odds_grid": {
+      "min": 1.1,
+      "max": 4.0,
+      "step": 0.1,
+      "levels": [
+        1.1,
+        1.2,
+        1.3,
+        1.4,
+        1.5,
+        1.6,
+        1.7,
+        1.8,
+        1.9,
+        2.0,
+        2.1,
+        2.2,
+        2.3,
+        2.4,
+        2.5,
+        2.6,
+        2.7,
+        2.8,
+        2.9,
+        3.0,
+        3.1,
+        3.2,
+        3.3,
+        3.4,
+        3.5,
+        3.6,
+        3.7,
+        3.8,
+        3.9,
+        4.0
+      ]
+    },
+    "totals": {
+      "matches": 1081,
+      "sports": 3,
+      "win_bets": {
+        "bets": 1065,
+        "wins": 569,
+        "losses": 496,
+        "pushes": 0,
+        "profit": -31.8,
+        "winrate_pct": 53.43,
+        "roi_pct": -2.99
+      },
+      "handicap_bets": {
+        "bets": 199,
+        "wins": 56,
+        "losses": 143,
+        "pushes": 0,
+        "profit": 12.46,
+        "winrate_pct": 28.14,
+        "roi_pct": 6.26
+      }
+    },
+    "by_sport": [
+      {
+        "sport_id": 1,
+        "sport_name": "Футбол",
+        "total_matches": 878,
+        "with_favorite": 866,
+        "win_settled": 865,
+        "handicap_settled": 1,
+        "skipped_no_1x2": 12,
+        "skipped_no_handicap": 865,
+        "win_all_bets": {
+          "bets": 865,
+          "wins": 466,
+          "losses": 399,
+          "pushes": 0,
+          "profit": -7.46,
+          "winrate_pct": 53.87,
+          "roi_pct": -0.86
+        },
+        "handicap_all_bets": {
+          "bets": 1,
+          "wins": 0,
+          "losses": 1,
+          "pushes": 0,
+          "profit": -1.0,
+          "winrate_pct": 0.0,
+          "roi_pct": -100.0
+        },
+        "win_by_odds": {
+          "1.1": {
+            "bets": 4,
+            "wins": 4,
+            "losses": 0,
+            "pushes": 0,
+            "profit": 0.45,
+            "winrate_pct": 100.0,
+            "roi_pct": 11.25
+          },
+          "1.2": {
+            "bets": 14,
+            "wins": 10,
+            "losses": 4,
+            "pushes": 0,
+            "profit": -2.02,
+            "winrate_pct": 71.43,
+            "roi_pct": -14.43
+          },
+          "1.3": {
+            "bets": 28,
+            "wins": 21,
+            "losses": 7,
+            "pushes": 0,
+            "profit": -0.8,
+            "winrate_pct": 75.0,
+            "roi_pct": -2.86
+          },
+          "1.4": {
+            "bets": 48,
+            "wins": 34,
+            "losses": 14,
+            "pushes": 0,
+            "profit": -0.41,
+            "winrate_pct": 70.83,
+            "roi_pct": -0.85
+          },
+          "1.5": {
+            "bets": 57,
+            "wins": 38,
+            "losses": 19,
+            "pushes": 0,
+            "profit": -0.08,
+            "winrate_pct": 66.67,
+            "roi_pct": -0.14
+          },
+          "1.6": {
+            "bets": 109,
+            "wins": 71,
+            "losses": 38,
+            "pushes": 0,
+            "profit": 5.2,
+            "winrate_pct": 65.14,
+            "roi_pct": 4.77
+          },
+          "1.7": {
+            "bets": 95,
+            "wins": 49,
+            "losses": 46,
+            "pushes": 0,
+            "profit": -11.58,
+            "winrate_pct": 51.58,
+            "roi_pct": -12.19
+          },
+          "1.8": {
+            "bets": 117,
+            "wins": 66,
+            "losses": 51,
+            "pushes": 0,
+            "profit": 1.68,
+            "winrate_pct": 56.41,
+            "roi_pct": 1.44
+          },
+          "1.9": {
+            "bets": 81,
+            "wins": 39,
+            "losses": 42,
+            "pushes": 0,
+            "profit": -7.1,
+            "winrate_pct": 48.15,
+            "roi_pct": -8.77
+          },
+          "2.0": {
+            "bets": 55,
+            "wins": 28,
+            "losses": 27,
+            "pushes": 0,
+            "profit": 1.0,
+            "winrate_pct": 50.91,
+            "roi_pct": 1.82
+          },
+          "2.1": {
+            "bets": 33,
+            "wins": 14,
+            "losses": 19,
+            "pushes": 0,
+            "profit": -3.64,
+            "winrate_pct": 42.42,
+            "roi_pct": -11.03
+          },
+          "2.2": {
+            "bets": 65,
+            "wins": 22,
+            "losses": 43,
+            "pushes": 0,
+            "profit": -16.72,
+            "winrate_pct": 33.85,
+            "roi_pct": -25.72
+          },
+          "2.3": {
+            "bets": 36,
+            "wins": 16,
+            "losses": 20,
+            "pushes": 0,
+            "profit": 0.68,
+            "winrate_pct": 44.44,
+            "roi_pct": 1.89
+          },
+          "2.4": {
+            "bets": 41,
+            "wins": 18,
+            "losses": 23,
+            "pushes": 0,
+            "profit": 1.95,
+            "winrate_pct": 43.9,
+            "roi_pct": 4.76
+          },
+          "2.5": {
+            "bets": 19,
+            "wins": 9,
+            "losses": 10,
+            "pushes": 0,
+            "profit": 3.56,
+            "winrate_pct": 47.37,
+            "roi_pct": 18.74
+          },
+          "2.6": {
+            "bets": 33,
+            "wins": 12,
+            "losses": 21,
+            "pushes": 0,
+            "profit": -1.81,
+            "winrate_pct": 36.36,
+            "roi_pct": -5.48
+          },
+          "2.7": {
+            "bets": 8,
+            "wins": 3,
+            "losses": 5,
+            "pushes": 0,
+            "profit": 0.14,
+            "winrate_pct": 37.5,
+            "roi_pct": 1.75
+          },
+          "2.8": {
+            "bets": 4,
+            "wins": 1,
+            "losses": 3,
+            "pushes": 0,
+            "profit": -1.16,
+            "winrate_pct": 25.0,
+            "roi_pct": -29.0
+          },
+          "2.9": {
+            "bets": 1,
+            "wins": 0,
+            "losses": 1,
+            "pushes": 0,
+            "profit": -1.0,
+            "winrate_pct": 0.0,
+            "roi_pct": -100.0
+          },
+          "3.0": {
+            "bets": 1,
+            "wins": 1,
+            "losses": 0,
+            "pushes": 0,
+            "profit": 1.95,
+            "winrate_pct": 100.0,
+            "roi_pct": 195.0
+          },
+          "3.2": {
+            "bets": 2,
+            "wins": 1,
+            "losses": 1,
+            "pushes": 0,
+            "profit": 1.25,
+            "winrate_pct": 50.0,
+            "roi_pct": 62.5
+          },
+          "3.4": {
+            "bets": 2,
+            "wins": 2,
+            "losses": 0,
+            "pushes": 0,
+            "profit": 4.9,
+            "winrate_pct": 100.0,
+            "roi_pct": 245.0
+          },
+          "3.5": {
+            "bets": 1,
+            "wins": 1,
+            "losses": 0,
+            "pushes": 0,
+            "profit": 2.5,
+            "winrate_pct": 100.0,
+            "roi_pct": 250.0
+          },
+          "3.6": {
+            "bets": 2,
+            "wins": 1,
+            "losses": 1,
+            "pushes": 0,
+            "profit": 1.65,
+            "winrate_pct": 50.0,
+            "roi_pct": 82.5
+          },
+          "3.8": {
+            "bets": 1,
+            "wins": 1,
+            "losses": 0,
+            "pushes": 0,
+            "profit": 2.85,
+            "winrate_pct": 100.0,
+            "roi_pct": 285.0
+          },
+          "4.0": {
+            "bets": 8,
+            "wins": 4,
+            "losses": 4,
+            "pushes": 0,
+            "profit": 9.1,
+            "winrate_pct": 50.0,
+            "roi_pct": 113.75
+          }
+        },
+        "handicap_by_bet_odds": {
+          "4.0": {
+            "bets": 1,
+            "wins": 0,
+            "losses": 1,
+            "pushes": 0,
+            "profit": -1.0,
+            "winrate_pct": 0.0,
+            "roi_pct": -100.0
+          }
+        },
+        "handicap_by_max_odds": {
+          "4.0": {
+            "bets": 1,
+            "wins": 0,
+            "losses": 1,
+            "pushes": 0,
+            "profit": -1.0,
+            "winrate_pct": 0.0,
+            "roi_pct": -100.0
+          }
+        },
+        "optimal_win_odds_bucket": {
+          "odds_bucket": 4.0,
+          "bets": 8,
+          "wins": 4,
+          "losses": 4,
+          "pushes": 0,
+          "profit": 9.1,
+          "winrate_pct": 50.0,
+          "roi_pct": 113.75
+        },
+        "optimal_handicap_odds_bucket": null,
+        "optimal_win_odds_range": {
+          "odds_min": 2.3,
+          "odds_max": 4.0,
+          "bets": 159,
+          "profit": 26.56,
+          "roi_pct": 16.7,
+          "winrate_pct": 44.03
+        },
+        "optimal_handicap_odds_range": null
+      },
+      {
+        "sport_id": 4,
+        "sport_name": "Хоккей",
+        "total_matches": 1,
+        "with_favorite": 1,
+        "win_settled": 1,
+        "handicap_settled": 1,
+        "skipped_no_1x2": 0,
+        "skipped_no_handicap": 0,
+        "win_all_bets": {
+          "bets": 1,
+          "wins": 0,
+          "losses": 1,
+          "pushes": 0,
+          "profit": -1.0,
+          "winrate_pct": 0.0,
+          "roi_pct": -100.0
+        },
+        "handicap_all_bets": {
+          "bets": 1,
+          "wins": 0,
+          "losses": 1,
+          "pushes": 0,
+          "profit": -1.0,
+          "winrate_pct": 0.0,
+          "roi_pct": -100.0
+        },
+        "win_by_odds": {
+          "2.1": {
+            "bets": 1,
+            "wins": 0,
+            "losses": 1,
+            "pushes": 0,
+            "profit": -1.0,
+            "winrate_pct": 0.0,
+            "roi_pct": -100.0
+          }
+        },
+        "handicap_by_bet_odds": {
+          "4.0": {
+            "bets": 1,
+            "wins": 0,
+            "losses": 1,
+            "pushes": 0,
+            "profit": -1.0,
+            "winrate_pct": 0.0,
+            "roi_pct": -100.0
+          }
+        },
+        "handicap_by_max_odds": {
+          "4.0": {
+            "bets": 1,
+            "wins": 0,
+            "losses": 1,
+            "pushes": 0,
+            "profit": -1.0,
+            "winrate_pct": 0.0,
+            "roi_pct": -100.0
+          }
+        },
+        "optimal_win_odds_bucket": null,
+        "optimal_handicap_odds_bucket": null,
+        "optimal_win_odds_range": null,
+        "optimal_handicap_odds_range": null
+      },
+      {
+        "sport_id": 6,
+        "sport_name": "Бейсбол",
+        "total_matches": 202,
+        "with_favorite": 199,
+        "win_settled": 199,
+        "handicap_settled": 197,
+        "skipped_no_1x2": 3,
+        "skipped_no_handicap": 2,
+        "win_all_bets": {
+          "bets": 199,
+          "wins": 103,
+          "losses": 96,
+          "pushes": 0,
+          "profit": -23.34,
+          "winrate_pct": 51.76,
+          "roi_pct": -11.73
+        },
+        "handicap_all_bets": {
+          "bets": 197,
+          "wins": 56,
+          "losses": 141,
+          "pushes": 0,
+          "profit": 14.46,
+          "winrate_pct": 28.43,
+          "roi_pct": 7.34
+        },
+        "win_by_odds": {
+          "1.3": {
+            "bets": 4,
+            "wins": 4,
+            "losses": 0,
+            "pushes": 0,
+            "profit": 1.29,
+            "winrate_pct": 100.0,
+            "roi_pct": 32.25
+          },
+          "1.4": {
+            "bets": 7,
+            "wins": 4,
+            "losses": 3,
+            "pushes": 0,
+            "profit": -1.34,
+            "winrate_pct": 57.14,
+            "roi_pct": -19.14
+          },
+          "1.5": {
+            "bets": 13,
+            "wins": 5,
+            "losses": 8,
+            "pushes": 0,
+            "profit": -5.47,
+            "winrate_pct": 38.46,
+            "roi_pct": -42.08
+          },
+          "1.6": {
+            "bets": 48,
+            "wins": 25,
+            "losses": 23,
+            "pushes": 0,
+            "profit": -7.89,
+            "winrate_pct": 52.08,
+            "roi_pct": -16.44
+          },
+          "1.7": {
+            "bets": 42,
+            "wins": 20,
+            "losses": 22,
+            "pushes": 0,
+            "profit": -7.92,
+            "winrate_pct": 47.62,
+            "roi_pct": -18.86
+          },
+          "1.8": {
+            "bets": 45,
+            "wins": 26,
+            "losses": 19,
+            "pushes": 0,
+            "profit": 1.79,
+            "winrate_pct": 57.78,
+            "roi_pct": 3.98
+          },
+          "1.9": {
+            "bets": 38,
+            "wins": 18,
+            "losses": 20,
+            "pushes": 0,
+            "profit": -3.75,
+            "winrate_pct": 47.37,
+            "roi_pct": -9.87
+          },
+          "2.0": {
+            "bets": 2,
+            "wins": 1,
+            "losses": 1,
+            "pushes": 0,
+            "profit": -0.05,
+            "winrate_pct": 50.0,
+            "roi_pct": -2.5
+          }
+        },
+        "handicap_by_bet_odds": {
+          "2.2": {
+            "bets": 6,
+            "wins": 3,
+            "losses": 3,
+            "pushes": 0,
+            "profit": 0.54,
+            "winrate_pct": 50.0,
+            "roi_pct": 9.0
+          },
+          "2.3": {
+            "bets": 4,
+            "wins": 0,
+            "losses": 4,
+            "pushes": 0,
+            "profit": -4.0,
+            "winrate_pct": 0.0,
+            "roi_pct": -100.0
+          },
+          "2.4": {
+            "bets": 6,
+            "wins": 2,
+            "losses": 4,
+            "pushes": 0,
+            "profit": -1.13,
+            "winrate_pct": 33.33,
+            "roi_pct": -18.83
+          },
+          "2.5": {
+            "bets": 3,
+            "wins": 1,
+            "losses": 2,
+            "pushes": 0,
+            "profit": -0.53,
+            "winrate_pct": 33.33,
+            "roi_pct": -17.67
+          },
+          "2.6": {
+            "bets": 6,
+            "wins": 3,
+            "losses": 3,
+            "pushes": 0,
+            "profit": 1.86,
+            "winrate_pct": 50.0,
+            "roi_pct": 31.0
+          },
+          "2.7": {
+            "bets": 7,
+            "wins": 3,
+            "losses": 4,
+            "pushes": 0,
+            "profit": 1.08,
+            "winrate_pct": 42.86,
+            "roi_pct": 15.43
+          },
+          "2.8": {
+            "bets": 6,
+            "wins": 0,
+            "losses": 6,
+            "pushes": 0,
+            "profit": -6.0,
+            "winrate_pct": 0.0,
+            "roi_pct": -100.0
+          },
+          "2.9": {
+            "bets": 2,
+            "wins": 1,
+            "losses": 1,
+            "pushes": 0,
+            "profit": 0.9,
+            "winrate_pct": 50.0,
+            "roi_pct": 45.0
+          },
+          "3.0": {
+            "bets": 6,
+            "wins": 2,
+            "losses": 4,
+            "pushes": 0,
+            "profit": 0.04,
+            "winrate_pct": 33.33,
+            "roi_pct": 0.67
+          },
+          "3.1": {
+            "bets": 4,
+            "wins": 2,
+            "losses": 2,
+            "pushes": 0,
+            "profit": 2.24,
+            "winrate_pct": 50.0,
+            "roi_pct": 56.0
+          },
+          "3.2": {
+            "bets": 2,
+            "wins": 1,
+            "losses": 1,
+            "pushes": 0,
+            "profit": 1.25,
+            "winrate_pct": 50.0,
+            "roi_pct": 62.5
+          },
+          "3.3": {
+            "bets": 5,
+            "wins": 1,
+            "losses": 4,
+            "pushes": 0,
+            "profit": -1.7,
+            "winrate_pct": 20.0,
+            "roi_pct": -34.0
+          },
+          "3.4": {
+            "bets": 6,
+            "wins": 6,
+            "losses": 0,
+            "pushes": 0,
+            "profit": 14.54,
+            "winrate_pct": 100.0,
+            "roi_pct": 242.33
+          },
+          "3.5": {
+            "bets": 9,
+            "wins": 2,
+            "losses": 7,
+            "pushes": 0,
+            "profit": -2.0,
+            "winrate_pct": 22.22,
+            "roi_pct": -22.22
+          },
+          "3.6": {
+            "bets": 10,
+            "wins": 1,
+            "losses": 9,
+            "pushes": 0,
+            "profit": -6.4,
+            "winrate_pct": 10.0,
+            "roi_pct": -64.0
+          },
+          "3.7": {
+            "bets": 4,
+            "wins": 1,
+            "losses": 3,
+            "pushes": 0,
+            "profit": -0.3,
+            "winrate_pct": 25.0,
+            "roi_pct": -7.5
+          },
+          "3.8": {
+            "bets": 11,
+            "wins": 3,
+            "losses": 8,
+            "pushes": 0,
+            "profit": 0.42,
+            "winrate_pct": 27.27,
+            "roi_pct": 3.82
+          },
+          "3.9": {
+            "bets": 8,
+            "wins": 3,
+            "losses": 5,
+            "pushes": 0,
+            "profit": 3.74,
+            "winrate_pct": 37.5,
+            "roi_pct": 46.75
+          },
+          "4.0": {
+            "bets": 92,
+            "wins": 21,
+            "losses": 71,
+            "pushes": 0,
+            "profit": 9.91,
+            "winrate_pct": 22.83,
+            "roi_pct": 10.77
+          }
+        },
+        "handicap_by_max_odds": {
+          "2.4": {
+            "bets": 4,
+            "wins": 2,
+            "losses": 2,
+            "pushes": 0,
+            "profit": 0.3,
+            "winrate_pct": 50.0,
+            "roi_pct": 7.5
+          },
+          "2.6": {
+            "bets": 3,
+            "wins": 0,
+            "losses": 3,
+            "pushes": 0,
+            "profit": -3.0,
+            "winrate_pct": 0.0,
+            "roi_pct": -100.0
+          },
+          "2.7": {
+            "bets": 5,
+            "wins": 1,
+            "losses": 4,
+            "pushes": 0,
+            "profit": -2.76,
+            "winrate_pct": 20.0,
+            "roi_pct": -55.2
+          },
+          "2.8": {
+            "bets": 4,
+            "wins": 2,
+            "losses": 2,
+            "pushes": 0,
+            "profit": 0.92,
+            "winrate_pct": 50.0,
+            "roi_pct": 23.0
+          },
+          "3.0": {
+            "bets": 5,
+            "wins": 2,
+            "losses": 3,
+            "pushes": 0,
+            "profit": 0.23,
+            "winrate_pct": 40.0,
+            "roi_pct": 4.6
+          },
+          "3.1": {
+            "bets": 3,
+            "wins": 2,
+            "losses": 1,
+            "pushes": 0,
+            "profit": 2.38,
+            "winrate_pct": 66.67,
+            "roi_pct": 79.33
+          },
+          "3.2": {
+            "bets": 6,
+            "wins": 1,
+            "losses": 5,
+            "pushes": 0,
+            "profit": -3.37,
+            "winrate_pct": 16.67,
+            "roi_pct": -56.17
+          },
+          "3.3": {
+            "bets": 2,
+            "wins": 0,
+            "losses": 2,
+            "pushes": 0,
+            "profit": -2.0,
+            "winrate_pct": 0.0,
+            "roi_pct": -100.0
+          },
+          "3.4": {
+            "bets": 5,
+            "wins": 3,
+            "losses": 2,
+            "pushes": 0,
+            "profit": 3.02,
+            "winrate_pct": 60.0,
+            "roi_pct": 60.4
+          },
+          "3.5": {
+            "bets": 7,
+            "wins": 1,
+            "losses": 6,
+            "pushes": 0,
+            "profit": -4.0,
+            "winrate_pct": 14.29,
+            "roi_pct": -57.14
+          },
+          "3.6": {
+            "bets": 3,
+            "wins": 2,
+            "losses": 1,
+            "pushes": 0,
+            "profit": 3.72,
+            "winrate_pct": 66.67,
+            "roi_pct": 124.0
+          },
+          "3.7": {
+            "bets": 3,
+            "wins": 2,
+            "losses": 1,
+            "pushes": 0,
+            "profit": 3.5,
+            "winrate_pct": 66.67,
+            "roi_pct": 116.67
+          },
+          "3.8": {
+            "bets": 5,
+            "wins": 2,
+            "losses": 3,
+            "pushes": 0,
+            "profit": 1.49,
+            "winrate_pct": 40.0,
+            "roi_pct": 29.8
+          },
+          "3.9": {
+            "bets": 3,
+            "wins": 2,
+            "losses": 1,
+            "pushes": 0,
+            "profit": 3.54,
+            "winrate_pct": 66.67,
+            "roi_pct": 118.0
+          },
+          "4.0": {
+            "bets": 139,
+            "wins": 34,
+            "losses": 105,
+            "pushes": 0,
+            "profit": 10.49,
+            "winrate_pct": 24.46,
+            "roi_pct": 7.55
+          }
+        },
+        "optimal_win_odds_bucket": {
+          "odds_bucket": 1.8,
+          "bets": 45,
+          "wins": 26,
+          "losses": 19,
+          "pushes": 0,
+          "profit": 1.79,
+          "winrate_pct": 57.78,
+          "roi_pct": 3.98
+        },
+        "optimal_handicap_odds_bucket": {
+          "odds_bucket": 3.4,
+          "bets": 6,
+          "wins": 6,
+          "losses": 0,
+          "pushes": 0,
+          "profit": 14.54,
+          "winrate_pct": 100.0,
+          "roi_pct": 242.33
+        },
+        "optimal_win_odds_range": {
+          "odds_min": 1.8,
+          "odds_max": 1.8,
+          "bets": 45,
+          "profit": 1.79,
+          "roi_pct": 3.98,
+          "winrate_pct": 57.78
+        },
+        "optimal_handicap_odds_range": {
+          "odds_min": 2.9,
+          "odds_max": 4.0,
+          "bets": 159,
+          "profit": 22.64,
+          "roi_pct": 14.24,
+          "winrate_pct": 27.67
+        }
+      }
+    ]
+  },
+  "injuries": {
+    "status": "ok",
+    "message": "Загружено записей об отсутствующих игроках: 10",
+    "database": "C:\\papki\\work\\bets\\delux\\matches.db",
+    "available": true,
+    "api": "https://46.ds.lsapp.eu/pq_graphql?_hash=dmpe2&eventId={match_id}&projectId=46",
+    "matches_with_data": 1,
+    "matches_with_confirmed_injuries": 1,
+    "total_records": 10,
+    "by_category": {
+      "injury": 7,
+      "transfer": 2,
+      "suspension": 1
+    },
+    "top_reasons": [
+      {
+        "reason": "Transfer negotiations",
+        "count": 2
+      },
+      {
+        "reason": "Травма колена",
+        "count": 2
+      },
+      {
+        "reason": "Травма лодыжки",
+        "count": 2
+      },
+      {
+        "reason": "Красная карточка",
+        "count": 1
+      },
+      {
+        "reason": "Мышечная травма",
+        "count": 1
+      },
+      {
+        "reason": "Травма",
+        "count": 1
+      },
+      {
+        "reason": "Травма спины",
+        "count": 1
+      }
+    ],
+    "by_sport": [
+      {
+        "sport_id": 0,
+        "sport_name": "Неизвестно",
+        "matches_with_data": 1,
+        "missing_players": 10,
+        "injury_records": 7
+      }
+    ],
+    "favorite_win_impact": {
+      "favorite_has_injury": {
+        "bets": 0,
+        "wins": 0,
+        "profit": 0.0,
+        "winrate_pct": null,
+        "roi_pct": null
+      },
+      "favorite_no_injury": {
+        "bets": 0,
+        "wins": 0,
+        "profit": 0.0,
+        "winrate_pct": null,
+        "roi_pct": null
+      },
+      "underdog_has_injury": {
+        "bets": 0,
+        "wins": 0,
+        "profit": 0.0,
+        "winrate_pct": null,
+        "roi_pct": null
+      },
+      "no_lineup_data": {
+        "bets": 1066,
+        "wins": 570,
+        "profit": -31.76,
+        "winrate_pct": 53.47,
+        "roi_pct": -2.98
+      }
+    },
+    "fetch": null
+  }
+}

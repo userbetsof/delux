@@ -1,0 +1,13 @@
+{
+  "match_id": "YPpBCfeo",
+  "S13": "П1",
+  "O10": "-",
+  "X24": "ТБ 8,5",
+  "E3": "Лос Анджелес Доджерс",
+  "K3": "Канзас Сити Роялс",
+  "table_overall_unique": 30,
+  "table_home_unique": 30,
+  "table_away_unique": 30,
+  "home_home_rows": 21,
+  "note": "Verified 2026-08-10 via get_game.py; predictions match prior achive K/S"
+}

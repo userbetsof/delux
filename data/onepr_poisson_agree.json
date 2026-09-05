@@ -1,0 +1,169 @@
+{
+  "universe": {
+    "both_present": 567,
+    "agree": 400,
+    "disagree": 167,
+    "agree_pct": 70.55,
+    "agree_with_odds": 391
+  },
+  "agree_flat": {
+    "n": 400,
+    "winrate_pct": 56.0,
+    "real_odds": {
+      "bets": 391,
+      "wins": 220,
+      "losses": 171,
+      "winrate_pct": 56.27,
+      "avg_odds": 2.053,
+      "profit": 37.21,
+      "roi_pct": 9.52
+    }
+  },
+  "by_selection": {
+    "1": {
+      "n": 208,
+      "winrate_pct": 58.17,
+      "real_odds": {
+        "bets": 204,
+        "wins": 120,
+        "losses": 84,
+        "winrate_pct": 58.82,
+        "avg_odds": 1.89,
+        "profit": 13.0,
+        "roi_pct": 6.37
+      }
+    },
+    "2": {
+      "n": 192,
+      "winrate_pct": 53.65,
+      "real_odds": {
+        "bets": 187,
+        "wins": 100,
+        "losses": 87,
+        "winrate_pct": 53.48,
+        "avg_odds": 2.23,
+        "profit": 24.21,
+        "roi_pct": 12.95
+      }
+    }
+  },
+  "by_min_prob": {
+    "0.4": {
+      "n": 373,
+      "winrate_pct": 56.3,
+      "real_odds": {
+        "bets": 364,
+        "wins": 206,
+        "losses": 158,
+        "winrate_pct": 56.59,
+        "avg_odds": 1.995,
+        "profit": 28.5,
+        "roi_pct": 7.83
+      }
+    },
+    "0.45": {
+      "n": 300,
+      "winrate_pct": 58.0,
+      "real_odds": {
+        "bets": 291,
+        "wins": 170,
+        "losses": 121,
+        "winrate_pct": 58.42,
+        "avg_odds": 1.945,
+        "profit": 27.11,
+        "roi_pct": 9.32
+      }
+    },
+    "0.5": {
+      "n": 206,
+      "winrate_pct": 55.83,
+      "real_odds": {
+        "bets": 199,
+        "wins": 112,
+        "losses": 87,
+        "winrate_pct": 56.28,
+        "avg_odds": 1.872,
+        "profit": -4.07,
+        "roi_pct": -2.05
+      }
+    },
+    "0.55": {
+      "n": 119,
+      "winrate_pct": 58.82,
+      "real_odds": {
+        "bets": 117,
+        "wins": 70,
+        "losses": 47,
+        "winrate_pct": 59.83,
+        "avg_odds": 1.801,
+        "profit": 1.78,
+        "roi_pct": 1.52
+      }
+    },
+    "0.6": {
+      "n": 58,
+      "winrate_pct": 67.24,
+      "real_odds": {
+        "bets": 58,
+        "wins": 39,
+        "losses": 19,
+        "winrate_pct": 67.24,
+        "avg_odds": 1.693,
+        "profit": 5.04,
+        "roi_pct": 8.69
+      }
+    }
+  },
+  "baseline_same_sample": {
+    "1 пр": {
+      "note": "на тех же матчах, где оба выбрали один исход",
+      "real_odds": {
+        "bets": 391,
+        "wins": 220,
+        "losses": 171,
+        "winrate_pct": 56.27,
+        "avg_odds": 2.053,
+        "profit": 37.21,
+        "roi_pct": 9.52
+      }
+    },
+    "poisson": {
+      "note": "на тех же матчах, где оба выбрали один исход",
+      "real_odds": {
+        "bets": 391,
+        "wins": 220,
+        "losses": 171,
+        "winrate_pct": 56.27,
+        "avg_odds": 2.053,
+        "profit": 37.21,
+        "roi_pct": 9.52
+      }
+    }
+  },
+  "baseline_full": {
+    "1 пр": {
+      "n_with_odds": 551,
+      "real_odds": {
+        "bets": 551,
+        "wins": 295,
+        "losses": 256,
+        "winrate_pct": 53.54,
+        "avg_odds": 2.228,
+        "profit": 78.47,
+        "roi_pct": 14.24
+      }
+    },
+    "poisson": {
+      "n_with_odds": 551,
+      "real_odds": {
+        "bets": 551,
+        "wins": 288,
+        "losses": 263,
+        "winrate_pct": 52.27,
+        "avg_odds": 2.334,
+        "profit": 58.6,
+        "roi_pct": 10.64
+      }
+    }
+  }
+}

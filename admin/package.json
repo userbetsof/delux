@@ -1,0 +1,19 @@
+{
+  "name": "delux-admin",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --experimental-sqlite ./node_modules/nuxt/bin/nuxt.mjs dev --host 127.0.0.1 --port 3000",
+    "build": "node --experimental-sqlite ./node_modules/nuxt/bin/nuxt.mjs build",
+    "preview": "node --experimental-sqlite ./node_modules/nuxt/bin/nuxt.mjs preview --host 127.0.0.1 --port 3000"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "nuxt": "^4.4.2",
+    "vuetify": "^3.12.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.3.11"
+  }
+}

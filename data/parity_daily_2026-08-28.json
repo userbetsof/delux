@@ -1,0 +1,1056 @@
+{
+  "date": "2026.08.28",
+  "excel_db": "C:\\papki\\work\\bets\\delux\\data\\parity_excel.db",
+  "python_db": "C:\\papki\\work\\bets\\delux\\data\\parity_python.db",
+  "total": 29,
+  "ok": 5,
+  "pct": 17.24137931034483,
+  "strategy_tol": 0.01,
+  "reports": [
+    {
+      "match_id": "04iquKa4",
+      "ok": false,
+      "diff_count": 20,
+      "diffs": [
+        "strategy[1].home_prob: excel=0.0 python=0.5 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.5 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.125 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.75 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.125 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.5 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.5 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=0.9142857142857143 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-0.7714285714285714 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=0.8571428571428571 (tol=0.01)",
+        "strategy[7].home_prob: excel=0.0 python=0.44397852584680997 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.1807379938447423 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.3752834803084478 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.6714426965588816 python=0.4047124442429694 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.231717064471906 python=0.16413154162012725 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.09652126977046774 python=0.4040174802407882 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.5 python=0.3188405797101449 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.20772946859903382 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.5 python=0.47342995169082125 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "1X",
+        "prediction_betalone": "",
+        "prediction_sniper": "1X"
+      },
+      "python": {
+        "prediction_ntb": "1X",
+        "prediction_betalone": "",
+        "prediction_sniper": "1X"
+      }
+    },
+    {
+      "match_id": "0C201K2E",
+      "ok": true,
+      "diff_count": 0,
+      "diffs": [],
+      "excel": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 8,5"
+      },
+      "python": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 8,5"
+      }
+    },
+    {
+      "match_id": "25pEuwte",
+      "ok": false,
+      "diff_count": 2,
+      "diffs": [
+        "prediction_betalone: excel='-' python='П2'",
+        "prediction_sniper: excel='ТБ 4,5' python='ТБ 3,5'"
+      ],
+      "excel": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "-",
+        "prediction_sniper": "ТБ 4,5"
+      },
+      "python": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "П2",
+        "prediction_sniper": "ТБ 3,5"
+      }
+    },
+    {
+      "match_id": "4QTNdyNN",
+      "ok": false,
+      "diff_count": 17,
+      "diffs": [
+        "prediction_ntb: excel='Ф1(0)' python='ОЗ'",
+        "prediction_sniper: excel='Ф1(0)' python='ОЗ'",
+        "strategy[1].home_prob: excel=0.0 python=0.33333333333333326 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.33333333333333326 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.33333333333333326 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.2727272727272727 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-1.863636363636363 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.5909090909090908 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.5 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.0 python=0.40402931271953124 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.0 python=0.1525636320053669 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.0 python=0.39106099746762946 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.0 python=0.11111111111111112 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.41269841269841273 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.0 python=0.4761904761904761 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "Ф1(0)",
+        "prediction_betalone": "-",
+        "prediction_sniper": "Ф1(0)"
+      },
+      "python": {
+        "prediction_ntb": "ОЗ",
+        "prediction_betalone": "",
+        "prediction_sniper": "ОЗ"
+      }
+    },
+    {
+      "match_id": "4buZ3476",
+      "ok": false,
+      "diff_count": 23,
+      "diffs": [
+        "prediction_sniper: excel='П2' python='ТБ 8,5'",
+        "strategy[1].home_prob: excel=0.0 python=0.15878205128205128 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.16602564102564102 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.6751923076923076 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.09535256410256411 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.6219551282051282 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.2826923076923077 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.07614368010843782 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.23971535072856662 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.6841409691629956 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.1958762886597938 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-2.216494845360825 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=2.020618556701031 (tol=0.01)",
+        "strategy[7].home_prob: excel=0.0 python=0.14195166538025972 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.3741881927028796 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.4838601419168606 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.11517774223023997 python=0.1923652849459378 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.2756304143835788 python=0.14608515314262832 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.6090935886759445 python=0.6355837682336003 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.0 python=0.05555555555555556 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.19841269841269843 (tol=0.01)",
+        "strategy[9].away_prob: excel=1.0 python=0.746031746031746 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "-",
+        "prediction_sniper": "П2"
+      },
+      "python": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 8,5"
+      }
+    },
+    {
+      "match_id": "6ots82LG",
+      "ok": false,
+      "diff_count": 23,
+      "diffs": [
+        "prediction_ntb: excel='1X + ТБ -0,5' python='Х П2'",
+        "prediction_sniper: excel='1X + ТБ -0,5' python='Х П2'",
+        "strategy[1].home_prob: excel=0.0 python=0.5637254901960784 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.1813725490196078 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.2549019607843137 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.4852941176470588 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.43823529411764706 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.07647058823529412 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.634858812074002 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.2690684842583577 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.09607270366764036 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.411764705882353 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-1.8627450980392157 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.4509803921568627 (tol=0.01)",
+        "strategy[7].home_prob: excel=0.0 python=0.3811324392995289 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.5410136994720897 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.0778538612283814 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.3511057045645821 python=0.2788310446303821 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.4134319757311051 python=0.16990654813665645 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.235461470677009 python=0.537285412275529 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.6857142857142857 python=0.5606060606060606 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.14285714285714288 python=0.26515151515151514 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "1X + ТБ -0,5",
+        "prediction_betalone": "-",
+        "prediction_sniper": "1X + ТБ -0,5"
+      },
+      "python": {
+        "prediction_ntb": "Х П2",
+        "prediction_betalone": "",
+        "prediction_sniper": "Х П2"
+      }
+    },
+    {
+      "match_id": "6wi5saBr",
+      "ok": true,
+      "diff_count": 0,
+      "diffs": [],
+      "excel": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 5,5"
+      },
+      "python": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 5,5"
+      }
+    },
+    {
+      "match_id": "8x68abXQ",
+      "ok": false,
+      "diff_count": 1,
+      "diffs": [
+        "prediction_betalone: excel='-' python='П2'"
+      ],
+      "excel": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "-",
+        "prediction_sniper": "1X"
+      },
+      "python": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "П2",
+        "prediction_sniper": "1X"
+      }
+    },
+    {
+      "match_id": "C0b6Sk9l",
+      "ok": false,
+      "diff_count": 21,
+      "diffs": [
+        "strategy[1].home_prob: excel=0.0 python=0.14209401709401706 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.25747863247863245 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.6004273504273504 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.044711538461538455 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.659775641025641 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.2955128205128205 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.1640964808224595 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.1166468960063266 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.719256623171214 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.032258064516129 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-1.838709677419355 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.8064516129032255 (tol=0.01)",
+        "strategy[7].home_prob: excel=0.0 python=0.03305962087116699 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.19177089044999118 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.7751694886788418 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.21029882420077917 python=0.23789337705674574 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.28384135405278454 python=0.15430902874437533 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.5057820958630301 python=0.5822965539168935 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.41666666666666674 python=0.4 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.375 python=0.4 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "ОЗ",
+        "prediction_betalone": "-",
+        "prediction_sniper": "ОЗ"
+      },
+      "python": {
+        "prediction_ntb": "ОЗ",
+        "prediction_betalone": "",
+        "prediction_sniper": "ОЗ"
+      }
+    },
+    {
+      "match_id": "CrPiFJSq",
+      "ok": false,
+      "diff_count": 23,
+      "diffs": [
+        "prediction_sniper: excel='ТБ -0,5' python='Х П2'",
+        "strategy[1].home_prob: excel=0.0 python=0.21794871794871792 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.4871794871794872 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.2948717948717948 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.13846153846153847 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.7961538461538463 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.06538461538461539 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.3343558282208589 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.541922290388548 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.12372188139059306 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.16 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-1.3199999999999996 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.16 (tol=0.01)",
+        "strategy[7].home_prob: excel=0.0 python=0.2644631542439909 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.582717054527806 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.1528197912282032 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.48459554048380504 python=0.34543310910216696 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.279424888304079 python=0.16637925346588986 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.23589316511560182 python=0.46610909113939547 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.5 python=0.37222222222222223 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.16666666666666669 python=0.2611111111111111 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.33333333333333337 python=0.3666666666666667 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "-",
+        "prediction_sniper": "ТБ -0,5"
+      },
+      "python": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "",
+        "prediction_sniper": "Х П2"
+      }
+    },
+    {
+      "match_id": "INWGgJEc",
+      "ok": false,
+      "diff_count": 19,
+      "diffs": [
+        "prediction_ntb: excel='П2' python='Х П2'",
+        "prediction_sniper: excel='П2' python='Х П2'",
+        "strategy[1].home_prob: excel=0.0 python=0.33333333333333326 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.33333333333333326 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.33333333333333326 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=0.6268656716417911 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-0.7910447761194032 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.164179104477612 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.25168448674977134 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.7483155132502286 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.6671087923566585 python=0.3727569450676739 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.33287108369807955 python=0.16680605858358477 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.0 python=0.4377586075360471 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.0 python=0.1111111111111111 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.3055555555555556 (tol=0.01)",
+        "strategy[9].away_prob: excel=1.0 python=0.5833333333333333 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "-",
+        "prediction_sniper": "П2"
+      },
+      "python": {
+        "prediction_ntb": "Х П2",
+        "prediction_betalone": "",
+        "prediction_sniper": "Х П2"
+      }
+    },
+    {
+      "match_id": "INhYSVse",
+      "ok": false,
+      "diff_count": 25,
+      "diffs": [
+        "prediction_ntb: excel='1X' python='ОЗ'",
+        "prediction_sniper: excel='1X' python='ОЗ'",
+        "strategy[1].home_prob: excel=0.0 python=0.3 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.27999999999999997 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.42 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.20800000000000002 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.674 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.118 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.26154992548435174 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.47168405365126675 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.26676602086438156 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.6551724137931034 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-2.4482758620689653 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.793103448275862 (tol=0.01)",
+        "strategy[6].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[7].home_prob: excel=0.0 python=0.2764141607592443 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.6779280209895018 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.04565781825125392 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.1676096868525491 python=0.22936221351288197 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.254781553531642 python=0.14713285832763312 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.577396962444129 python=0.5881739377910908 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.0 python=0.05 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.5 python=0.476923076923077 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.5 python=0.47307692307692306 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "1X",
+        "prediction_betalone": "-",
+        "prediction_sniper": "1X"
+      },
+      "python": {
+        "prediction_ntb": "ОЗ",
+        "prediction_betalone": "",
+        "prediction_sniper": "ОЗ"
+      }
+    },
+    {
+      "match_id": "My9L9qJc",
+      "ok": false,
+      "diff_count": 19,
+      "diffs": [
+        "prediction_ntb: excel='1X' python='ТБ 8,5'",
+        "prediction_sniper: excel='1X' python='ТБ 8,5'",
+        "strategy[1].home_prob: excel=0.0 python=0.44 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.56 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.12435897435897435 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.7448717948717949 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.13076923076923078 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.5272727272727273 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.4727272727272727 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=2.090909090909091 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-3.909090909090909 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=2.8181818181818183 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.5 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.6760093588740963 python=0.44975009212774275 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.15879757056441693 python=0.2903506212879016 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.5333333333333333 python=0.38888888888888884 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.16666666666666663 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.4666666666666666 python=0.4444444444444444 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "1X",
+        "prediction_betalone": "-",
+        "prediction_sniper": "1X"
+      },
+      "python": {
+        "prediction_ntb": "ТБ 8,5",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 8,5"
+      }
+    },
+    {
+      "match_id": "OOAmORhg",
+      "ok": false,
+      "diff_count": 1,
+      "diffs": [
+        "prediction_betalone: excel='-' python='П2'"
+      ],
+      "excel": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "-",
+        "prediction_sniper": "ТБ 9,5"
+      },
+      "python": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "П2",
+        "prediction_sniper": "ТБ 9,5"
+      }
+    },
+    {
+      "match_id": "SdHvQmOt",
+      "ok": false,
+      "diff_count": 1,
+      "diffs": [
+        "prediction_betalone: excel='-' python='П2'"
+      ],
+      "excel": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "-",
+        "prediction_sniper": "ТБ 9,5"
+      },
+      "python": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "П2",
+        "prediction_sniper": "ТБ 9,5"
+      }
+    },
+    {
+      "match_id": "SjgystVi",
+      "ok": false,
+      "diff_count": 24,
+      "diffs": [
+        "prediction_ntb: excel='П2' python='Х П2'",
+        "prediction_sniper: excel='П2' python='Х П2'",
+        "strategy[1].home_prob: excel=0.0 python=0.8333333333333335 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=-0.16666666666666663 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.33333333333333337 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.4 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.4 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.2 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.45977011494252873 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.22988505747126436 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.3103448275862069 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.2661870503597121 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-1.5611510791366907 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.2949640287769784 (tol=0.01)",
+        "strategy[7].home_prob: excel=0.0 python=0.4299179945187878 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.4725084725961326 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.09757353288507961 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.06822062568707897 python=0.2508101533372507 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.6601411716108959 python=0.15517511597009637 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.27163819860752203 python=0.5672153946154096 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.0 python=0.1111111111111111 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.3055555555555556 (tol=0.01)",
+        "strategy[9].away_prob: excel=1.0 python=0.5833333333333333 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "-",
+        "prediction_sniper": "П2"
+      },
+      "python": {
+        "prediction_ntb": "Х П2",
+        "prediction_betalone": "",
+        "prediction_sniper": "Х П2"
+      }
+    },
+    {
+      "match_id": "U1CT7NmA",
+      "ok": false,
+      "diff_count": 20,
+      "diffs": [
+        "prediction_ntb: excel='ТБ -0,5' python='1X'",
+        "prediction_sniper: excel='ТБ -0,5' python='1X'",
+        "strategy[1].home_prob: excel=0.0 python=0.34 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.66 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.10272435897435898 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.7440705128205128 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.15320512820512822 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.44772727272727275 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.5522727272727274 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=2.6363636363636362 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-4.181818181818182 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=2.5454545454545454 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.5 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.21383547846776157 python=0.26568101853936565 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.18992533330581846 python=0.14320597955245865 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.5927901210901854 python=0.5328235733883784 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.35 python=0.2632850241545894 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.20772946859903382 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.65 python=0.5289855072463768 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "ТБ -0,5",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ -0,5"
+      },
+      "python": {
+        "prediction_ntb": "1X",
+        "prediction_betalone": "",
+        "prediction_sniper": "1X"
+      }
+    },
+    {
+      "match_id": "UDNPfQde",
+      "ok": false,
+      "diff_count": 1,
+      "diffs": [
+        "prediction_betalone: excel='-' python='П2'"
+      ],
+      "excel": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "-",
+        "prediction_sniper": "ТБ 8,5"
+      },
+      "python": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "П2",
+        "prediction_sniper": "ТБ 8,5"
+      }
+    },
+    {
+      "match_id": "UsMZotRj",
+      "ok": false,
+      "diff_count": 19,
+      "diffs": [
+        "prediction_ntb: excel='ТБ -0,5' python='ТБ 8,5'",
+        "prediction_sniper: excel='ТБ -0,5' python='ТБ 8,5'",
+        "strategy[1].home_prob: excel=0.0 python=0.68 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.32 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.182 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.75 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.068 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.7505882352941177 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.2494117647058824 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=2.4545454545454546 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-3.909090909090909 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=2.4545454545454546 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.5 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.659632562946858 python=0.4625963180654248 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.15953550106265973 python=0.24301498451850903 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.7333333333333334 python=0.5 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.16666666666666669 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.26666666666666666 python=0.33333333333333337 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "ТБ -0,5",
+        "prediction_betalone": "-",
+        "prediction_sniper": "ТБ -0,5"
+      },
+      "python": {
+        "prediction_ntb": "ТБ 8,5",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 8,5"
+      }
+    },
+    {
+      "match_id": "fciFyZo2",
+      "ok": false,
+      "diff_count": 23,
+      "diffs": [
+        "prediction_ntb: excel='П1' python='ТБ 8,5'",
+        "prediction_sniper: excel='П1' python='ТБ 8,5'",
+        "strategy[1].home_prob: excel=0.0 python=0.8666666666666667 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.13333333333333336 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.31333333333333335 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.6633333333333333 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.02333333333333333 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.8229342327150084 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.11298482293423272 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.06408094435075885 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.6 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-1.8210526315789475 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.2210526315789474 (tol=0.01)",
+        "strategy[7].home_prob: excel=0.0 python=0.7751520379518033 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.19177089044999118 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.03307707159820547 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.8804412078926656 python=0.5056395193272694 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.11185918221191471 python=0.15371005854268163 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.005432521999095628 python=0.3012533936788766 (tol=0.01)",
+        "strategy[9].home_prob: excel=1.0 python=0.5925925925925926 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.1851851851851852 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.0 python=0.22222222222222224 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "-",
+        "prediction_sniper": "П1"
+      },
+      "python": {
+        "prediction_ntb": "ТБ 8,5",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 8,5"
+      }
+    },
+    {
+      "match_id": "fogayxaT",
+      "ok": false,
+      "diff_count": 23,
+      "diffs": [
+        "prediction_ntb: excel='ТБ -0,5' python='Х П2'",
+        "prediction_sniper: excel='ТБ -0,5' python='Х П2'",
+        "strategy[1].home_prob: excel=0.0 python=0.9333333333333332 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=-0.06666666666666665 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.13333333333333336 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.32666666666666666 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.5966666666666667 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.07666666666666666 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.8271604938271604 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.16790123456790124 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.1884057971014492 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-1.2318840579710146 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.0434782608695652 (tol=0.01)",
+        "strategy[7].home_prob: excel=0.0 python=0.7277455070825112 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.21841417230641758 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.05384032061107124 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.553773803491324 python=0.378666304113391 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.23828228721997088 python=0.1616422658102107 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.20752354831155903 python=0.42870334619638384 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.5 python=0.37222222222222223 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.16666666666666669 python=0.2611111111111111 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.33333333333333337 python=0.3666666666666667 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "ТБ -0,5",
+        "prediction_betalone": "-",
+        "prediction_sniper": "ТБ -0,5"
+      },
+      "python": {
+        "prediction_ntb": "Х П2",
+        "prediction_betalone": "",
+        "prediction_sniper": "Х П2"
+      }
+    },
+    {
+      "match_id": "h424KqhI",
+      "ok": true,
+      "diff_count": 0,
+      "diffs": [],
+      "excel": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "П2",
+        "prediction_sniper": "ТБ 9,5"
+      },
+      "python": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "П2",
+        "prediction_sniper": "ТБ 9,5"
+      }
+    },
+    {
+      "match_id": "hAsufxel",
+      "ok": true,
+      "diff_count": 0,
+      "diffs": [],
+      "excel": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "П2",
+        "prediction_sniper": "ТБ 8,5"
+      },
+      "python": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "П2",
+        "prediction_sniper": "ТБ 8,5"
+      }
+    },
+    {
+      "match_id": "jHvVVFMj",
+      "ok": false,
+      "diff_count": 18,
+      "diffs": [
+        "prediction_ntb: excel='П2' python='Х П2'",
+        "prediction_sniper: excel='П2' python='Х П2'",
+        "strategy[1].away_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.6499999999999999 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.35 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=0.6666666666666665 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-1.3478260869565215 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.681159420289855 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.13668552033878484 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.8590420688094049 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.23832321427718423 python=0.3043458147157588 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.2357345658795506 python=0.1542137670690434 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.5254537550226311 python=0.5026118204411408 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.0 python=0.1111111111111111 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.3055555555555556 (tol=0.01)",
+        "strategy[9].away_prob: excel=1.0 python=0.5833333333333333 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "П2",
+        "prediction_betalone": "-",
+        "prediction_sniper": "П2"
+      },
+      "python": {
+        "prediction_ntb": "Х П2",
+        "prediction_betalone": "",
+        "prediction_sniper": "Х П2"
+      }
+    },
+    {
+      "match_id": "nLkiwbUG",
+      "ok": false,
+      "diff_count": 22,
+      "diffs": [
+        "strategy[1].home_prob: excel=0.0 python=0.7083333333333333 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.24999999999999997 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.04166666666666666 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.1708333333333333 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.7291666666666665 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.1 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.34271099744245526 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.4936061381074169 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.16368286445012786 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.1304347826086956 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-1.3188405797101443 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.1884057971014492 (tol=0.01)",
+        "strategy[7].home_prob: excel=0.0 python=0.07660824041623879 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.8467834912684127 (tol=0.01)",
+        "strategy[7].away_prob: excel=0.0 python=0.07660826831534857 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.56138102136093 python=0.39844580303178456 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.2334284214489254 python=0.1625343610716513 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.20468466284640172 python=0.40923245513321616 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.33333333333333337 python=0.275 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.16666666666666669 python=0.275 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.5 python=0.45 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "1X",
+        "prediction_betalone": "-",
+        "prediction_sniper": "1X"
+      },
+      "python": {
+        "prediction_ntb": "1X",
+        "prediction_betalone": "",
+        "prediction_sniper": "1X"
+      }
+    },
+    {
+      "match_id": "r7uokbnp",
+      "ok": false,
+      "diff_count": 22,
+      "diffs": [
+        "prediction_ntb: excel='ТБ -0,5' python='ТБ 8,5'",
+        "prediction_sniper: excel='ТБ -0,5' python='ТБ 8,5'",
+        "strategy[0].home_prob: excel=0.0 python=0.22222222222222224 (tol=0.01)",
+        "strategy[1].home_prob: excel=0.0 python=0.075 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.175 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.75 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.4800000000000001 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.4574999999999999 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.06282335550628235 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.12342941611234293 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.8137472283813747 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=0.8316831683168318 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-1.5346534653465347 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.702970297029703 (tol=0.01)",
+        "strategy[6].home_prob: excel=0.0 python=0.33333333333333326 (tol=0.01)",
+        "strategy[6].draw_prob: excel=0.0 python=0.33333333333333326 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.16217975819521563 python=0.23547109193591964 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.2264791644814156 python=0.1460896352046586 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.6107774635523725 python=0.5789760277928964 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.1 python=0.11111111111111112 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.23976608187134507 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.9 python=0.6491228070175439 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "ТБ -0,5",
+        "prediction_betalone": "-",
+        "prediction_sniper": "ТБ -0,5"
+      },
+      "python": {
+        "prediction_ntb": "ТБ 8,5",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 8,5"
+      }
+    },
+    {
+      "match_id": "xrtCcyAe",
+      "ok": false,
+      "diff_count": 21,
+      "diffs": [
+        "prediction_ntb: excel='П1' python='ТБ 8,5'",
+        "prediction_sniper: excel='П1' python='ТБ 8,5'",
+        "strategy[1].home_prob: excel=0.0 python=0.74 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.12 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.14 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.18653846153846154 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.782051282051282 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.03141025641025641 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.7984395318595578 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.06631989596879065 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.1352405721716515 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.8 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-2.25 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.45 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.5 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.7757609163189424 python=0.48808460714896834 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.07741820878693136 python=0.3062740936755274 (tol=0.01)",
+        "strategy[9].home_prob: excel=1.0 python=0.5925925925925926 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.0 python=0.1851851851851852 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.0 python=0.22222222222222224 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "-",
+        "prediction_sniper": "П1"
+      },
+      "python": {
+        "prediction_ntb": "ТБ 8,5",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 8,5"
+      }
+    },
+    {
+      "match_id": "zJrMwHA7",
+      "ok": true,
+      "diff_count": 0,
+      "diffs": [],
+      "excel": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 6,5"
+      },
+      "python": {
+        "prediction_ntb": "П1",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ 6,5"
+      }
+    },
+    {
+      "match_id": "zTAmDd74",
+      "ok": false,
+      "diff_count": 22,
+      "diffs": [
+        "prediction_ntb: excel='П1 ' python='Х П2'",
+        "prediction_sniper: excel='П1' python='Х П2'",
+        "strategy[1].home_prob: excel=0.0 python=0.16666666666666663 (tol=0.01)",
+        "strategy[1].draw_prob: excel=0.0 python=0.2666666666666666 (tol=0.01)",
+        "strategy[1].away_prob: excel=0.0 python=0.5666666666666667 (tol=0.01)",
+        "strategy[2].home_prob: excel=0.0 python=0.04 (tol=0.01)",
+        "strategy[2].draw_prob: excel=0.0 python=0.81 (tol=0.01)",
+        "strategy[2].away_prob: excel=0.0 python=0.15 (tol=0.01)",
+        "strategy[3].draw_prob: excel=0.0 python=1.0 (tol=0.01)",
+        "strategy[4].home_prob: excel=0.0 python=0.2105263157894737 (tol=0.01)",
+        "strategy[4].draw_prob: excel=0.0 python=0.11842105263157897 (tol=0.01)",
+        "strategy[4].away_prob: excel=0.0 python=0.6710526315789473 (tol=0.01)",
+        "strategy[5].home_prob: excel=0.0 python=1.1818181818181819 (tol=0.01)",
+        "strategy[5].draw_prob: excel=0.0 python=-2.1363636363636367 (tol=0.01)",
+        "strategy[5].away_prob: excel=0.0 python=1.9545454545454546 (tol=0.01)",
+        "strategy[7].draw_prob: excel=0.0 python=0.5 (tol=0.01)",
+        "strategy[8].home_prob: excel=0.1567077981288439 python=0.24102901313599454 (tol=0.01)",
+        "strategy[8].draw_prob: excel=0.3416864640312379 python=0.15733758511637758 (tol=0.01)",
+        "strategy[8].away_prob: excel=0.501591217457486 python=0.5795222298646336 (tol=0.01)",
+        "strategy[9].home_prob: excel=0.32142857142857145 python=0.24308300395256918 (tol=0.01)",
+        "strategy[9].draw_prob: excel=0.28571428571428575 python=0.37944664031620556 (tol=0.01)",
+        "strategy[9].away_prob: excel=0.3928571428571429 python=0.37747035573122534 (tol=0.01)"
+      ],
+      "excel": {
+        "prediction_ntb": "П1 ",
+        "prediction_betalone": "-",
+        "prediction_sniper": "П1"
+      },
+      "python": {
+        "prediction_ntb": "Х П2",
+        "prediction_betalone": "",
+        "prediction_sniper": "Х П2"
+      }
+    }
+  ],
+  "run_log": [
+    {
+      "match_id": "0C201K2E",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "25pEuwte",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "6wi5saBr",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "8x68abXQ",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "hAsufxel",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "zJrMwHA7",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "OOAmORhg",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "SdHvQmOt",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "h424KqhI",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "r7uokbnp",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "CrPiFJSq",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "My9L9qJc",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "zTAmDd74",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "U1CT7NmA",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "UsMZotRj",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "04iquKa4",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "INWGgJEc",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "SjgystVi",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "fogayxaT",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "jHvVVFMj",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "nLkiwbUG",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "UDNPfQde",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "xrtCcyAe",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "INhYSVse",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "fciFyZo2",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "C0b6Sk9l",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "4QTNdyNN",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "4buZ3476",
+      "excel_ok": true,
+      "python_ok": true
+    },
+    {
+      "match_id": "6ots82LG",
+      "excel_ok": true,
+      "python_ok": true
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "total": 1,
+  "ok": 0,
+  "pct": 0.0,
+  "pure_eval": true,
+  "reports": [
+    {
+      "match_id": "vm6sImkC",
+      "ok": false,
+      "com_calls": 0,
+      "diffs": [
+        "prediction_betalone: excel='' python='П2'",
+        "prediction_sniper: excel='ТБ -0,5' python='1X'",
+        "outcome[0].home_prob: excel=0.0 python=0.3333333333333333",
+        "outcome[0].draw_prob: excel=0.0 python=0.3333333333333333",
+        "outcome[0].away_prob: excel=0.0 python=0.3333333333333333",
+        "outcome[1].home_prob: excel=0.0 python=0.3333333333333333",
+        "outcome[1].draw_prob: excel=0.0 python=0.3333333333333333",
+        "outcome[1].away_prob: excel=0.0 python=0.3333333333333333",
+        "outcome[2].home_prob: excel=0.0 python=0.25",
+        "outcome[2].draw_prob: excel=0.0 python=0.5",
+        "outcome[2].away_prob: excel=0.0 python=0.25",
+        "outcome[3].draw_prob: excel=0.0 python=1.0",
+        "outcome[4].home_prob: excel=0.0 python=0.39999999999999997",
+        "outcome[4].draw_prob: excel=0.0 python=0.19999999999999998",
+        "outcome[4].away_prob: excel=0.0 python=0.39999999999999997",
+        "outcome[5].home_prob: excel=0.0 python=0.7835051546391752",
+        "outcome[5].draw_prob: excel=0.0 python=-0.5670103092783505",
+        "outcome[5].away_prob: excel=0.0 python=0.7835051546391752",
+        "outcome[7].draw_prob: excel=0.0 python=0.5",
+        "outcome[8].home_prob: excel=0.5420860117065942 python=0.0",
+        "outcome[8].draw_prob: excel=0.28293647453545534 python=1.0",
+        "outcome[8].away_prob: excel=0.17489393714264082 python=0.0",
+        "outcome[9].draw_prob: excel=0.16666666666666669 python=0.5",
+        "outcome[9].away_prob: excel=0.5833333333333333 python=0.25"
+      ],
+      "excel": {
+        "prediction_ntb": "",
+        "prediction_betalone": "",
+        "prediction_sniper": "ТБ -0,5"
+      },
+      "python": {
+        "prediction_ntb": "",
+        "prediction_betalone": "П2",
+        "prediction_sniper": "1X"
+      }
+    }
+  ]
+}

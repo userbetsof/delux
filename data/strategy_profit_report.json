@@ -1,0 +1,4034 @@
+{
+  "source": "C:\\papki\\work\\bets\\delux\\matches.db",
+  "universe": {
+    "matches_settled": 901,
+    "matches_with_prediction": 265,
+    "odds_matches": 898,
+    "sub_strategies": {
+      "1": "1 пр",
+      "2": "2 пр",
+      "3": "de lux",
+      "4": "poisson",
+      "5": "ср взвеш",
+      "6": "mill",
+      "7": "Mini Vini",
+      "8": "Elizabet",
+      "9": "5Match p",
+      "10": "5Match"
+    },
+    "main_strategies": {
+      "2": "betalone",
+      "4": "mortal",
+      "1": "ntb",
+      "3": "sniper"
+    },
+    "unknown_predictions": {}
+  },
+  "main_prediction": {
+    "real_odds_only": {
+      "bets": 258,
+      "wins": 155,
+      "losses": 103,
+      "pushes": 0,
+      "winrate_pct": 60.08,
+      "avg_odds": 1.663,
+      "staked": 258.0,
+      "returned": 249.88,
+      "profit": -8.12,
+      "roi_pct": -3.15
+    },
+    "with_assumed_1x2_dc": {
+      "bets": 265,
+      "wins": 160,
+      "losses": 105,
+      "pushes": 0,
+      "winrate_pct": 60.38,
+      "avg_odds": 1.665,
+      "staked": 265.0,
+      "returned": 259.08,
+      "profit": -5.92,
+      "roi_pct": -2.23
+    },
+    "by_selection_real_odds": {
+      "1": {
+        "bets": 108,
+        "wins": 68,
+        "losses": 40,
+        "pushes": 0,
+        "winrate_pct": 62.96,
+        "avg_odds": 1.7,
+        "staked": 108.0,
+        "returned": 111.64,
+        "profit": 3.64,
+        "roi_pct": 3.37
+      },
+      "X2": {
+        "bets": 41,
+        "wins": 27,
+        "losses": 14,
+        "pushes": 0,
+        "winrate_pct": 65.85,
+        "avg_odds": 1.518,
+        "staked": 41.0,
+        "returned": 40.7,
+        "profit": -0.3,
+        "roi_pct": -0.73
+      },
+      "2": {
+        "bets": 57,
+        "wins": 30,
+        "losses": 27,
+        "pushes": 0,
+        "winrate_pct": 52.63,
+        "avg_odds": 1.902,
+        "staked": 57.0,
+        "returned": 54.9,
+        "profit": -2.1,
+        "roi_pct": -3.68
+      },
+      "1X": {
+        "bets": 52,
+        "wins": 30,
+        "losses": 22,
+        "pushes": 0,
+        "winrate_pct": 57.69,
+        "avg_odds": 1.44,
+        "staked": 52.0,
+        "returned": 42.64,
+        "profit": -9.36,
+        "roi_pct": -17.99
+      }
+    },
+    "by_selection_assumed": {
+      "1": {
+        "bets": 108,
+        "wins": 68,
+        "losses": 40,
+        "pushes": 0,
+        "winrate_pct": 62.96,
+        "avg_odds": 1.7,
+        "staked": 108.0,
+        "returned": 111.64,
+        "profit": 3.64,
+        "roi_pct": 3.37
+      },
+      "2": {
+        "bets": 58,
+        "wins": 31,
+        "losses": 27,
+        "pushes": 0,
+        "winrate_pct": 53.45,
+        "avg_odds": 1.927,
+        "staked": 58.0,
+        "returned": 58.3,
+        "profit": 0.3,
+        "roi_pct": 0.52
+      },
+      "X2": {
+        "bets": 46,
+        "wins": 30,
+        "losses": 16,
+        "pushes": 0,
+        "winrate_pct": 65.22,
+        "avg_odds": 1.51,
+        "staked": 46.0,
+        "returned": 45.05,
+        "profit": -0.95,
+        "roi_pct": -2.07
+      },
+      "1X": {
+        "bets": 53,
+        "wins": 31,
+        "losses": 22,
+        "pushes": 0,
+        "winrate_pct": 58.49,
+        "avg_odds": 1.44,
+        "staked": 53.0,
+        "returned": 44.09,
+        "profit": -8.91,
+        "roi_pct": -16.8
+      }
+    },
+    "by_sport_real": {
+      "1": {
+        "bets": 256,
+        "wins": 154,
+        "losses": 102,
+        "pushes": 0,
+        "winrate_pct": 60.16,
+        "avg_odds": 1.664,
+        "staked": 256.0,
+        "returned": 248.28,
+        "profit": -7.72,
+        "roi_pct": -3.01
+      },
+      "6": {
+        "bets": 2,
+        "wins": 1,
+        "losses": 1,
+        "pushes": 0,
+        "winrate_pct": 50.0,
+        "avg_odds": 1.6,
+        "staked": 2.0,
+        "returned": 1.6,
+        "profit": -0.4,
+        "roi_pct": -20.0
+      }
+    }
+  },
+  "strategy_predictions_table": {
+    "sniper": {
+      "bets": 10,
+      "wins": 4,
+      "losses": 6,
+      "pushes": 1,
+      "winrate_pct": 40.0,
+      "avg_odds": 1.805,
+      "staked": 10.0,
+      "returned": 5.8,
+      "profit": -4.2,
+      "roi_pct": -42.0
+    },
+    "ntb": {
+      "bets": 23,
+      "wins": 17,
+      "losses": 6,
+      "pushes": 0,
+      "winrate_pct": 73.91,
+      "avg_odds": 1.603,
+      "staked": 23.0,
+      "returned": 27.32,
+      "profit": 4.32,
+      "roi_pct": 18.77
+    }
+  },
+  "substrategy_value_bets": {
+    "top_30_by_roi": [
+      {
+        "config": "p>=0.40_edge>=1.15",
+        "strategy": "Mini Vini",
+        "bets": 164,
+        "wins": 83,
+        "losses": 81,
+        "pushes": 0,
+        "winrate_pct": 50.61,
+        "avg_odds": 2.77,
+        "staked": 164.0,
+        "returned": 233.99,
+        "profit": 69.99,
+        "roi_pct": 42.68
+      },
+      {
+        "config": "p>=0.60_edge>=1.05",
+        "strategy": "2 пр",
+        "bets": 32,
+        "wins": 23,
+        "losses": 9,
+        "pushes": 0,
+        "winrate_pct": 71.88,
+        "avg_odds": 2.069,
+        "staked": 32.0,
+        "returned": 45.27,
+        "profit": 13.27,
+        "roi_pct": 41.47
+      },
+      {
+        "config": "p>=0.40_edge>=1.15",
+        "strategy": "1 пр",
+        "bets": 199,
+        "wins": 97,
+        "losses": 102,
+        "pushes": 0,
+        "winrate_pct": 48.74,
+        "avg_odds": 2.848,
+        "staked": 199.0,
+        "returned": 276.57,
+        "profit": 77.57,
+        "roi_pct": 38.98
+      },
+      {
+        "config": "p>=0.40_edge>=1.15",
+        "strategy": "2 пр",
+        "bets": 135,
+        "wins": 62,
+        "losses": 73,
+        "pushes": 0,
+        "winrate_pct": 45.93,
+        "avg_odds": 3.01,
+        "staked": 135.0,
+        "returned": 184.66,
+        "profit": 49.66,
+        "roi_pct": 36.79
+      },
+      {
+        "config": "p>=0.40_edge>=1.10",
+        "strategy": "1 пр",
+        "bets": 224,
+        "wins": 111,
+        "losses": 113,
+        "pushes": 0,
+        "winrate_pct": 49.55,
+        "avg_odds": 2.763,
+        "staked": 224.0,
+        "returned": 304.95,
+        "profit": 80.95,
+        "roi_pct": 36.14
+      },
+      {
+        "config": "p>=0.40_edge>=1.10",
+        "strategy": "Mini Vini",
+        "bets": 198,
+        "wins": 101,
+        "losses": 97,
+        "pushes": 0,
+        "winrate_pct": 51.01,
+        "avg_odds": 2.632,
+        "staked": 198.0,
+        "returned": 268.57,
+        "profit": 70.57,
+        "roi_pct": 35.64
+      },
+      {
+        "config": "p>=0.45_edge>=1.15",
+        "strategy": "2 пр",
+        "bets": 99,
+        "wins": 47,
+        "losses": 52,
+        "pushes": 0,
+        "winrate_pct": 47.47,
+        "avg_odds": 2.856,
+        "staked": 99.0,
+        "returned": 133.5,
+        "profit": 34.5,
+        "roi_pct": 34.85
+      },
+      {
+        "config": "p>=0.45_edge>=1.15",
+        "strategy": "1 пр",
+        "bets": 161,
+        "wins": 80,
+        "losses": 81,
+        "pushes": 0,
+        "winrate_pct": 49.69,
+        "avg_odds": 2.672,
+        "staked": 161.0,
+        "returned": 215.45,
+        "profit": 54.45,
+        "roi_pct": 33.82
+      },
+      {
+        "config": "p>=0.45_edge>=1.15",
+        "strategy": "Mini Vini",
+        "bets": 140,
+        "wins": 70,
+        "losses": 70,
+        "pushes": 0,
+        "winrate_pct": 50.0,
+        "avg_odds": 2.651,
+        "staked": 140.0,
+        "returned": 186.69,
+        "profit": 46.69,
+        "roi_pct": 33.35
+      },
+      {
+        "config": "p>=0.40_edge>=1.05",
+        "strategy": "1 пр",
+        "bets": 250,
+        "wins": 124,
+        "losses": 126,
+        "pushes": 0,
+        "winrate_pct": 49.6,
+        "avg_odds": 2.679,
+        "staked": 250.0,
+        "returned": 330.93,
+        "profit": 80.93,
+        "roi_pct": 32.37
+      },
+      {
+        "config": "p>=0.45_edge>=1.10",
+        "strategy": "1 пр",
+        "bets": 183,
+        "wins": 93,
+        "losses": 90,
+        "pushes": 0,
+        "winrate_pct": 50.82,
+        "avg_odds": 2.593,
+        "staked": 183.0,
+        "returned": 241.19,
+        "profit": 58.19,
+        "roi_pct": 31.8
+      },
+      {
+        "config": "p>=0.50_edge>=1.15",
+        "strategy": "2 пр",
+        "bets": 81,
+        "wins": 40,
+        "losses": 41,
+        "pushes": 0,
+        "winrate_pct": 49.38,
+        "avg_odds": 2.748,
+        "staked": 81.0,
+        "returned": 106.14,
+        "profit": 25.14,
+        "roi_pct": 31.04
+      },
+      {
+        "config": "p>=0.40_edge>=1.10",
+        "strategy": "2 пр",
+        "bets": 162,
+        "wins": 75,
+        "losses": 87,
+        "pushes": 0,
+        "winrate_pct": 46.3,
+        "avg_odds": 2.876,
+        "staked": 162.0,
+        "returned": 211.93,
+        "profit": 49.93,
+        "roi_pct": 30.82
+      },
+      {
+        "config": "p>=0.45_edge>=1.10",
+        "strategy": "2 пр",
+        "bets": 119,
+        "wins": 58,
+        "losses": 61,
+        "pushes": 0,
+        "winrate_pct": 48.74,
+        "avg_odds": 2.72,
+        "staked": 119.0,
+        "returned": 155.5,
+        "profit": 36.5,
+        "roi_pct": 30.67
+      },
+      {
+        "config": "p>=0.45_edge>=1.15",
+        "strategy": "ср взвеш",
+        "bets": 185,
+        "wins": 91,
+        "losses": 94,
+        "pushes": 0,
+        "winrate_pct": 49.19,
+        "avg_odds": 2.69,
+        "staked": 185.0,
+        "returned": 240.87,
+        "profit": 55.87,
+        "roi_pct": 30.2
+      },
+      {
+        "config": "p>=0.50_edge>=1.15",
+        "strategy": "Mini Vini",
+        "bets": 118,
+        "wins": 60,
+        "losses": 58,
+        "pushes": 0,
+        "winrate_pct": 50.85,
+        "avg_odds": 2.57,
+        "staked": 118.0,
+        "returned": 153.42,
+        "profit": 35.42,
+        "roi_pct": 30.02
+      },
+      {
+        "config": "p>=0.65_edge>=1.05",
+        "strategy": "ср взвеш",
+        "bets": 34,
+        "wins": 25,
+        "losses": 9,
+        "pushes": 0,
+        "winrate_pct": 73.53,
+        "avg_odds": 1.827,
+        "staked": 34.0,
+        "returned": 44.13,
+        "profit": 10.13,
+        "roi_pct": 29.79
+      },
+      {
+        "config": "p>=0.60_edge>=1.00",
+        "strategy": "2 пр",
+        "bets": 41,
+        "wins": 28,
+        "losses": 13,
+        "pushes": 0,
+        "winrate_pct": 68.29,
+        "avg_odds": 1.959,
+        "staked": 41.0,
+        "returned": 53.11,
+        "profit": 12.11,
+        "roi_pct": 29.54
+      },
+      {
+        "config": "p>=0.40_edge>=1.15",
+        "strategy": "ср взвеш",
+        "bets": 200,
+        "wins": 97,
+        "losses": 103,
+        "pushes": 0,
+        "winrate_pct": 48.5,
+        "avg_odds": 2.727,
+        "staked": 200.0,
+        "returned": 258.32,
+        "profit": 58.32,
+        "roi_pct": 29.16
+      },
+      {
+        "config": "p>=0.40_edge>=1.05",
+        "strategy": "Mini Vini",
+        "bets": 229,
+        "wins": 114,
+        "losses": 115,
+        "pushes": 0,
+        "winrate_pct": 49.78,
+        "avg_odds": 2.547,
+        "staked": 229.0,
+        "returned": 294.77,
+        "profit": 65.77,
+        "roi_pct": 28.72
+      },
+      {
+        "config": "p>=0.45_edge>=1.10",
+        "strategy": "ср взвеш",
+        "bets": 220,
+        "wins": 111,
+        "losses": 109,
+        "pushes": 0,
+        "winrate_pct": 50.45,
+        "avg_odds": 2.594,
+        "staked": 220.0,
+        "returned": 281.56,
+        "profit": 61.56,
+        "roi_pct": 27.98
+      },
+      {
+        "config": "p>=0.40_edge>=1.00",
+        "strategy": "1 пр",
+        "bets": 303,
+        "wins": 155,
+        "losses": 148,
+        "pushes": 0,
+        "winrate_pct": 51.16,
+        "avg_odds": 2.535,
+        "staked": 303.0,
+        "returned": 387.22,
+        "profit": 84.22,
+        "roi_pct": 27.8
+      },
+      {
+        "config": "p>=0.40_edge>=1.15",
+        "strategy": "de lux",
+        "bets": 208,
+        "wins": 90,
+        "losses": 118,
+        "pushes": 0,
+        "winrate_pct": 43.27,
+        "avg_odds": 3.034,
+        "staked": 208.0,
+        "returned": 265.83,
+        "profit": 57.83,
+        "roi_pct": 27.8
+      },
+      {
+        "config": "p>=0.40_edge>=1.15",
+        "strategy": "poisson",
+        "bets": 222,
+        "wins": 104,
+        "losses": 118,
+        "pushes": 0,
+        "winrate_pct": 46.85,
+        "avg_odds": 2.945,
+        "staked": 222.0,
+        "returned": 283.42,
+        "profit": 61.42,
+        "roi_pct": 27.67
+      },
+      {
+        "config": "p>=0.40_edge>=1.10",
+        "strategy": "ср взвеш",
+        "bets": 237,
+        "wins": 118,
+        "losses": 119,
+        "pushes": 0,
+        "winrate_pct": 49.79,
+        "avg_odds": 2.63,
+        "staked": 237.0,
+        "returned": 301.53,
+        "profit": 64.53,
+        "roi_pct": 27.23
+      },
+      {
+        "config": "p>=0.50_edge>=1.10",
+        "strategy": "2 пр",
+        "bets": 99,
+        "wins": 50,
+        "losses": 49,
+        "pushes": 0,
+        "winrate_pct": 50.51,
+        "avg_odds": 2.616,
+        "staked": 99.0,
+        "returned": 125.84,
+        "profit": 26.84,
+        "roi_pct": 27.11
+      },
+      {
+        "config": "p>=0.45_edge>=1.15",
+        "strategy": "de lux",
+        "bets": 171,
+        "wins": 76,
+        "losses": 95,
+        "pushes": 0,
+        "winrate_pct": 44.44,
+        "avg_odds": 2.902,
+        "staked": 171.0,
+        "returned": 217.12,
+        "profit": 46.12,
+        "roi_pct": 26.97
+      },
+      {
+        "config": "p>=0.45_edge>=1.05",
+        "strategy": "1 пр",
+        "bets": 207,
+        "wins": 104,
+        "losses": 103,
+        "pushes": 0,
+        "winrate_pct": 50.24,
+        "avg_odds": 2.513,
+        "staked": 207.0,
+        "returned": 262.04,
+        "profit": 55.04,
+        "roi_pct": 26.59
+      },
+      {
+        "config": "p>=0.45_edge>=1.10",
+        "strategy": "Mini Vini",
+        "bets": 173,
+        "wins": 87,
+        "losses": 86,
+        "pushes": 0,
+        "winrate_pct": 50.29,
+        "avg_odds": 2.516,
+        "staked": 173.0,
+        "returned": 218.59,
+        "profit": 45.59,
+        "roi_pct": 26.35
+      },
+      {
+        "config": "p>=0.40_edge>=1.10",
+        "strategy": "de lux",
+        "bets": 238,
+        "wins": 108,
+        "losses": 130,
+        "pushes": 0,
+        "winrate_pct": 45.38,
+        "avg_odds": 2.903,
+        "staked": 238.0,
+        "returned": 300.61,
+        "profit": 62.61,
+        "roi_pct": 26.31
+      }
+    ],
+    "all_configs": {
+      "p>=0.40_edge>=1.00": {
+        "1 пр": {
+          "bets": 303,
+          "wins": 155,
+          "losses": 148,
+          "pushes": 0,
+          "winrate_pct": 51.16,
+          "avg_odds": 2.535,
+          "staked": 303.0,
+          "returned": 387.22,
+          "profit": 84.22,
+          "roi_pct": 27.8
+        },
+        "2 пр": {
+          "bets": 234,
+          "wins": 110,
+          "losses": 124,
+          "pushes": 0,
+          "winrate_pct": 47.01,
+          "avg_odds": 2.578,
+          "staked": 234.0,
+          "returned": 277.4,
+          "profit": 43.4,
+          "roi_pct": 18.55
+        },
+        "de lux": {
+          "bets": 318,
+          "wins": 151,
+          "losses": 167,
+          "pushes": 0,
+          "winrate_pct": 47.48,
+          "avg_odds": 2.635,
+          "staked": 318.0,
+          "returned": 377.82,
+          "profit": 59.82,
+          "roi_pct": 18.81
+        },
+        "poisson": {
+          "bets": 305,
+          "wins": 149,
+          "losses": 156,
+          "pushes": 0,
+          "winrate_pct": 48.85,
+          "avg_odds": 2.685,
+          "staked": 305.0,
+          "returned": 370.51,
+          "profit": 65.51,
+          "roi_pct": 21.48
+        },
+        "ср взвеш": {
+          "bets": 328,
+          "wins": 171,
+          "losses": 157,
+          "pushes": 0,
+          "winrate_pct": 52.13,
+          "avg_odds": 2.415,
+          "staked": 328.0,
+          "returned": 397.1,
+          "profit": 69.1,
+          "roi_pct": 21.07
+        },
+        "mill": {
+          "bets": 450,
+          "wins": 106,
+          "losses": 344,
+          "pushes": 0,
+          "winrate_pct": 23.56,
+          "avg_odds": 5.509,
+          "staked": 450.0,
+          "returned": 282.21,
+          "profit": -167.79,
+          "roi_pct": -37.29
+        },
+        "Mini Vini": {
+          "bets": 274,
+          "wins": 133,
+          "losses": 141,
+          "pushes": 0,
+          "winrate_pct": 48.54,
+          "avg_odds": 2.453,
+          "staked": 274.0,
+          "returned": 331.65,
+          "profit": 57.65,
+          "roi_pct": 21.04
+        },
+        "Elizabet": {
+          "bets": 265,
+          "wins": 123,
+          "losses": 142,
+          "pushes": 0,
+          "winrate_pct": 46.42,
+          "avg_odds": 2.536,
+          "staked": 265.0,
+          "returned": 302.6,
+          "profit": 37.6,
+          "roi_pct": 14.19
+        },
+        "5Match p": {
+          "bets": 246,
+          "wins": 103,
+          "losses": 143,
+          "pushes": 0,
+          "winrate_pct": 41.87,
+          "avg_odds": 2.674,
+          "staked": 246.0,
+          "returned": 254.29,
+          "profit": 8.29,
+          "roi_pct": 3.37
+        },
+        "5Match": {
+          "bets": 435,
+          "wins": 176,
+          "losses": 259,
+          "pushes": 0,
+          "winrate_pct": 40.46,
+          "avg_odds": 2.891,
+          "staked": 435.0,
+          "returned": 435.13,
+          "profit": 0.13,
+          "roi_pct": 0.03
+        }
+      },
+      "p>=0.40_edge>=1.05": {
+        "1 пр": {
+          "bets": 250,
+          "wins": 124,
+          "losses": 126,
+          "pushes": 0,
+          "winrate_pct": 49.6,
+          "avg_odds": 2.679,
+          "staked": 250.0,
+          "returned": 330.93,
+          "profit": 80.93,
+          "roi_pct": 32.37
+        },
+        "2 пр": {
+          "bets": 199,
+          "wins": 94,
+          "losses": 105,
+          "pushes": 0,
+          "winrate_pct": 47.24,
+          "avg_odds": 2.707,
+          "staked": 199.0,
+          "returned": 248.13,
+          "profit": 49.13,
+          "roi_pct": 24.69
+        },
+        "de lux": {
+          "bets": 270,
+          "wins": 128,
+          "losses": 142,
+          "pushes": 0,
+          "winrate_pct": 47.41,
+          "avg_odds": 2.777,
+          "staked": 270.0,
+          "returned": 337.44,
+          "profit": 67.44,
+          "roi_pct": 24.98
+        },
+        "poisson": {
+          "bets": 270,
+          "wins": 129,
+          "losses": 141,
+          "pushes": 0,
+          "winrate_pct": 47.78,
+          "avg_odds": 2.782,
+          "staked": 270.0,
+          "returned": 332.78,
+          "profit": 62.78,
+          "roi_pct": 23.25
+        },
+        "ср взвеш": {
+          "bets": 274,
+          "wins": 138,
+          "losses": 136,
+          "pushes": 0,
+          "winrate_pct": 50.36,
+          "avg_odds": 2.53,
+          "staked": 274.0,
+          "returned": 338.87,
+          "profit": 64.87,
+          "roi_pct": 23.68
+        },
+        "mill": {
+          "bets": 425,
+          "wins": 92,
+          "losses": 333,
+          "pushes": 0,
+          "winrate_pct": 21.65,
+          "avg_odds": 5.727,
+          "staked": 425.0,
+          "returned": 258.5,
+          "profit": -166.5,
+          "roi_pct": -39.18
+        },
+        "Mini Vini": {
+          "bets": 229,
+          "wins": 114,
+          "losses": 115,
+          "pushes": 0,
+          "winrate_pct": 49.78,
+          "avg_odds": 2.547,
+          "staked": 229.0,
+          "returned": 294.77,
+          "profit": 65.77,
+          "roi_pct": 28.72
+        },
+        "Elizabet": {
+          "bets": 225,
+          "wins": 104,
+          "losses": 121,
+          "pushes": 0,
+          "winrate_pct": 46.22,
+          "avg_odds": 2.65,
+          "staked": 225.0,
+          "returned": 267.49,
+          "profit": 42.49,
+          "roi_pct": 18.88
+        },
+        "5Match p": {
+          "bets": 215,
+          "wins": 83,
+          "losses": 132,
+          "pushes": 0,
+          "winrate_pct": 38.6,
+          "avg_odds": 2.785,
+          "staked": 215.0,
+          "returned": 216.25,
+          "profit": 1.25,
+          "roi_pct": 0.58
+        },
+        "5Match": {
+          "bets": 408,
+          "wins": 162,
+          "losses": 246,
+          "pushes": 0,
+          "winrate_pct": 39.71,
+          "avg_odds": 2.959,
+          "staked": 408.0,
+          "returned": 410.02,
+          "profit": 2.02,
+          "roi_pct": 0.5
+        }
+      },
+      "p>=0.40_edge>=1.10": {
+        "1 пр": {
+          "bets": 224,
+          "wins": 111,
+          "losses": 113,
+          "pushes": 0,
+          "winrate_pct": 49.55,
+          "avg_odds": 2.763,
+          "staked": 224.0,
+          "returned": 304.95,
+          "profit": 80.95,
+          "roi_pct": 36.14
+        },
+        "2 пр": {
+          "bets": 162,
+          "wins": 75,
+          "losses": 87,
+          "pushes": 0,
+          "winrate_pct": 46.3,
+          "avg_odds": 2.876,
+          "staked": 162.0,
+          "returned": 211.93,
+          "profit": 49.93,
+          "roi_pct": 30.82
+        },
+        "de lux": {
+          "bets": 238,
+          "wins": 108,
+          "losses": 130,
+          "pushes": 0,
+          "winrate_pct": 45.38,
+          "avg_odds": 2.903,
+          "staked": 238.0,
+          "returned": 300.61,
+          "profit": 62.61,
+          "roi_pct": 26.31
+        },
+        "poisson": {
+          "bets": 245,
+          "wins": 112,
+          "losses": 133,
+          "pushes": 0,
+          "winrate_pct": 45.71,
+          "avg_odds": 2.86,
+          "staked": 245.0,
+          "returned": 298.11,
+          "profit": 53.11,
+          "roi_pct": 21.68
+        },
+        "ср взвеш": {
+          "bets": 237,
+          "wins": 118,
+          "losses": 119,
+          "pushes": 0,
+          "winrate_pct": 49.79,
+          "avg_odds": 2.63,
+          "staked": 237.0,
+          "returned": 301.53,
+          "profit": 64.53,
+          "roi_pct": 27.23
+        },
+        "mill": {
+          "bets": 414,
+          "wins": 86,
+          "losses": 328,
+          "pushes": 0,
+          "winrate_pct": 20.77,
+          "avg_odds": 5.834,
+          "staked": 414.0,
+          "returned": 248.47,
+          "profit": -165.53,
+          "roi_pct": -39.98
+        },
+        "Mini Vini": {
+          "bets": 198,
+          "wins": 101,
+          "losses": 97,
+          "pushes": 0,
+          "winrate_pct": 51.01,
+          "avg_odds": 2.632,
+          "staked": 198.0,
+          "returned": 268.57,
+          "profit": 70.57,
+          "roi_pct": 35.64
+        },
+        "Elizabet": {
+          "bets": 189,
+          "wins": 83,
+          "losses": 106,
+          "pushes": 0,
+          "winrate_pct": 43.92,
+          "avg_odds": 2.761,
+          "staked": 189.0,
+          "returned": 224.31,
+          "profit": 35.31,
+          "roi_pct": 18.68
+        },
+        "5Match p": {
+          "bets": 187,
+          "wins": 75,
+          "losses": 112,
+          "pushes": 0,
+          "winrate_pct": 40.11,
+          "avg_odds": 2.888,
+          "staked": 187.0,
+          "returned": 200.56,
+          "profit": 13.56,
+          "roi_pct": 7.25
+        },
+        "5Match": {
+          "bets": 388,
+          "wins": 153,
+          "losses": 235,
+          "pushes": 0,
+          "winrate_pct": 39.43,
+          "avg_odds": 3.018,
+          "staked": 388.0,
+          "returned": 394.19,
+          "profit": 6.19,
+          "roi_pct": 1.6
+        }
+      },
+      "p>=0.40_edge>=1.15": {
+        "1 пр": {
+          "bets": 199,
+          "wins": 97,
+          "losses": 102,
+          "pushes": 0,
+          "winrate_pct": 48.74,
+          "avg_odds": 2.848,
+          "staked": 199.0,
+          "returned": 276.57,
+          "profit": 77.57,
+          "roi_pct": 38.98
+        },
+        "2 пр": {
+          "bets": 135,
+          "wins": 62,
+          "losses": 73,
+          "pushes": 0,
+          "winrate_pct": 45.93,
+          "avg_odds": 3.01,
+          "staked": 135.0,
+          "returned": 184.66,
+          "profit": 49.66,
+          "roi_pct": 36.79
+        },
+        "de lux": {
+          "bets": 208,
+          "wins": 90,
+          "losses": 118,
+          "pushes": 0,
+          "winrate_pct": 43.27,
+          "avg_odds": 3.034,
+          "staked": 208.0,
+          "returned": 265.83,
+          "profit": 57.83,
+          "roi_pct": 27.8
+        },
+        "poisson": {
+          "bets": 222,
+          "wins": 104,
+          "losses": 118,
+          "pushes": 0,
+          "winrate_pct": 46.85,
+          "avg_odds": 2.945,
+          "staked": 222.0,
+          "returned": 283.42,
+          "profit": 61.42,
+          "roi_pct": 27.67
+        },
+        "ср взвеш": {
+          "bets": 200,
+          "wins": 97,
+          "losses": 103,
+          "pushes": 0,
+          "winrate_pct": 48.5,
+          "avg_odds": 2.727,
+          "staked": 200.0,
+          "returned": 258.32,
+          "profit": 58.32,
+          "roi_pct": 29.16
+        },
+        "mill": {
+          "bets": 404,
+          "wins": 79,
+          "losses": 325,
+          "pushes": 0,
+          "winrate_pct": 19.55,
+          "avg_odds": 5.934,
+          "staked": 404.0,
+          "returned": 236.24,
+          "profit": -167.76,
+          "roi_pct": -41.52
+        },
+        "Mini Vini": {
+          "bets": 164,
+          "wins": 83,
+          "losses": 81,
+          "pushes": 0,
+          "winrate_pct": 50.61,
+          "avg_odds": 2.77,
+          "staked": 164.0,
+          "returned": 233.99,
+          "profit": 69.99,
+          "roi_pct": 42.68
+        },
+        "Elizabet": {
+          "bets": 150,
+          "wins": 65,
+          "losses": 85,
+          "pushes": 0,
+          "winrate_pct": 43.33,
+          "avg_odds": 2.908,
+          "staked": 150.0,
+          "returned": 185.8,
+          "profit": 35.8,
+          "roi_pct": 23.87
+        },
+        "5Match p": {
+          "bets": 172,
+          "wins": 68,
+          "losses": 104,
+          "pushes": 0,
+          "winrate_pct": 39.53,
+          "avg_odds": 2.969,
+          "staked": 172.0,
+          "returned": 187.66,
+          "profit": 15.66,
+          "roi_pct": 9.1
+        },
+        "5Match": {
+          "bets": 368,
+          "wins": 143,
+          "losses": 225,
+          "pushes": 0,
+          "winrate_pct": 38.86,
+          "avg_odds": 3.079,
+          "staked": 368.0,
+          "returned": 375.14,
+          "profit": 7.14,
+          "roi_pct": 1.94
+        }
+      },
+      "p>=0.45_edge>=1.00": {
+        "1 пр": {
+          "bets": 253,
+          "wins": 133,
+          "losses": 120,
+          "pushes": 0,
+          "winrate_pct": 52.57,
+          "avg_odds": 2.38,
+          "staked": 253.0,
+          "returned": 313.52,
+          "profit": 60.52,
+          "roi_pct": 23.92
+        },
+        "2 пр": {
+          "bets": 187,
+          "wins": 92,
+          "losses": 95,
+          "pushes": 0,
+          "winrate_pct": 49.2,
+          "avg_odds": 2.411,
+          "staked": 187.0,
+          "returned": 218.46,
+          "profit": 31.46,
+          "roi_pct": 16.82
+        },
+        "de lux": {
+          "bets": 276,
+          "wins": 135,
+          "losses": 141,
+          "pushes": 0,
+          "winrate_pct": 48.91,
+          "avg_odds": 2.502,
+          "staked": 276.0,
+          "returned": 323.86,
+          "profit": 47.86,
+          "roi_pct": 17.34
+        },
+        "poisson": {
+          "bets": 260,
+          "wins": 130,
+          "losses": 130,
+          "pushes": 0,
+          "winrate_pct": 50.0,
+          "avg_odds": 2.56,
+          "staked": 260.0,
+          "returned": 310.05,
+          "profit": 50.05,
+          "roi_pct": 19.25
+        },
+        "ср взвеш": {
+          "bets": 306,
+          "wins": 163,
+          "losses": 143,
+          "pushes": 0,
+          "winrate_pct": 53.27,
+          "avg_odds": 2.376,
+          "staked": 306.0,
+          "returned": 374.71,
+          "profit": 68.71,
+          "roi_pct": 22.45
+        },
+        "mill": {
+          "bets": 425,
+          "wins": 99,
+          "losses": 326,
+          "pushes": 0,
+          "winrate_pct": 23.29,
+          "avg_odds": 5.504,
+          "staked": 425.0,
+          "returned": 255.6,
+          "profit": -169.4,
+          "roi_pct": -39.86
+        },
+        "Mini Vini": {
+          "bets": 240,
+          "wins": 116,
+          "losses": 124,
+          "pushes": 0,
+          "winrate_pct": 48.33,
+          "avg_odds": 2.351,
+          "staked": 240.0,
+          "returned": 274.29,
+          "profit": 34.29,
+          "roi_pct": 14.29
+        },
+        "Elizabet": {
+          "bets": 222,
+          "wins": 104,
+          "losses": 118,
+          "pushes": 0,
+          "winrate_pct": 46.85,
+          "avg_odds": 2.42,
+          "staked": 222.0,
+          "returned": 239.92,
+          "profit": 17.92,
+          "roi_pct": 8.07
+        },
+        "5Match p": {
+          "bets": 206,
+          "wins": 89,
+          "losses": 117,
+          "pushes": 0,
+          "winrate_pct": 43.2,
+          "avg_odds": 2.515,
+          "staked": 206.0,
+          "returned": 208.48,
+          "profit": 2.48,
+          "roi_pct": 1.2
+        },
+        "5Match": {
+          "bets": 409,
+          "wins": 170,
+          "losses": 239,
+          "pushes": 0,
+          "winrate_pct": 41.56,
+          "avg_odds": 2.83,
+          "staked": 409.0,
+          "returned": 413.91,
+          "profit": 4.91,
+          "roi_pct": 1.2
+        }
+      },
+      "p>=0.45_edge>=1.05": {
+        "1 пр": {
+          "bets": 207,
+          "wins": 104,
+          "losses": 103,
+          "pushes": 0,
+          "winrate_pct": 50.24,
+          "avg_odds": 2.513,
+          "staked": 207.0,
+          "returned": 262.04,
+          "profit": 55.04,
+          "roi_pct": 26.59
+        },
+        "2 пр": {
+          "bets": 154,
+          "wins": 77,
+          "losses": 77,
+          "pushes": 0,
+          "winrate_pct": 50.0,
+          "avg_odds": 2.541,
+          "staked": 154.0,
+          "returned": 191.7,
+          "profit": 37.7,
+          "roi_pct": 24.48
+        },
+        "de lux": {
+          "bets": 230,
+          "wins": 112,
+          "losses": 118,
+          "pushes": 0,
+          "winrate_pct": 48.7,
+          "avg_odds": 2.64,
+          "staked": 230.0,
+          "returned": 283.48,
+          "profit": 53.48,
+          "roi_pct": 23.25
+        },
+        "poisson": {
+          "bets": 229,
+          "wins": 112,
+          "losses": 117,
+          "pushes": 0,
+          "winrate_pct": 48.91,
+          "avg_odds": 2.652,
+          "staked": 229.0,
+          "returned": 277.04,
+          "profit": 48.04,
+          "roi_pct": 20.98
+        },
+        "ср взвеш": {
+          "bets": 255,
+          "wins": 130,
+          "losses": 125,
+          "pushes": 0,
+          "winrate_pct": 50.98,
+          "avg_odds": 2.493,
+          "staked": 255.0,
+          "returned": 316.48,
+          "profit": 61.48,
+          "roi_pct": 24.11
+        },
+        "mill": {
+          "bets": 403,
+          "wins": 86,
+          "losses": 317,
+          "pushes": 0,
+          "winrate_pct": 21.34,
+          "avg_odds": 5.71,
+          "staked": 403.0,
+          "returned": 234.4,
+          "profit": -168.6,
+          "roi_pct": -41.84
+        },
+        "Mini Vini": {
+          "bets": 202,
+          "wins": 99,
+          "losses": 103,
+          "pushes": 0,
+          "winrate_pct": 49.01,
+          "avg_odds": 2.436,
+          "staked": 202.0,
+          "returned": 242.15,
+          "profit": 40.15,
+          "roi_pct": 19.88
+        },
+        "Elizabet": {
+          "bets": 183,
+          "wins": 85,
+          "losses": 98,
+          "pushes": 0,
+          "winrate_pct": 46.45,
+          "avg_odds": 2.534,
+          "staked": 183.0,
+          "returned": 204.81,
+          "profit": 21.81,
+          "roi_pct": 11.92
+        },
+        "5Match p": {
+          "bets": 179,
+          "wins": 73,
+          "losses": 106,
+          "pushes": 0,
+          "winrate_pct": 40.78,
+          "avg_odds": 2.619,
+          "staked": 179.0,
+          "returned": 180.02,
+          "profit": 1.02,
+          "roi_pct": 0.57
+        },
+        "5Match": {
+          "bets": 384,
+          "wins": 157,
+          "losses": 227,
+          "pushes": 0,
+          "winrate_pct": 40.89,
+          "avg_odds": 2.895,
+          "staked": 384.0,
+          "returned": 391.2,
+          "profit": 7.2,
+          "roi_pct": 1.88
+        }
+      },
+      "p>=0.45_edge>=1.10": {
+        "1 пр": {
+          "bets": 183,
+          "wins": 93,
+          "losses": 90,
+          "pushes": 0,
+          "winrate_pct": 50.82,
+          "avg_odds": 2.593,
+          "staked": 183.0,
+          "returned": 241.19,
+          "profit": 58.19,
+          "roi_pct": 31.8
+        },
+        "2 пр": {
+          "bets": 119,
+          "wins": 58,
+          "losses": 61,
+          "pushes": 0,
+          "winrate_pct": 48.74,
+          "avg_odds": 2.72,
+          "staked": 119.0,
+          "returned": 155.5,
+          "profit": 36.5,
+          "roi_pct": 30.67
+        },
+        "de lux": {
+          "bets": 199,
+          "wins": 93,
+          "losses": 106,
+          "pushes": 0,
+          "winrate_pct": 46.73,
+          "avg_odds": 2.768,
+          "staked": 199.0,
+          "returned": 249.16,
+          "profit": 50.16,
+          "roi_pct": 25.21
+        },
+        "poisson": {
+          "bets": 207,
+          "wins": 98,
+          "losses": 109,
+          "pushes": 0,
+          "winrate_pct": 47.34,
+          "avg_odds": 2.725,
+          "staked": 207.0,
+          "returned": 249.67,
+          "profit": 42.67,
+          "roi_pct": 20.61
+        },
+        "ср взвеш": {
+          "bets": 220,
+          "wins": 111,
+          "losses": 109,
+          "pushes": 0,
+          "winrate_pct": 50.45,
+          "avg_odds": 2.594,
+          "staked": 220.0,
+          "returned": 281.56,
+          "profit": 61.56,
+          "roi_pct": 27.98
+        },
+        "mill": {
+          "bets": 392,
+          "wins": 80,
+          "losses": 312,
+          "pushes": 0,
+          "winrate_pct": 20.41,
+          "avg_odds": 5.823,
+          "staked": 392.0,
+          "returned": 224.37,
+          "profit": -167.63,
+          "roi_pct": -42.76
+        },
+        "Mini Vini": {
+          "bets": 173,
+          "wins": 87,
+          "losses": 86,
+          "pushes": 0,
+          "winrate_pct": 50.29,
+          "avg_odds": 2.516,
+          "staked": 173.0,
+          "returned": 218.59,
+          "profit": 45.59,
+          "roi_pct": 26.35
+        },
+        "Elizabet": {
+          "bets": 151,
+          "wins": 66,
+          "losses": 85,
+          "pushes": 0,
+          "winrate_pct": 43.71,
+          "avg_odds": 2.648,
+          "staked": 151.0,
+          "returned": 166.84,
+          "profit": 15.84,
+          "roi_pct": 10.49
+        },
+        "5Match p": {
+          "bets": 158,
+          "wins": 65,
+          "losses": 93,
+          "pushes": 0,
+          "winrate_pct": 41.14,
+          "avg_odds": 2.707,
+          "staked": 158.0,
+          "returned": 164.33,
+          "profit": 6.33,
+          "roi_pct": 4.01
+        },
+        "5Match": {
+          "bets": 364,
+          "wins": 148,
+          "losses": 216,
+          "pushes": 0,
+          "winrate_pct": 40.66,
+          "avg_odds": 2.954,
+          "staked": 364.0,
+          "returned": 375.37,
+          "profit": 11.37,
+          "roi_pct": 3.12
+        }
+      },
+      "p>=0.45_edge>=1.15": {
+        "1 пр": {
+          "bets": 161,
+          "wins": 80,
+          "losses": 81,
+          "pushes": 0,
+          "winrate_pct": 49.69,
+          "avg_odds": 2.672,
+          "staked": 161.0,
+          "returned": 215.45,
+          "profit": 54.45,
+          "roi_pct": 33.82
+        },
+        "2 пр": {
+          "bets": 99,
+          "wins": 47,
+          "losses": 52,
+          "pushes": 0,
+          "winrate_pct": 47.47,
+          "avg_odds": 2.856,
+          "staked": 99.0,
+          "returned": 133.5,
+          "profit": 34.5,
+          "roi_pct": 34.85
+        },
+        "de lux": {
+          "bets": 171,
+          "wins": 76,
+          "losses": 95,
+          "pushes": 0,
+          "winrate_pct": 44.44,
+          "avg_odds": 2.902,
+          "staked": 171.0,
+          "returned": 217.12,
+          "profit": 46.12,
+          "roi_pct": 26.97
+        },
+        "poisson": {
+          "bets": 187,
+          "wins": 90,
+          "losses": 97,
+          "pushes": 0,
+          "winrate_pct": 48.13,
+          "avg_odds": 2.807,
+          "staked": 187.0,
+          "returned": 234.98,
+          "profit": 47.98,
+          "roi_pct": 25.66
+        },
+        "ср взвеш": {
+          "bets": 185,
+          "wins": 91,
+          "losses": 94,
+          "pushes": 0,
+          "winrate_pct": 49.19,
+          "avg_odds": 2.69,
+          "staked": 185.0,
+          "returned": 240.87,
+          "profit": 55.87,
+          "roi_pct": 30.2
+        },
+        "mill": {
+          "bets": 382,
+          "wins": 73,
+          "losses": 309,
+          "pushes": 0,
+          "winrate_pct": 19.11,
+          "avg_odds": 5.928,
+          "staked": 382.0,
+          "returned": 212.14,
+          "profit": -169.86,
+          "roi_pct": -44.47
+        },
+        "Mini Vini": {
+          "bets": 140,
+          "wins": 70,
+          "losses": 70,
+          "pushes": 0,
+          "winrate_pct": 50.0,
+          "avg_odds": 2.651,
+          "staked": 140.0,
+          "returned": 186.69,
+          "profit": 46.69,
+          "roi_pct": 33.35
+        },
+        "Elizabet": {
+          "bets": 121,
+          "wins": 52,
+          "losses": 69,
+          "pushes": 0,
+          "winrate_pct": 42.98,
+          "avg_odds": 2.794,
+          "staked": 121.0,
+          "returned": 138.98,
+          "profit": 17.98,
+          "roi_pct": 14.86
+        },
+        "5Match p": {
+          "bets": 143,
+          "wins": 58,
+          "losses": 85,
+          "pushes": 0,
+          "winrate_pct": 40.56,
+          "avg_odds": 2.786,
+          "staked": 143.0,
+          "returned": 151.43,
+          "profit": 8.43,
+          "roi_pct": 5.9
+        },
+        "5Match": {
+          "bets": 346,
+          "wins": 139,
+          "losses": 207,
+          "pushes": 0,
+          "winrate_pct": 40.17,
+          "avg_odds": 3.014,
+          "staked": 346.0,
+          "returned": 359.15,
+          "profit": 13.15,
+          "roi_pct": 3.8
+        }
+      },
+      "p>=0.50_edge>=1.00": {
+        "1 пр": {
+          "bets": 206,
+          "wins": 109,
+          "losses": 97,
+          "pushes": 0,
+          "winrate_pct": 52.91,
+          "avg_odds": 2.218,
+          "staked": 206.0,
+          "returned": 232.2,
+          "profit": 26.2,
+          "roi_pct": 12.72
+        },
+        "2 пр": {
+          "bets": 160,
+          "wins": 80,
+          "losses": 80,
+          "pushes": 0,
+          "winrate_pct": 50.0,
+          "avg_odds": 2.32,
+          "staked": 160.0,
+          "returned": 180.25,
+          "profit": 20.25,
+          "roi_pct": 12.66
+        },
+        "de lux": {
+          "bets": 221,
+          "wins": 113,
+          "losses": 108,
+          "pushes": 0,
+          "winrate_pct": 51.13,
+          "avg_odds": 2.339,
+          "staked": 221.0,
+          "returned": 253.16,
+          "profit": 32.16,
+          "roi_pct": 14.55
+        },
+        "poisson": {
+          "bets": 206,
+          "wins": 108,
+          "losses": 98,
+          "pushes": 0,
+          "winrate_pct": 52.43,
+          "avg_odds": 2.411,
+          "staked": 206.0,
+          "returned": 247.17,
+          "profit": 41.17,
+          "roi_pct": 19.99
+        },
+        "ср взвеш": {
+          "bets": 258,
+          "wins": 140,
+          "losses": 118,
+          "pushes": 0,
+          "winrate_pct": 54.26,
+          "avg_odds": 2.273,
+          "staked": 258.0,
+          "returned": 307.58,
+          "profit": 49.58,
+          "roi_pct": 19.22
+        },
+        "mill": {
+          "bets": 378,
+          "wins": 88,
+          "losses": 290,
+          "pushes": 0,
+          "winrate_pct": 23.28,
+          "avg_odds": 5.531,
+          "staked": 378.0,
+          "returned": 220.0,
+          "profit": -158.0,
+          "roi_pct": -41.8
+        },
+        "Mini Vini": {
+          "bets": 202,
+          "wins": 100,
+          "losses": 102,
+          "pushes": 0,
+          "winrate_pct": 49.5,
+          "avg_odds": 2.28,
+          "staked": 202.0,
+          "returned": 227.83,
+          "profit": 25.83,
+          "roi_pct": 12.79
+        },
+        "Elizabet": {
+          "bets": 174,
+          "wins": 84,
+          "losses": 90,
+          "pushes": 0,
+          "winrate_pct": 48.28,
+          "avg_odds": 2.358,
+          "staked": 174.0,
+          "returned": 185.91,
+          "profit": 11.91,
+          "roi_pct": 6.84
+        },
+        "5Match p": {
+          "bets": 171,
+          "wins": 79,
+          "losses": 92,
+          "pushes": 0,
+          "winrate_pct": 46.2,
+          "avg_odds": 2.382,
+          "staked": 171.0,
+          "returned": 179.2,
+          "profit": 8.2,
+          "roi_pct": 4.8
+        },
+        "5Match": {
+          "bets": 366,
+          "wins": 159,
+          "losses": 207,
+          "pushes": 0,
+          "winrate_pct": 43.44,
+          "avg_odds": 2.735,
+          "staked": 366.0,
+          "returned": 377.14,
+          "profit": 11.14,
+          "roi_pct": 3.04
+        }
+      },
+      "p>=0.50_edge>=1.05": {
+        "1 пр": {
+          "bets": 166,
+          "wins": 82,
+          "losses": 84,
+          "pushes": 0,
+          "winrate_pct": 49.4,
+          "avg_odds": 2.337,
+          "staked": 166.0,
+          "returned": 185.11,
+          "profit": 19.11,
+          "roi_pct": 11.51
+        },
+        "2 пр": {
+          "bets": 132,
+          "wins": 67,
+          "losses": 65,
+          "pushes": 0,
+          "winrate_pct": 50.76,
+          "avg_odds": 2.44,
+          "staked": 132.0,
+          "returned": 157.56,
+          "profit": 25.56,
+          "roi_pct": 19.36
+        },
+        "de lux": {
+          "bets": 184,
+          "wins": 91,
+          "losses": 93,
+          "pushes": 0,
+          "winrate_pct": 49.46,
+          "avg_odds": 2.462,
+          "staked": 184.0,
+          "returned": 214.89,
+          "profit": 30.89,
+          "roi_pct": 16.79
+        },
+        "poisson": {
+          "bets": 185,
+          "wins": 94,
+          "losses": 91,
+          "pushes": 0,
+          "winrate_pct": 50.81,
+          "avg_odds": 2.485,
+          "staked": 185.0,
+          "returned": 222.55,
+          "profit": 37.55,
+          "roi_pct": 20.3
+        },
+        "ср взвеш": {
+          "bets": 215,
+          "wins": 110,
+          "losses": 105,
+          "pushes": 0,
+          "winrate_pct": 51.16,
+          "avg_odds": 2.384,
+          "staked": 215.0,
+          "returned": 255.97,
+          "profit": 40.97,
+          "roi_pct": 19.06
+        },
+        "mill": {
+          "bets": 358,
+          "wins": 76,
+          "losses": 282,
+          "pushes": 0,
+          "winrate_pct": 21.23,
+          "avg_odds": 5.747,
+          "staked": 358.0,
+          "returned": 200.97,
+          "profit": -157.03,
+          "roi_pct": -43.86
+        },
+        "Mini Vini": {
+          "bets": 170,
+          "wins": 86,
+          "losses": 84,
+          "pushes": 0,
+          "winrate_pct": 50.59,
+          "avg_odds": 2.363,
+          "staked": 170.0,
+          "returned": 202.09,
+          "profit": 32.09,
+          "roi_pct": 18.88
+        },
+        "Elizabet": {
+          "bets": 144,
+          "wins": 68,
+          "losses": 76,
+          "pushes": 0,
+          "winrate_pct": 47.22,
+          "avg_odds": 2.471,
+          "staked": 144.0,
+          "returned": 157.09,
+          "profit": 13.09,
+          "roi_pct": 9.09
+        },
+        "5Match p": {
+          "bets": 150,
+          "wins": 67,
+          "losses": 83,
+          "pushes": 0,
+          "winrate_pct": 44.67,
+          "avg_odds": 2.473,
+          "staked": 150.0,
+          "returned": 159.26,
+          "profit": 9.26,
+          "roi_pct": 6.17
+        },
+        "5Match": {
+          "bets": 344,
+          "wins": 146,
+          "losses": 198,
+          "pushes": 0,
+          "winrate_pct": 42.44,
+          "avg_odds": 2.797,
+          "staked": 344.0,
+          "returned": 354.43,
+          "profit": 10.43,
+          "roi_pct": 3.03
+        }
+      },
+      "p>=0.50_edge>=1.10": {
+        "1 пр": {
+          "bets": 147,
+          "wins": 72,
+          "losses": 75,
+          "pushes": 0,
+          "winrate_pct": 48.98,
+          "avg_odds": 2.404,
+          "staked": 147.0,
+          "returned": 166.43,
+          "profit": 19.43,
+          "roi_pct": 13.22
+        },
+        "2 пр": {
+          "bets": 99,
+          "wins": 50,
+          "losses": 49,
+          "pushes": 0,
+          "winrate_pct": 50.51,
+          "avg_odds": 2.616,
+          "staked": 99.0,
+          "returned": 125.84,
+          "profit": 26.84,
+          "roi_pct": 27.11
+        },
+        "de lux": {
+          "bets": 156,
+          "wins": 73,
+          "losses": 83,
+          "pushes": 0,
+          "winrate_pct": 46.79,
+          "avg_odds": 2.584,
+          "staked": 156.0,
+          "returned": 182.82,
+          "profit": 26.82,
+          "roi_pct": 17.19
+        },
+        "poisson": {
+          "bets": 169,
+          "wins": 84,
+          "losses": 85,
+          "pushes": 0,
+          "winrate_pct": 49.7,
+          "avg_odds": 2.544,
+          "staked": 169.0,
+          "returned": 204.06,
+          "profit": 35.06,
+          "roi_pct": 20.75
+        },
+        "ср взвеш": {
+          "bets": 183,
+          "wins": 92,
+          "losses": 91,
+          "pushes": 0,
+          "winrate_pct": 50.27,
+          "avg_odds": 2.482,
+          "staked": 183.0,
+          "returned": 223.36,
+          "profit": 40.36,
+          "roi_pct": 22.05
+        },
+        "mill": {
+          "bets": 349,
+          "wins": 71,
+          "losses": 278,
+          "pushes": 0,
+          "winrate_pct": 20.34,
+          "avg_odds": 5.854,
+          "staked": 349.0,
+          "returned": 193.14,
+          "profit": -155.86,
+          "roi_pct": -44.66
+        },
+        "Mini Vini": {
+          "bets": 149,
+          "wins": 76,
+          "losses": 73,
+          "pushes": 0,
+          "winrate_pct": 51.01,
+          "avg_odds": 2.434,
+          "staked": 149.0,
+          "returned": 182.92,
+          "profit": 33.92,
+          "roi_pct": 22.77
+        },
+        "Elizabet": {
+          "bets": 120,
+          "wins": 54,
+          "losses": 66,
+          "pushes": 0,
+          "winrate_pct": 45.0,
+          "avg_odds": 2.583,
+          "staked": 120.0,
+          "returned": 130.48,
+          "profit": 10.48,
+          "roi_pct": 8.73
+        },
+        "5Match p": {
+          "bets": 135,
+          "wins": 60,
+          "losses": 75,
+          "pushes": 0,
+          "winrate_pct": 44.44,
+          "avg_odds": 2.543,
+          "staked": 135.0,
+          "returned": 145.88,
+          "profit": 10.88,
+          "roi_pct": 8.06
+        },
+        "5Match": {
+          "bets": 327,
+          "wins": 137,
+          "losses": 190,
+          "pushes": 0,
+          "winrate_pct": 41.9,
+          "avg_odds": 2.851,
+          "staked": 327.0,
+          "returned": 338.6,
+          "profit": 11.6,
+          "roi_pct": 3.55
+        }
+      },
+      "p>=0.50_edge>=1.15": {
+        "1 пр": {
+          "bets": 127,
+          "wins": 60,
+          "losses": 67,
+          "pushes": 0,
+          "winrate_pct": 47.24,
+          "avg_odds": 2.472,
+          "staked": 127.0,
+          "returned": 143.17,
+          "profit": 16.17,
+          "roi_pct": 12.73
+        },
+        "2 пр": {
+          "bets": 81,
+          "wins": 40,
+          "losses": 41,
+          "pushes": 0,
+          "winrate_pct": 49.38,
+          "avg_odds": 2.748,
+          "staked": 81.0,
+          "returned": 106.14,
+          "profit": 25.14,
+          "roi_pct": 31.04
+        },
+        "de lux": {
+          "bets": 133,
+          "wins": 59,
+          "losses": 74,
+          "pushes": 0,
+          "winrate_pct": 44.36,
+          "avg_odds": 2.709,
+          "staked": 133.0,
+          "returned": 157.71,
+          "profit": 24.71,
+          "roi_pct": 18.58
+        },
+        "poisson": {
+          "bets": 154,
+          "wins": 78,
+          "losses": 76,
+          "pushes": 0,
+          "winrate_pct": 50.65,
+          "avg_odds": 2.612,
+          "staked": 154.0,
+          "returned": 193.95,
+          "profit": 39.95,
+          "roi_pct": 25.94
+        },
+        "ср взвеш": {
+          "bets": 153,
+          "wins": 73,
+          "losses": 80,
+          "pushes": 0,
+          "winrate_pct": 47.71,
+          "avg_odds": 2.568,
+          "staked": 153.0,
+          "returned": 184.97,
+          "profit": 31.97,
+          "roi_pct": 20.9
+        },
+        "mill": {
+          "bets": 339,
+          "wins": 64,
+          "losses": 275,
+          "pushes": 0,
+          "winrate_pct": 18.88,
+          "avg_odds": 5.973,
+          "staked": 339.0,
+          "returned": 180.91,
+          "profit": -158.09,
+          "roi_pct": -46.63
+        },
+        "Mini Vini": {
+          "bets": 118,
+          "wins": 60,
+          "losses": 58,
+          "pushes": 0,
+          "winrate_pct": 50.85,
+          "avg_odds": 2.57,
+          "staked": 118.0,
+          "returned": 153.42,
+          "profit": 35.42,
+          "roi_pct": 30.02
+        },
+        "Elizabet": {
+          "bets": 95,
+          "wins": 42,
+          "losses": 53,
+          "pushes": 0,
+          "winrate_pct": 44.21,
+          "avg_odds": 2.731,
+          "staked": 95.0,
+          "returned": 107.26,
+          "profit": 12.26,
+          "roi_pct": 12.91
+        },
+        "5Match p": {
+          "bets": 122,
+          "wins": 53,
+          "losses": 69,
+          "pushes": 0,
+          "winrate_pct": 43.44,
+          "avg_odds": 2.612,
+          "staked": 122.0,
+          "returned": 132.98,
+          "profit": 10.98,
+          "roi_pct": 9.0
+        },
+        "5Match": {
+          "bets": 310,
+          "wins": 129,
+          "losses": 181,
+          "pushes": 0,
+          "winrate_pct": 41.61,
+          "avg_odds": 2.91,
+          "staked": 310.0,
+          "returned": 324.76,
+          "profit": 14.76,
+          "roi_pct": 4.76
+        }
+      },
+      "p>=0.55_edge>=1.00": {
+        "1 пр": {
+          "bets": 140,
+          "wins": 75,
+          "losses": 65,
+          "pushes": 0,
+          "winrate_pct": 53.57,
+          "avg_odds": 2.029,
+          "staked": 140.0,
+          "returned": 147.04,
+          "profit": 7.04,
+          "roi_pct": 5.03
+        },
+        "2 пр": {
+          "bets": 91,
+          "wins": 46,
+          "losses": 45,
+          "pushes": 0,
+          "winrate_pct": 50.55,
+          "avg_odds": 2.124,
+          "staked": 91.0,
+          "returned": 94.77,
+          "profit": 3.77,
+          "roi_pct": 4.14
+        },
+        "de lux": {
+          "bets": 167,
+          "wins": 86,
+          "losses": 81,
+          "pushes": 0,
+          "winrate_pct": 51.5,
+          "avg_odds": 2.228,
+          "staked": 167.0,
+          "returned": 183.83,
+          "profit": 16.83,
+          "roi_pct": 10.08
+        },
+        "poisson": {
+          "bets": 156,
+          "wins": 85,
+          "losses": 71,
+          "pushes": 0,
+          "winrate_pct": 54.49,
+          "avg_odds": 2.27,
+          "staked": 156.0,
+          "returned": 185.43,
+          "profit": 29.43,
+          "roi_pct": 18.87
+        },
+        "ср взвеш": {
+          "bets": 171,
+          "wins": 94,
+          "losses": 77,
+          "pushes": 0,
+          "winrate_pct": 54.97,
+          "avg_odds": 2.111,
+          "staked": 171.0,
+          "returned": 188.31,
+          "profit": 17.31,
+          "roi_pct": 10.12
+        },
+        "mill": {
+          "bets": 307,
+          "wins": 72,
+          "losses": 235,
+          "pushes": 0,
+          "winrate_pct": 23.45,
+          "avg_odds": 5.597,
+          "staked": 307.0,
+          "returned": 170.22,
+          "profit": -136.78,
+          "roi_pct": -44.55
+        },
+        "Mini Vini": {
+          "bets": 126,
+          "wins": 63,
+          "losses": 63,
+          "pushes": 0,
+          "winrate_pct": 50.0,
+          "avg_odds": 2.129,
+          "staked": 126.0,
+          "returned": 129.69,
+          "profit": 3.69,
+          "roi_pct": 2.93
+        },
+        "Elizabet": {
+          "bets": 83,
+          "wins": 40,
+          "losses": 43,
+          "pushes": 0,
+          "winrate_pct": 48.19,
+          "avg_odds": 1.99,
+          "staked": 83.0,
+          "returned": 76.02,
+          "profit": -6.98,
+          "roi_pct": -8.41
+        },
+        "5Match p": {
+          "bets": 115,
+          "wins": 55,
+          "losses": 60,
+          "pushes": 0,
+          "winrate_pct": 47.83,
+          "avg_odds": 2.262,
+          "staked": 115.0,
+          "returned": 114.5,
+          "profit": -0.5,
+          "roi_pct": -0.43
+        },
+        "5Match": {
+          "bets": 307,
+          "wins": 132,
+          "losses": 175,
+          "pushes": 0,
+          "winrate_pct": 43.0,
+          "avg_odds": 2.601,
+          "staked": 307.0,
+          "returned": 296.12,
+          "profit": -10.88,
+          "roi_pct": -3.54
+        }
+      },
+      "p>=0.55_edge>=1.05": {
+        "1 пр": {
+          "bets": 113,
+          "wins": 58,
+          "losses": 55,
+          "pushes": 0,
+          "winrate_pct": 51.33,
+          "avg_odds": 2.128,
+          "staked": 113.0,
+          "returned": 119.37,
+          "profit": 6.37,
+          "roi_pct": 5.64
+        },
+        "2 пр": {
+          "bets": 70,
+          "wins": 37,
+          "losses": 33,
+          "pushes": 0,
+          "winrate_pct": 52.86,
+          "avg_odds": 2.25,
+          "staked": 70.0,
+          "returned": 79.81,
+          "profit": 9.81,
+          "roi_pct": 14.01
+        },
+        "de lux": {
+          "bets": 142,
+          "wins": 71,
+          "losses": 71,
+          "pushes": 0,
+          "winrate_pct": 50.0,
+          "avg_odds": 2.334,
+          "staked": 142.0,
+          "returned": 159.29,
+          "profit": 17.29,
+          "roi_pct": 12.18
+        },
+        "poisson": {
+          "bets": 143,
+          "wins": 77,
+          "losses": 66,
+          "pushes": 0,
+          "winrate_pct": 53.85,
+          "avg_odds": 2.326,
+          "staked": 143.0,
+          "returned": 172.38,
+          "profit": 29.38,
+          "roi_pct": 20.55
+        },
+        "ср взвеш": {
+          "bets": 136,
+          "wins": 69,
+          "losses": 67,
+          "pushes": 0,
+          "winrate_pct": 50.74,
+          "avg_odds": 2.224,
+          "staked": 136.0,
+          "returned": 146.36,
+          "profit": 10.36,
+          "roi_pct": 7.62
+        },
+        "mill": {
+          "bets": 293,
+          "wins": 62,
+          "losses": 231,
+          "pushes": 0,
+          "winrate_pct": 21.16,
+          "avg_odds": 5.791,
+          "staked": 293.0,
+          "returned": 155.05,
+          "profit": -137.95,
+          "roi_pct": -47.08
+        },
+        "Mini Vini": {
+          "bets": 111,
+          "wins": 56,
+          "losses": 55,
+          "pushes": 0,
+          "winrate_pct": 50.45,
+          "avg_odds": 2.184,
+          "staked": 111.0,
+          "returned": 117.81,
+          "profit": 6.81,
+          "roi_pct": 6.14
+        },
+        "Elizabet": {
+          "bets": 65,
+          "wins": 30,
+          "losses": 35,
+          "pushes": 0,
+          "winrate_pct": 46.15,
+          "avg_odds": 2.064,
+          "staked": 65.0,
+          "returned": 58.83,
+          "profit": -6.17,
+          "roi_pct": -9.49
+        },
+        "5Match p": {
+          "bets": 102,
+          "wins": 46,
+          "losses": 56,
+          "pushes": 0,
+          "winrate_pct": 45.1,
+          "avg_odds": 2.345,
+          "staked": 102.0,
+          "returned": 100.33,
+          "profit": -1.67,
+          "roi_pct": -1.64
+        },
+        "5Match": {
+          "bets": 293,
+          "wins": 123,
+          "losses": 170,
+          "pushes": 0,
+          "winrate_pct": 41.98,
+          "avg_odds": 2.645,
+          "staked": 293.0,
+          "returned": 281.23,
+          "profit": -11.77,
+          "roi_pct": -4.02
+        }
+      },
+      "p>=0.55_edge>=1.10": {
+        "1 пр": {
+          "bets": 98,
+          "wins": 51,
+          "losses": 47,
+          "pushes": 0,
+          "winrate_pct": 52.04,
+          "avg_odds": 2.184,
+          "staked": 98.0,
+          "returned": 106.79,
+          "profit": 8.79,
+          "roi_pct": 8.97
+        },
+        "2 пр": {
+          "bets": 54,
+          "wins": 28,
+          "losses": 26,
+          "pushes": 0,
+          "winrate_pct": 51.85,
+          "avg_odds": 2.394,
+          "staked": 54.0,
+          "returned": 64.51,
+          "profit": 10.51,
+          "roi_pct": 19.46
+        },
+        "de lux": {
+          "bets": 119,
+          "wins": 57,
+          "losses": 62,
+          "pushes": 0,
+          "winrate_pct": 47.9,
+          "avg_odds": 2.452,
+          "staked": 119.0,
+          "returned": 135.34,
+          "profit": 16.34,
+          "roi_pct": 13.73
+        },
+        "poisson": {
+          "bets": 132,
+          "wins": 71,
+          "losses": 61,
+          "pushes": 0,
+          "winrate_pct": 53.79,
+          "avg_odds": 2.374,
+          "staked": 132.0,
+          "returned": 162.29,
+          "profit": 30.29,
+          "roi_pct": 22.95
+        },
+        "ср взвеш": {
+          "bets": 114,
+          "wins": 56,
+          "losses": 58,
+          "pushes": 0,
+          "winrate_pct": 49.12,
+          "avg_odds": 2.319,
+          "staked": 114.0,
+          "returned": 123.75,
+          "profit": 9.75,
+          "roi_pct": 8.55
+        },
+        "mill": {
+          "bets": 285,
+          "wins": 58,
+          "losses": 227,
+          "pushes": 0,
+          "winrate_pct": 20.35,
+          "avg_odds": 5.911,
+          "staked": 285.0,
+          "returned": 149.2,
+          "profit": -135.8,
+          "roi_pct": -47.65
+        },
+        "Mini Vini": {
+          "bets": 98,
+          "wins": 50,
+          "losses": 48,
+          "pushes": 0,
+          "winrate_pct": 51.02,
+          "avg_odds": 2.245,
+          "staked": 98.0,
+          "returned": 106.92,
+          "profit": 8.92,
+          "roi_pct": 9.1
+        },
+        "Elizabet": {
+          "bets": 52,
+          "wins": 22,
+          "losses": 30,
+          "pushes": 0,
+          "winrate_pct": 42.31,
+          "avg_odds": 2.134,
+          "staked": 52.0,
+          "returned": 44.6,
+          "profit": -7.4,
+          "roi_pct": -14.23
+        },
+        "5Match p": {
+          "bets": 93,
+          "wins": 43,
+          "losses": 50,
+          "pushes": 0,
+          "winrate_pct": 46.24,
+          "avg_odds": 2.405,
+          "staked": 93.0,
+          "returned": 94.89,
+          "profit": 1.89,
+          "roi_pct": 2.03
+        },
+        "5Match": {
+          "bets": 277,
+          "wins": 115,
+          "losses": 162,
+          "pushes": 0,
+          "winrate_pct": 41.52,
+          "avg_odds": 2.698,
+          "staked": 277.0,
+          "returned": 267.48,
+          "profit": -9.52,
+          "roi_pct": -3.44
+        }
+      },
+      "p>=0.55_edge>=1.15": {
+        "1 пр": {
+          "bets": 87,
+          "wins": 45,
+          "losses": 42,
+          "pushes": 0,
+          "winrate_pct": 51.72,
+          "avg_odds": 2.227,
+          "staked": 87.0,
+          "returned": 96.28,
+          "profit": 9.28,
+          "roi_pct": 10.67
+        },
+        "2 пр": {
+          "bets": 46,
+          "wins": 22,
+          "losses": 24,
+          "pushes": 0,
+          "winrate_pct": 47.83,
+          "avg_odds": 2.485,
+          "staked": 46.0,
+          "returned": 53.31,
+          "profit": 7.31,
+          "roi_pct": 15.89
+        },
+        "de lux": {
+          "bets": 103,
+          "wins": 46,
+          "losses": 57,
+          "pushes": 0,
+          "winrate_pct": 44.66,
+          "avg_odds": 2.561,
+          "staked": 103.0,
+          "returned": 116.63,
+          "profit": 13.63,
+          "roi_pct": 13.23
+        },
+        "poisson": {
+          "bets": 121,
+          "wins": 65,
+          "losses": 56,
+          "pushes": 0,
+          "winrate_pct": 53.72,
+          "avg_odds": 2.432,
+          "staked": 121.0,
+          "returned": 152.18,
+          "profit": 31.18,
+          "roi_pct": 25.77
+        },
+        "ср взвеш": {
+          "bets": 103,
+          "wins": 48,
+          "losses": 55,
+          "pushes": 0,
+          "winrate_pct": 46.6,
+          "avg_odds": 2.369,
+          "staked": 103.0,
+          "returned": 109.19,
+          "profit": 6.19,
+          "roi_pct": 6.01
+        },
+        "mill": {
+          "bets": 278,
+          "wins": 53,
+          "losses": 225,
+          "pushes": 0,
+          "winrate_pct": 19.06,
+          "avg_odds": 6.018,
+          "staked": 278.0,
+          "returned": 141.21,
+          "profit": -136.79,
+          "roi_pct": -49.21
+        },
+        "Mini Vini": {
+          "bets": 79,
+          "wins": 38,
+          "losses": 41,
+          "pushes": 0,
+          "winrate_pct": 48.1,
+          "avg_odds": 2.358,
+          "staked": 79.0,
+          "returned": 86.1,
+          "profit": 7.1,
+          "roi_pct": 8.99
+        },
+        "Elizabet": {
+          "bets": 41,
+          "wins": 16,
+          "losses": 25,
+          "pushes": 0,
+          "winrate_pct": 39.02,
+          "avg_odds": 2.21,
+          "staked": 41.0,
+          "returned": 34.14,
+          "profit": -6.86,
+          "roi_pct": -16.73
+        },
+        "5Match p": {
+          "bets": 84,
+          "wins": 38,
+          "losses": 46,
+          "pushes": 0,
+          "winrate_pct": 45.24,
+          "avg_odds": 2.47,
+          "staked": 84.0,
+          "returned": 86.28,
+          "profit": 2.28,
+          "roi_pct": 2.71
+        },
+        "5Match": {
+          "bets": 261,
+          "wins": 108,
+          "losses": 153,
+          "pushes": 0,
+          "winrate_pct": 41.38,
+          "avg_odds": 2.757,
+          "staked": 261.0,
+          "returned": 255.76,
+          "profit": -5.24,
+          "roi_pct": -2.01
+        }
+      },
+      "p>=0.60_edge>=1.00": {
+        "1 пр": {
+          "bets": 78,
+          "wins": 45,
+          "losses": 33,
+          "pushes": 0,
+          "winrate_pct": 57.69,
+          "avg_odds": 1.804,
+          "staked": 78.0,
+          "returned": 78.09,
+          "profit": 0.09,
+          "roi_pct": 0.12
+        },
+        "2 пр": {
+          "bets": 41,
+          "wins": 28,
+          "losses": 13,
+          "pushes": 0,
+          "winrate_pct": 68.29,
+          "avg_odds": 1.959,
+          "staked": 41.0,
+          "returned": 53.11,
+          "profit": 12.11,
+          "roi_pct": 29.54
+        },
+        "de lux": {
+          "bets": 98,
+          "wins": 54,
+          "losses": 44,
+          "pushes": 0,
+          "winrate_pct": 55.1,
+          "avg_odds": 2.022,
+          "staked": 98.0,
+          "returned": 103.18,
+          "profit": 5.18,
+          "roi_pct": 5.29
+        },
+        "poisson": {
+          "bets": 105,
+          "wins": 57,
+          "losses": 48,
+          "pushes": 0,
+          "winrate_pct": 54.29,
+          "avg_odds": 2.128,
+          "staked": 105.0,
+          "returned": 116.19,
+          "profit": 11.19,
+          "roi_pct": 10.66
+        },
+        "ср взвеш": {
+          "bets": 81,
+          "wins": 51,
+          "losses": 30,
+          "pushes": 0,
+          "winrate_pct": 62.96,
+          "avg_odds": 1.838,
+          "staked": 81.0,
+          "returned": 89.63,
+          "profit": 8.63,
+          "roi_pct": 10.65
+        },
+        "mill": {
+          "bets": 246,
+          "wins": 61,
+          "losses": 185,
+          "pushes": 0,
+          "winrate_pct": 24.8,
+          "avg_odds": 5.481,
+          "staked": 246.0,
+          "returned": 128.29,
+          "profit": -117.71,
+          "roi_pct": -47.85
+        },
+        "Mini Vini": {
+          "bets": 72,
+          "wins": 38,
+          "losses": 34,
+          "pushes": 0,
+          "winrate_pct": 52.78,
+          "avg_odds": 1.954,
+          "staked": 72.0,
+          "returned": 70.14,
+          "profit": -1.86,
+          "roi_pct": -2.58
+        },
+        "Elizabet": {
+          "bets": 36,
+          "wins": 20,
+          "losses": 16,
+          "pushes": 0,
+          "winrate_pct": 55.56,
+          "avg_odds": 1.824,
+          "staked": 36.0,
+          "returned": 35.05,
+          "profit": -0.95,
+          "roi_pct": -2.64
+        },
+        "5Match p": {
+          "bets": 69,
+          "wins": 35,
+          "losses": 34,
+          "pushes": 0,
+          "winrate_pct": 50.72,
+          "avg_odds": 2.082,
+          "staked": 69.0,
+          "returned": 67.67,
+          "profit": -1.33,
+          "roi_pct": -1.93
+        },
+        "5Match": {
+          "bets": 253,
+          "wins": 112,
+          "losses": 141,
+          "pushes": 0,
+          "winrate_pct": 44.27,
+          "avg_odds": 2.516,
+          "staked": 253.0,
+          "returned": 246.44,
+          "profit": -6.56,
+          "roi_pct": -2.59
+        }
+      },
+      "p>=0.60_edge>=1.05": {
+        "1 пр": {
+          "bets": 60,
+          "wins": 34,
+          "losses": 26,
+          "pushes": 0,
+          "winrate_pct": 56.67,
+          "avg_odds": 1.881,
+          "staked": 60.0,
+          "returned": 60.91,
+          "profit": 0.91,
+          "roi_pct": 1.52
+        },
+        "2 пр": {
+          "bets": 32,
+          "wins": 23,
+          "losses": 9,
+          "pushes": 0,
+          "winrate_pct": 71.88,
+          "avg_odds": 2.069,
+          "staked": 32.0,
+          "returned": 45.27,
+          "profit": 13.27,
+          "roi_pct": 41.47
+        },
+        "de lux": {
+          "bets": 82,
+          "wins": 44,
+          "losses": 38,
+          "pushes": 0,
+          "winrate_pct": 53.66,
+          "avg_odds": 2.114,
+          "staked": 82.0,
+          "returned": 87.43,
+          "profit": 5.43,
+          "roi_pct": 6.62
+        },
+        "poisson": {
+          "bets": 97,
+          "wins": 52,
+          "losses": 45,
+          "pushes": 0,
+          "winrate_pct": 53.61,
+          "avg_odds": 2.174,
+          "staked": 97.0,
+          "returned": 108.52,
+          "profit": 11.52,
+          "roi_pct": 11.88
+        },
+        "ср взвеш": {
+          "bets": 62,
+          "wins": 36,
+          "losses": 26,
+          "pushes": 0,
+          "winrate_pct": 58.06,
+          "avg_odds": 1.921,
+          "staked": 62.0,
+          "returned": 65.7,
+          "profit": 3.7,
+          "roi_pct": 5.97
+        },
+        "mill": {
+          "bets": 234,
+          "wins": 52,
+          "losses": 182,
+          "pushes": 0,
+          "winrate_pct": 22.22,
+          "avg_odds": 5.685,
+          "staked": 234.0,
+          "returned": 114.92,
+          "profit": -119.08,
+          "roi_pct": -50.89
+        },
+        "Mini Vini": {
+          "bets": 70,
+          "wins": 37,
+          "losses": 33,
+          "pushes": 0,
+          "winrate_pct": 52.86,
+          "avg_odds": 1.974,
+          "staked": 70.0,
+          "returned": 68.86,
+          "profit": -1.14,
+          "roi_pct": -1.63
+        },
+        "Elizabet": {
+          "bets": 28,
+          "wins": 15,
+          "losses": 13,
+          "pushes": 0,
+          "winrate_pct": 53.57,
+          "avg_odds": 1.873,
+          "staked": 28.0,
+          "returned": 26.79,
+          "profit": -1.21,
+          "roi_pct": -4.32
+        },
+        "5Match p": {
+          "bets": 61,
+          "wins": 29,
+          "losses": 32,
+          "pushes": 0,
+          "winrate_pct": 47.54,
+          "avg_odds": 2.156,
+          "staked": 61.0,
+          "returned": 58.84,
+          "profit": -2.16,
+          "roi_pct": -3.54
+        },
+        "5Match": {
+          "bets": 245,
+          "wins": 108,
+          "losses": 137,
+          "pushes": 0,
+          "winrate_pct": 44.08,
+          "avg_odds": 2.546,
+          "staked": 245.0,
+          "returned": 240.39,
+          "profit": -4.61,
+          "roi_pct": -1.88
+        }
+      },
+      "p>=0.60_edge>=1.10": {
+        "1 пр": {
+          "bets": 52,
+          "wins": 32,
+          "losses": 20,
+          "pushes": 0,
+          "winrate_pct": 61.54,
+          "avg_odds": 1.913,
+          "staked": 52.0,
+          "returned": 57.58,
+          "profit": 5.58,
+          "roi_pct": 10.73
+        },
+        "2 пр": {
+          "bets": 23,
+          "wins": 16,
+          "losses": 7,
+          "pushes": 0,
+          "winrate_pct": 69.57,
+          "avg_odds": 2.224,
+          "staked": 23.0,
+          "returned": 33.72,
+          "profit": 10.72,
+          "roi_pct": 46.61
+        },
+        "de lux": {
+          "bets": 68,
+          "wins": 35,
+          "losses": 33,
+          "pushes": 0,
+          "winrate_pct": 51.47,
+          "avg_odds": 2.209,
+          "staked": 68.0,
+          "returned": 72.63,
+          "profit": 4.63,
+          "roi_pct": 6.81
+        },
+        "poisson": {
+          "bets": 93,
+          "wins": 49,
+          "losses": 44,
+          "pushes": 0,
+          "winrate_pct": 52.69,
+          "avg_odds": 2.201,
+          "staked": 93.0,
+          "returned": 104.09,
+          "profit": 11.09,
+          "roi_pct": 11.92
+        },
+        "ср взвеш": {
+          "bets": 48,
+          "wins": 28,
+          "losses": 20,
+          "pushes": 0,
+          "winrate_pct": 58.33,
+          "avg_odds": 2.004,
+          "staked": 48.0,
+          "returned": 52.72,
+          "profit": 4.72,
+          "roi_pct": 9.83
+        },
+        "mill": {
+          "bets": 226,
+          "wins": 48,
+          "losses": 178,
+          "pushes": 0,
+          "winrate_pct": 21.24,
+          "avg_odds": 5.833,
+          "staked": 226.0,
+          "returned": 109.07,
+          "profit": -116.93,
+          "roi_pct": -51.74
+        },
+        "Mini Vini": {
+          "bets": 63,
+          "wins": 35,
+          "losses": 28,
+          "pushes": 0,
+          "winrate_pct": 55.56,
+          "avg_odds": 2.02,
+          "staked": 63.0,
+          "returned": 65.63,
+          "profit": 2.63,
+          "roi_pct": 4.17
+        },
+        "Elizabet": {
+          "bets": 21,
+          "wins": 11,
+          "losses": 10,
+          "pushes": 0,
+          "winrate_pct": 52.38,
+          "avg_odds": 1.923,
+          "staked": 21.0,
+          "returned": 19.96,
+          "profit": -1.04,
+          "roi_pct": -4.95
+        },
+        "5Match p": {
+          "bets": 56,
+          "wins": 29,
+          "losses": 27,
+          "pushes": 0,
+          "winrate_pct": 51.79,
+          "avg_odds": 2.202,
+          "staked": 56.0,
+          "returned": 58.84,
+          "profit": 2.84,
+          "roi_pct": 5.07
+        },
+        "5Match": {
+          "bets": 235,
+          "wins": 103,
+          "losses": 132,
+          "pushes": 0,
+          "winrate_pct": 43.83,
+          "avg_odds": 2.584,
+          "staked": 235.0,
+          "returned": 232.16,
+          "profit": -2.84,
+          "roi_pct": -1.21
+        }
+      },
+      "p>=0.60_edge>=1.15": {
+        "1 пр": {
+          "bets": 47,
+          "wins": 27,
+          "losses": 20,
+          "pushes": 0,
+          "winrate_pct": 57.45,
+          "avg_odds": 1.936,
+          "staked": 47.0,
+          "returned": 49.09,
+          "profit": 2.09,
+          "roi_pct": 4.45
+        },
+        "de lux": {
+          "bets": 56,
+          "wins": 26,
+          "losses": 30,
+          "pushes": 0,
+          "winrate_pct": 46.43,
+          "avg_odds": 2.324,
+          "staked": 56.0,
+          "returned": 57.83,
+          "profit": 1.83,
+          "roi_pct": 3.27
+        },
+        "poisson": {
+          "bets": 84,
+          "wins": 44,
+          "losses": 40,
+          "pushes": 0,
+          "winrate_pct": 52.38,
+          "avg_odds": 2.257,
+          "staked": 84.0,
+          "returned": 95.91,
+          "profit": 11.91,
+          "roi_pct": 14.18
+        },
+        "ср взвеш": {
+          "bets": 43,
+          "wins": 23,
+          "losses": 20,
+          "pushes": 0,
+          "winrate_pct": 53.49,
+          "avg_odds": 2.036,
+          "staked": 43.0,
+          "returned": 44.08,
+          "profit": 1.08,
+          "roi_pct": 2.51
+        },
+        "mill": {
+          "bets": 221,
+          "wins": 45,
+          "losses": 176,
+          "pushes": 0,
+          "winrate_pct": 20.36,
+          "avg_odds": 5.929,
+          "staked": 221.0,
+          "returned": 105.0,
+          "profit": -116.0,
+          "roi_pct": -52.49
+        },
+        "Mini Vini": {
+          "bets": 48,
+          "wins": 25,
+          "losses": 23,
+          "pushes": 0,
+          "winrate_pct": 52.08,
+          "avg_odds": 2.115,
+          "staked": 48.0,
+          "returned": 48.72,
+          "profit": 0.72,
+          "roi_pct": 1.5
+        },
+        "5Match p": {
+          "bets": 50,
+          "wins": 25,
+          "losses": 25,
+          "pushes": 0,
+          "winrate_pct": 50.0,
+          "avg_odds": 2.262,
+          "staked": 50.0,
+          "returned": 52.25,
+          "profit": 2.25,
+          "roi_pct": 4.5
+        },
+        "5Match": {
+          "bets": 224,
+          "wins": 97,
+          "losses": 127,
+          "pushes": 0,
+          "winrate_pct": 43.3,
+          "avg_odds": 2.63,
+          "staked": 224.0,
+          "returned": 222.41,
+          "profit": -1.59,
+          "roi_pct": -0.71
+        }
+      },
+      "p>=0.65_edge>=1.00": {
+        "1 пр": {
+          "bets": 42,
+          "wins": 28,
+          "losses": 14,
+          "pushes": 0,
+          "winrate_pct": 66.67,
+          "avg_odds": 1.762,
+          "staked": 42.0,
+          "returned": 47.36,
+          "profit": 5.36,
+          "roi_pct": 12.76
+        },
+        "de lux": {
+          "bets": 50,
+          "wins": 27,
+          "losses": 23,
+          "pushes": 0,
+          "winrate_pct": 54.0,
+          "avg_odds": 1.965,
+          "staked": 50.0,
+          "returned": 51.44,
+          "profit": 1.44,
+          "roi_pct": 2.88
+        },
+        "poisson": {
+          "bets": 66,
+          "wins": 39,
+          "losses": 27,
+          "pushes": 0,
+          "winrate_pct": 59.09,
+          "avg_odds": 2.03,
+          "staked": 66.0,
+          "returned": 74.29,
+          "profit": 8.29,
+          "roi_pct": 12.56
+        },
+        "ср взвеш": {
+          "bets": 41,
+          "wins": 30,
+          "losses": 11,
+          "pushes": 0,
+          "winrate_pct": 73.17,
+          "avg_odds": 1.756,
+          "staked": 41.0,
+          "returned": 51.41,
+          "profit": 10.41,
+          "roi_pct": 25.39
+        },
+        "mill": {
+          "bets": 170,
+          "wins": 51,
+          "losses": 119,
+          "pushes": 0,
+          "winrate_pct": 30.0,
+          "avg_odds": 5.188,
+          "staked": 170.0,
+          "returned": 101.28,
+          "profit": -68.72,
+          "roi_pct": -40.42
+        },
+        "Mini Vini": {
+          "bets": 42,
+          "wins": 26,
+          "losses": 16,
+          "pushes": 0,
+          "winrate_pct": 61.9,
+          "avg_odds": 1.92,
+          "staked": 42.0,
+          "returned": 46.82,
+          "profit": 4.82,
+          "roi_pct": 11.48
+        },
+        "5Match p": {
+          "bets": 40,
+          "wins": 20,
+          "losses": 20,
+          "pushes": 0,
+          "winrate_pct": 50.0,
+          "avg_odds": 2.02,
+          "staked": 40.0,
+          "returned": 35.59,
+          "profit": -4.41,
+          "roi_pct": -11.03
+        },
+        "5Match": {
+          "bets": 193,
+          "wins": 87,
+          "losses": 106,
+          "pushes": 0,
+          "winrate_pct": 45.08,
+          "avg_odds": 2.368,
+          "staked": 193.0,
+          "returned": 183.07,
+          "profit": -9.93,
+          "roi_pct": -5.15
+        }
+      },
+      "p>=0.65_edge>=1.05": {
+        "1 пр": {
+          "bets": 33,
+          "wins": 23,
+          "losses": 10,
+          "pushes": 0,
+          "winrate_pct": 69.7,
+          "avg_odds": 1.849,
+          "staked": 33.0,
+          "returned": 40.19,
+          "profit": 7.19,
+          "roi_pct": 21.79
+        },
+        "de lux": {
+          "bets": 43,
+          "wins": 23,
+          "losses": 20,
+          "pushes": 0,
+          "winrate_pct": 53.49,
+          "avg_odds": 2.052,
+          "staked": 43.0,
+          "returned": 45.5,
+          "profit": 2.5,
+          "roi_pct": 5.81
+        },
+        "poisson": {
+          "bets": 65,
+          "wins": 38,
+          "losses": 27,
+          "pushes": 0,
+          "winrate_pct": 58.46,
+          "avg_odds": 2.042,
+          "staked": 65.0,
+          "returned": 73.01,
+          "profit": 8.01,
+          "roi_pct": 12.32
+        },
+        "ср взвеш": {
+          "bets": 34,
+          "wins": 25,
+          "losses": 9,
+          "pushes": 0,
+          "winrate_pct": 73.53,
+          "avg_odds": 1.827,
+          "staked": 34.0,
+          "returned": 44.13,
+          "profit": 10.13,
+          "roi_pct": 29.79
+        },
+        "mill": {
+          "bets": 160,
+          "wins": 44,
+          "losses": 116,
+          "pushes": 0,
+          "winrate_pct": 27.5,
+          "avg_odds": 5.421,
+          "staked": 160.0,
+          "returned": 91.19,
+          "profit": -68.81,
+          "roi_pct": -43.01
+        },
+        "Mini Vini": {
+          "bets": 40,
+          "wins": 25,
+          "losses": 15,
+          "pushes": 0,
+          "winrate_pct": 62.5,
+          "avg_odds": 1.954,
+          "staked": 40.0,
+          "returned": 45.54,
+          "profit": 5.54,
+          "roi_pct": 13.85
+        },
+        "5Match p": {
+          "bets": 36,
+          "wins": 16,
+          "losses": 20,
+          "pushes": 0,
+          "winrate_pct": 44.44,
+          "avg_odds": 2.092,
+          "staked": 36.0,
+          "returned": 30.08,
+          "profit": -5.92,
+          "roi_pct": -16.44
+        },
+        "5Match": {
+          "bets": 191,
+          "wins": 85,
+          "losses": 106,
+          "pushes": 0,
+          "winrate_pct": 44.5,
+          "avg_odds": 2.378,
+          "staked": 191.0,
+          "returned": 180.41,
+          "profit": -10.59,
+          "roi_pct": -5.54
+        }
+      },
+      "p>=0.65_edge>=1.10": {
+        "1 пр": {
+          "bets": 31,
+          "wins": 22,
+          "losses": 9,
+          "pushes": 0,
+          "winrate_pct": 70.97,
+          "avg_odds": 1.87,
+          "staked": 31.0,
+          "returned": 38.62,
+          "profit": 7.62,
+          "roi_pct": 24.58
+        },
+        "de lux": {
+          "bets": 39,
+          "wins": 21,
+          "losses": 18,
+          "pushes": 0,
+          "winrate_pct": 53.85,
+          "avg_odds": 2.108,
+          "staked": 39.0,
+          "returned": 42.65,
+          "profit": 3.65,
+          "roi_pct": 9.36
+        },
+        "poisson": {
+          "bets": 63,
+          "wins": 36,
+          "losses": 27,
+          "pushes": 0,
+          "winrate_pct": 57.14,
+          "avg_odds": 2.064,
+          "staked": 63.0,
+          "returned": 70.33,
+          "profit": 7.33,
+          "roi_pct": 11.63
+        },
+        "ср взвеш": {
+          "bets": 27,
+          "wins": 21,
+          "losses": 6,
+          "pushes": 0,
+          "winrate_pct": 77.78,
+          "avg_odds": 1.899,
+          "staked": 27.0,
+          "returned": 38.01,
+          "profit": 11.01,
+          "roi_pct": 40.78
+        },
+        "mill": {
+          "bets": 154,
+          "wins": 40,
+          "losses": 114,
+          "pushes": 0,
+          "winrate_pct": 25.97,
+          "avg_odds": 5.575,
+          "staked": 154.0,
+          "returned": 85.34,
+          "profit": -68.66,
+          "roi_pct": -44.58
+        },
+        "Mini Vini": {
+          "bets": 37,
+          "wins": 24,
+          "losses": 13,
+          "pushes": 0,
+          "winrate_pct": 64.86,
+          "avg_odds": 1.999,
+          "staked": 37.0,
+          "returned": 44.02,
+          "profit": 7.02,
+          "roi_pct": 18.97
+        },
+        "5Match p": {
+          "bets": 35,
+          "wins": 16,
+          "losses": 19,
+          "pushes": 0,
+          "winrate_pct": 45.71,
+          "avg_odds": 2.111,
+          "staked": 35.0,
+          "returned": 30.08,
+          "profit": -4.92,
+          "roi_pct": -14.06
+        },
+        "5Match": {
+          "bets": 185,
+          "wins": 82,
+          "losses": 103,
+          "pushes": 0,
+          "winrate_pct": 44.32,
+          "avg_odds": 2.403,
+          "staked": 185.0,
+          "returned": 175.65,
+          "profit": -9.35,
+          "roi_pct": -5.05
+        }
+      },
+      "p>=0.65_edge>=1.15": {
+        "1 пр": {
+          "bets": 28,
+          "wins": 19,
+          "losses": 9,
+          "pushes": 0,
+          "winrate_pct": 67.86,
+          "avg_odds": 1.893,
+          "staked": 28.0,
+          "returned": 33.64,
+          "profit": 5.64,
+          "roi_pct": 20.14
+        },
+        "de lux": {
+          "bets": 33,
+          "wins": 16,
+          "losses": 17,
+          "pushes": 0,
+          "winrate_pct": 48.48,
+          "avg_odds": 2.209,
+          "staked": 33.0,
+          "returned": 35.07,
+          "profit": 2.07,
+          "roi_pct": 6.27
+        },
+        "poisson": {
+          "bets": 56,
+          "wins": 31,
+          "losses": 25,
+          "pushes": 0,
+          "winrate_pct": 55.36,
+          "avg_odds": 2.116,
+          "staked": 56.0,
+          "returned": 62.15,
+          "profit": 6.15,
+          "roi_pct": 10.98
+        },
+        "ср взвеш": {
+          "bets": 25,
+          "wins": 19,
+          "losses": 6,
+          "pushes": 0,
+          "winrate_pct": 76.0,
+          "avg_odds": 1.92,
+          "staked": 25.0,
+          "returned": 34.74,
+          "profit": 9.74,
+          "roi_pct": 38.96
+        },
+        "mill": {
+          "bets": 151,
+          "wins": 37,
+          "losses": 114,
+          "pushes": 0,
+          "winrate_pct": 24.5,
+          "avg_odds": 5.658,
+          "staked": 151.0,
+          "returned": 81.27,
+          "profit": -69.73,
+          "roi_pct": -46.18
+        },
+        "Mini Vini": {
+          "bets": 30,
+          "wins": 18,
+          "losses": 12,
+          "pushes": 0,
+          "winrate_pct": 60.0,
+          "avg_odds": 2.094,
+          "staked": 30.0,
+          "returned": 34.48,
+          "profit": 4.48,
+          "roi_pct": 14.93
+        },
+        "5Match p": {
+          "bets": 33,
+          "wins": 14,
+          "losses": 19,
+          "pushes": 0,
+          "winrate_pct": 42.42,
+          "avg_odds": 2.149,
+          "staked": 33.0,
+          "returned": 27.12,
+          "profit": -5.88,
+          "roi_pct": -17.82
+        },
+        "5Match": {
+          "bets": 178,
+          "wins": 78,
+          "losses": 100,
+          "pushes": 0,
+          "winrate_pct": 43.82,
+          "avg_odds": 2.436,
+          "staked": 178.0,
+          "returned": 169.38,
+          "profit": -8.62,
+          "roi_pct": -4.84
+        }
+      }
+    },
+    "consensus_avg_subs": {
+      "avg_p>=0.45": {
+        "bets": 144,
+        "wins": 71,
+        "losses": 73,
+        "pushes": 0,
+        "winrate_pct": 49.31,
+        "avg_odds": 2.572,
+        "staked": 144.0,
+        "returned": 178.42,
+        "profit": 34.42,
+        "roi_pct": 23.9
+      },
+      "avg_p>=0.5": {
+        "bets": 84,
+        "wins": 40,
+        "losses": 44,
+        "pushes": 0,
+        "winrate_pct": 47.62,
+        "avg_odds": 2.221,
+        "staked": 84.0,
+        "returned": 81.27,
+        "profit": -2.73,
+        "roi_pct": -3.25
+      },
+      "avg_p>=0.55": {
+        "bets": 45,
+        "wins": 26,
+        "losses": 19,
+        "pushes": 0,
+        "winrate_pct": 57.78,
+        "avg_odds": 1.956,
+        "staked": 45.0,
+        "returned": 46.82,
+        "profit": 1.82,
+        "roi_pct": 4.04
+      }
+    }
+  },
+  "assumptions": {
+    "unit_stake": 1.0,
+    "assumed_odds_when_missing": {
+      "1": 2.05,
+      "X": 3.3,
+      "2": 3.4,
+      "1X": 1.45,
+      "X2": 1.45,
+      "12": 1.35
+    },
+    "edge_definition": "model_prob * decimal_odds",
+    "note": "matches.profit в БД пустой (все 0) — ROI посчитан ретроспективно. real_odds_only использует только найденные котировки из таблицы odds."
+  },
+  "verdict": {
+    "best_validated_strategy": {
+      "name": "matches.prediction = П1 (NTB home win)",
+      "bets": 108,
+      "wins": 68,
+      "losses": 40,
+      "pushes": 0,
+      "winrate_pct": 62.96,
+      "avg_odds": 1.7,
+      "staked": 108.0,
+      "returned": 111.64,
+      "profit": 3.64,
+      "roi_pct": 3.37,
+      "note": "Фильтр по основному NTB-прогнозу; сверять с актуальным sample"
+    },
+    "best_substrategy_by_accuracy": {
+      "strategy": "ср взвеш",
+      "n": 567,
+      "winrate_pct": 54.85,
+      "thresholds": {
+        "0.4": {
+          "n": 561,
+          "winrate_pct": 54.72
+        },
+        "0.45": {
+          "n": 523,
+          "winrate_pct": 56.02
+        },
+        "0.5": {
+          "n": 456,
+          "winrate_pct": 57.02
+        },
+        "0.55": {
+          "n": 288,
+          "winrate_pct": 56.25
+        },
+        "0.6": {
+          "n": 141,
+          "winrate_pct": 67.38
+        }
+      },
+      "real_odds_roi": {
+        "bets": 551,
+        "wins": 302,
+        "losses": 249,
+        "pushes": 0,
+        "winrate_pct": 54.81,
+        "avg_odds": 2.111,
+        "staked": 551.0,
+        "returned": 608.56,
+        "profit": 57.56,
+        "roi_pct": 10.45
+      }
+    },
+    "five_match": {
+      "5Match p": {
+        "strategy": "5Match p",
+        "n": 582,
+        "winrate_pct": 48.11,
+        "thresholds": {
+          "0.4": {
+            "n": 463,
+            "winrate_pct": 49.24
+          },
+          "0.45": {
+            "n": 360,
+            "winrate_pct": 50.28
+          },
+          "0.5": {
+            "n": 273,
+            "winrate_pct": 52.38
+          },
+          "0.55": {
+            "n": 185,
+            "winrate_pct": 55.14
+          },
+          "0.6": {
+            "n": 108,
+            "winrate_pct": 54.63
+          }
+        },
+        "real_odds_roi": {
+          "bets": 562,
+          "wins": 272,
+          "losses": 290,
+          "pushes": 0,
+          "winrate_pct": 48.4,
+          "avg_odds": 2.252,
+          "staked": 562.0,
+          "returned": 553.73,
+          "profit": -8.27,
+          "roi_pct": -1.47
+        }
+      },
+      "5Match": {
+        "strategy": "5Match",
+        "n": 578,
+        "winrate_pct": 43.77,
+        "thresholds": {
+          "0.4": {
+            "n": 555,
+            "winrate_pct": 43.78
+          },
+          "0.45": {
+            "n": 514,
+            "winrate_pct": 44.75
+          },
+          "0.5": {
+            "n": 454,
+            "winrate_pct": 45.59
+          },
+          "0.55": {
+            "n": 362,
+            "winrate_pct": 43.65
+          },
+          "0.6": {
+            "n": 284,
+            "winrate_pct": 45.42
+          }
+        },
+        "real_odds_roi": {
+          "bets": 562,
+          "wins": 247,
+          "losses": 315,
+          "pushes": 0,
+          "winrate_pct": 43.95,
+          "avg_odds": 2.67,
+          "staked": 562.0,
+          "returned": 561.91,
+          "profit": -0.09,
+          "roi_pct": -0.02
+        }
+      }
+    },
+    "avoid": [
+      "mill",
+      "ставки на все прогнозы подряд без фильтра",
+      "5Match / 5Match p без порога вероятности (ROI около нуля / отрицательный)"
+    ],
+    "recommendation": [
+      "Результаты: 901 завершённых матчей, 1X2 кэфы у 878 из них (канон 1X2_1/X/2).",
+      "5Match p: WR=48.11%, ROI=-1.47% на 562 ставках.",
+      "5Match: WR=43.77%, ROI=-0.02% на 562 ставках.",
+      "Лучшая accuracy среди подстратегий — см. best_substrategy_by_accuracy; для value смотреть ROI при пороге p≥0.55–0.60."
+    ],
+    "sample": {
+      "finished_matches": 901,
+      "finished_with_1x2": 878,
+      "main_pred_bets_real_odds": 258,
+      "substrategy_finished_rows": 567
+    }
+  },
+  "substrategy_accuracy_honest": [
+    {
+      "strategy": "ср взвеш",
+      "n": 567,
+      "winrate_pct": 54.85,
+      "thresholds": {
+        "0.4": {
+          "n": 561,
+          "winrate_pct": 54.72
+        },
+        "0.45": {
+          "n": 523,
+          "winrate_pct": 56.02
+        },
+        "0.5": {
+          "n": 456,
+          "winrate_pct": 57.02
+        },
+        "0.55": {
+          "n": 288,
+          "winrate_pct": 56.25
+        },
+        "0.6": {
+          "n": 141,
+          "winrate_pct": 67.38
+        }
+      },
+      "real_odds_roi": {
+        "bets": 551,
+        "wins": 302,
+        "losses": 249,
+        "pushes": 0,
+        "winrate_pct": 54.81,
+        "avg_odds": 2.111,
+        "staked": 551.0,
+        "returned": 608.56,
+        "profit": 57.56,
+        "roi_pct": 10.45
+      }
+    },
+    {
+      "strategy": "1 пр",
+      "n": 567,
+      "winrate_pct": 53.44,
+      "thresholds": {
+        "0.4": {
+          "n": 524,
+          "winrate_pct": 54.2
+        },
+        "0.45": {
+          "n": 441,
+          "winrate_pct": 56.24
+        },
+        "0.5": {
+          "n": 361,
+          "winrate_pct": 56.23
+        },
+        "0.55": {
+          "n": 232,
+          "winrate_pct": 59.48
+        },
+        "0.6": {
+          "n": 106,
+          "winrate_pct": 61.32
+        }
+      },
+      "real_odds_roi": {
+        "bets": 551,
+        "wins": 295,
+        "losses": 256,
+        "pushes": 0,
+        "winrate_pct": 53.54,
+        "avg_odds": 2.228,
+        "staked": 551.0,
+        "returned": 629.47,
+        "profit": 78.47,
+        "roi_pct": 14.24
+      }
+    },
+    {
+      "strategy": "Mini Vini",
+      "n": 589,
+      "winrate_pct": 52.63,
+      "thresholds": {
+        "0.4": {
+          "n": 545,
+          "winrate_pct": 53.03
+        },
+        "0.45": {
+          "n": 476,
+          "winrate_pct": 54.2
+        },
+        "0.5": {
+          "n": 401,
+          "winrate_pct": 55.86
+        },
+        "0.55": {
+          "n": 236,
+          "winrate_pct": 57.63
+        },
+        "0.6": {
+          "n": 107,
+          "winrate_pct": 60.75
+        }
+      },
+      "real_odds_roi": {
+        "bets": 570,
+        "wins": 303,
+        "losses": 267,
+        "pushes": 0,
+        "winrate_pct": 53.16,
+        "avg_odds": 2.119,
+        "staked": 570.0,
+        "returned": 625.56,
+        "profit": 55.56,
+        "roi_pct": 9.75
+      }
+    },
+    {
+      "strategy": "Elizabet",
+      "n": 567,
+      "winrate_pct": 52.56,
+      "thresholds": {
+        "0.4": {
+          "n": 517,
+          "winrate_pct": 53.97
+        },
+        "0.45": {
+          "n": 423,
+          "winrate_pct": 54.85
+        },
+        "0.5": {
+          "n": 311,
+          "winrate_pct": 56.27
+        },
+        "0.55": {
+          "n": 159,
+          "winrate_pct": 57.86
+        },
+        "0.6": {
+          "n": 70,
+          "winrate_pct": 64.29
+        }
+      },
+      "real_odds_roi": {
+        "bets": 551,
+        "wins": 288,
+        "losses": 263,
+        "pushes": 0,
+        "winrate_pct": 52.27,
+        "avg_odds": 2.199,
+        "staked": 551.0,
+        "returned": 596.82,
+        "profit": 45.82,
+        "roi_pct": 8.32
+      }
+    },
+    {
+      "strategy": "poisson",
+      "n": 567,
+      "winrate_pct": 52.03,
+      "thresholds": {
+        "0.4": {
+          "n": 532,
+          "winrate_pct": 53.38
+        },
+        "0.45": {
+          "n": 436,
+          "winrate_pct": 53.67
+        },
+        "0.5": {
+          "n": 317,
+          "winrate_pct": 54.26
+        },
+        "0.55": {
+          "n": 216,
+          "winrate_pct": 56.48
+        },
+        "0.6": {
+          "n": 135,
+          "winrate_pct": 57.78
+        }
+      },
+      "real_odds_roi": {
+        "bets": 551,
+        "wins": 288,
+        "losses": 263,
+        "pushes": 0,
+        "winrate_pct": 52.27,
+        "avg_odds": 2.334,
+        "staked": 551.0,
+        "returned": 609.6,
+        "profit": 58.6,
+        "roi_pct": 10.64
+      }
+    },
+    {
+      "strategy": "2 пр",
+      "n": 567,
+      "winrate_pct": 50.62,
+      "thresholds": {
+        "0.4": {
+          "n": 503,
+          "winrate_pct": 53.48
+        },
+        "0.45": {
+          "n": 426,
+          "winrate_pct": 55.16
+        },
+        "0.5": {
+          "n": 365,
+          "winrate_pct": 56.71
+        },
+        "0.55": {
+          "n": 200,
+          "winrate_pct": 58.0
+        },
+        "0.6": {
+          "n": 80,
+          "winrate_pct": 72.5
+        }
+      },
+      "real_odds_roi": {
+        "bets": 551,
+        "wins": 280,
+        "losses": 271,
+        "pushes": 0,
+        "winrate_pct": 50.82,
+        "avg_odds": 2.17,
+        "staked": 551.0,
+        "returned": 573.27,
+        "profit": 22.27,
+        "roi_pct": 4.04
+      }
+    },
+    {
+      "strategy": "de lux",
+      "n": 568,
+      "winrate_pct": 49.82,
+      "thresholds": {
+        "0.4": {
+          "n": 517,
+          "winrate_pct": 52.03
+        },
+        "0.45": {
+          "n": 450,
+          "winrate_pct": 54.22
+        },
+        "0.5": {
+          "n": 351,
+          "winrate_pct": 55.56
+        },
+        "0.55": {
+          "n": 252,
+          "winrate_pct": 58.33
+        },
+        "0.6": {
+          "n": 138,
+          "winrate_pct": 61.59
+        }
+      },
+      "real_odds_roi": {
+        "bets": 552,
+        "wins": 277,
+        "losses": 275,
+        "pushes": 0,
+        "winrate_pct": 50.18,
+        "avg_odds": 2.33,
+        "staked": 552.0,
+        "returned": 596.19,
+        "profit": 44.19,
+        "roi_pct": 8.01
+      }
+    },
+    {
+      "strategy": "5Match p",
+      "n": 582,
+      "winrate_pct": 48.11,
+      "thresholds": {
+        "0.4": {
+          "n": 463,
+          "winrate_pct": 49.24
+        },
+        "0.45": {
+          "n": 360,
+          "winrate_pct": 50.28
+        },
+        "0.5": {
+          "n": 273,
+          "winrate_pct": 52.38
+        },
+        "0.55": {
+          "n": 185,
+          "winrate_pct": 55.14
+        },
+        "0.6": {
+          "n": 108,
+          "winrate_pct": 54.63
+        }
+      },
+      "real_odds_roi": {
+        "bets": 562,
+        "wins": 272,
+        "losses": 290,
+        "pushes": 0,
+        "winrate_pct": 48.4,
+        "avg_odds": 2.252,
+        "staked": 562.0,
+        "returned": 553.73,
+        "profit": -8.27,
+        "roi_pct": -1.47
+      }
+    },
+    {
+      "strategy": "5Match",
+      "n": 578,
+      "winrate_pct": 43.77,
+      "thresholds": {
+        "0.4": {
+          "n": 555,
+          "winrate_pct": 43.78
+        },
+        "0.45": {
+          "n": 514,
+          "winrate_pct": 44.75
+        },
+        "0.5": {
+          "n": 454,
+          "winrate_pct": 45.59
+        },
+        "0.55": {
+          "n": 362,
+          "winrate_pct": 43.65
+        },
+        "0.6": {
+          "n": 284,
+          "winrate_pct": 45.42
+        }
+      },
+      "real_odds_roi": {
+        "bets": 562,
+        "wins": 247,
+        "losses": 315,
+        "pushes": 0,
+        "winrate_pct": 43.95,
+        "avg_odds": 2.67,
+        "staked": 562.0,
+        "returned": 561.91,
+        "profit": -0.09,
+        "roi_pct": -0.02
+      }
+    },
+    {
+      "strategy": "mill",
+      "n": 578,
+      "winrate_pct": 28.72,
+      "thresholds": {
+        "0.4": {
+          "n": 569,
+          "winrate_pct": 28.82
+        },
+        "0.45": {
+          "n": 536,
+          "winrate_pct": 28.36
+        },
+        "0.5": {
+          "n": 467,
+          "winrate_pct": 27.62
+        },
+        "0.55": {
+          "n": 369,
+          "winrate_pct": 27.64
+        },
+        "0.6": {
+          "n": 292,
+          "winrate_pct": 28.42
+        }
+      },
+      "real_odds_roi": {
+        "bets": 544,
+        "wins": 160,
+        "losses": 384,
+        "pushes": 0,
+        "winrate_pct": 29.41,
+        "avg_odds": 4.859,
+        "staked": 544.0,
+        "returned": 367.39,
+        "profit": -176.61,
+        "roi_pct": -32.47
+      }
+    }
+  ]
+}

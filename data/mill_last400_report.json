@@ -1,0 +1,356 @@
+{
+  "strategy": "mill",
+  "strategy_id": 6,
+  "window": {
+    "requested": 400,
+    "actual": 400,
+    "with_odds": 371,
+    "date_from": "09.05.26 17:15",
+    "date_to": "30.06.26 4:40"
+  },
+  "flat_maxprob": {
+    "n": 400,
+    "hits": 119,
+    "winrate_pct": 29.75,
+    "real_odds_roi": {
+      "bets": 371,
+      "wins": 115,
+      "losses": 256,
+      "pushes": 0,
+      "winrate_pct": 31.0,
+      "avg_odds": 4.718,
+      "staked": 371.0,
+      "returned": 262.56,
+      "profit": -108.44,
+      "roi_pct": -29.23
+    }
+  },
+  "by_selection": {
+    "X": {
+      "n": 246,
+      "winrate_pct": 13.41,
+      "real_odds_roi": {
+        "bets": 221,
+        "wins": 31,
+        "losses": 190,
+        "pushes": 0,
+        "winrate_pct": 14.03,
+        "avg_odds": 6.624,
+        "staked": 221.0,
+        "returned": 114.63,
+        "profit": -106.37,
+        "roi_pct": -48.13
+      }
+    },
+    "2": {
+      "n": 87,
+      "winrate_pct": 50.57,
+      "real_odds_roi": {
+        "bets": 83,
+        "wins": 42,
+        "losses": 41,
+        "pushes": 0,
+        "winrate_pct": 50.6,
+        "avg_odds": 2.067,
+        "staked": 83.0,
+        "returned": 82.73,
+        "profit": -0.27,
+        "roi_pct": -0.33
+      }
+    },
+    "1": {
+      "n": 67,
+      "winrate_pct": 62.69,
+      "real_odds_roi": {
+        "bets": 67,
+        "wins": 42,
+        "losses": 25,
+        "pushes": 0,
+        "winrate_pct": 62.69,
+        "avg_odds": 1.714,
+        "staked": 67.0,
+        "returned": 65.2,
+        "profit": -1.8,
+        "roi_pct": -2.69
+      }
+    }
+  },
+  "by_threshold": {
+    "0.35": {
+      "n": 400,
+      "winrate_pct": 29.75,
+      "real_odds_roi": {
+        "bets": 371,
+        "wins": 115,
+        "losses": 256,
+        "pushes": 0,
+        "winrate_pct": 31.0,
+        "avg_odds": 4.718,
+        "staked": 371.0,
+        "returned": 262.56,
+        "profit": -108.44,
+        "roi_pct": -29.23
+      }
+    },
+    "0.4": {
+      "n": 394,
+      "winrate_pct": 29.7,
+      "real_odds_roi": {
+        "bets": 365,
+        "wins": 113,
+        "losses": 252,
+        "pushes": 0,
+        "winrate_pct": 30.96,
+        "avg_odds": 4.742,
+        "staked": 365.0,
+        "returned": 257.04,
+        "profit": -107.96,
+        "roi_pct": -29.58
+      }
+    },
+    "0.45": {
+      "n": 372,
+      "winrate_pct": 29.3,
+      "real_odds_roi": {
+        "bets": 343,
+        "wins": 105,
+        "losses": 238,
+        "pushes": 0,
+        "winrate_pct": 30.61,
+        "avg_odds": 4.767,
+        "staked": 343.0,
+        "returned": 232.44,
+        "profit": -110.56,
+        "roi_pct": -32.23
+      }
+    },
+    "0.5": {
+      "n": 328,
+      "winrate_pct": 28.66,
+      "real_odds_roi": {
+        "bets": 301,
+        "wins": 91,
+        "losses": 210,
+        "pushes": 0,
+        "winrate_pct": 30.23,
+        "avg_odds": 4.781,
+        "staked": 301.0,
+        "returned": 195.46,
+        "profit": -105.54,
+        "roi_pct": -35.06
+      }
+    },
+    "0.55": {
+      "n": 252,
+      "winrate_pct": 29.37,
+      "real_odds_roi": {
+        "bets": 230,
+        "wins": 71,
+        "losses": 159,
+        "pushes": 0,
+        "winrate_pct": 30.87,
+        "avg_odds": 4.862,
+        "staked": 230.0,
+        "returned": 149.48,
+        "profit": -80.52,
+        "roi_pct": -35.01
+      }
+    },
+    "0.6": {
+      "n": 205,
+      "winrate_pct": 30.24,
+      "real_odds_roi": {
+        "bets": 185,
+        "wins": 59,
+        "losses": 126,
+        "pushes": 0,
+        "winrate_pct": 31.89,
+        "avg_odds": 4.905,
+        "staked": 185.0,
+        "returned": 120.4,
+        "profit": -64.6,
+        "roi_pct": -34.92
+      }
+    },
+    "0.65": {
+      "n": 151,
+      "winrate_pct": 35.76,
+      "real_odds_roi": {
+        "bets": 134,
+        "wins": 51,
+        "losses": 83,
+        "pushes": 0,
+        "winrate_pct": 38.06,
+        "avg_odds": 4.744,
+        "staked": 134.0,
+        "returned": 98.22,
+        "profit": -35.78,
+        "roi_pct": -26.7
+      }
+    }
+  },
+  "by_odds_band": {
+    "1.01-1.50": {
+      "bets": 41,
+      "wins": 30,
+      "losses": 11,
+      "pushes": 0,
+      "winrate_pct": 73.17,
+      "avg_odds": 1.338,
+      "staked": 41.0,
+      "returned": 39.64,
+      "profit": -1.36,
+      "roi_pct": -3.32
+    },
+    "1.50-2.00": {
+      "bets": 59,
+      "wins": 36,
+      "losses": 23,
+      "pushes": 0,
+      "winrate_pct": 61.02,
+      "avg_odds": 1.711,
+      "staked": 59.0,
+      "returned": 61.42,
+      "profit": 2.42,
+      "roi_pct": 4.1
+    },
+    "2.00-2.50": {
+      "bets": 26,
+      "wins": 12,
+      "losses": 14,
+      "pushes": 0,
+      "winrate_pct": 46.15,
+      "avg_odds": 2.136,
+      "staked": 26.0,
+      "returned": 25.36,
+      "profit": -0.64,
+      "roi_pct": -2.46
+    },
+    "2.50-3.50": {
+      "bets": 55,
+      "wins": 17,
+      "losses": 38,
+      "pushes": 0,
+      "winrate_pct": 30.91,
+      "avg_odds": 3.119,
+      "staked": 55.0,
+      "returned": 55.89,
+      "profit": 0.89,
+      "roi_pct": 1.62
+    },
+    "3.50-5.00": {
+      "bets": 76,
+      "wins": 19,
+      "losses": 57,
+      "pushes": 0,
+      "winrate_pct": 25.0,
+      "avg_odds": 3.975,
+      "staked": 76.0,
+      "returned": 74.46,
+      "profit": -1.54,
+      "roi_pct": -2.03
+    },
+    "5.00+": {
+      "bets": 114,
+      "wins": 1,
+      "losses": 113,
+      "pushes": 0,
+      "winrate_pct": 0.88,
+      "avg_odds": 9.345,
+      "staked": 114.0,
+      "returned": 5.79,
+      "profit": -108.21,
+      "roi_pct": -94.92
+    }
+  },
+  "by_sport": {
+    "1": {
+      "n": 394,
+      "winrate_pct": 29.95,
+      "real_odds_roi": {
+        "bets": 371,
+        "wins": 115,
+        "losses": 256,
+        "pushes": 0,
+        "winrate_pct": 31.0,
+        "avg_odds": 4.718,
+        "staked": 371.0,
+        "returned": 262.56,
+        "profit": -108.44,
+        "roi_pct": -29.23
+      }
+    },
+    "6": {
+      "n": 6,
+      "winrate_pct": 16.67,
+      "real_odds_roi": null
+    }
+  },
+  "equity_curve_every_25": [
+    {
+      "n": 25,
+      "cum_profit": 8.9
+    },
+    {
+      "n": 50,
+      "cum_profit": 6.85
+    },
+    {
+      "n": 75,
+      "cum_profit": -0.31
+    },
+    {
+      "n": 100,
+      "cum_profit": -7.34
+    },
+    {
+      "n": 125,
+      "cum_profit": -6.1
+    },
+    {
+      "n": 150,
+      "cum_profit": -3.1
+    },
+    {
+      "n": 175,
+      "cum_profit": -10.89
+    },
+    {
+      "n": 200,
+      "cum_profit": -21.22
+    },
+    {
+      "n": 225,
+      "cum_profit": -31.58
+    },
+    {
+      "n": 250,
+      "cum_profit": -38.8
+    },
+    {
+      "n": 275,
+      "cum_profit": -47.6
+    },
+    {
+      "n": 300,
+      "cum_profit": -49.93
+    },
+    {
+      "n": 325,
+      "cum_profit": -60.98
+    },
+    {
+      "n": 350,
+      "cum_profit": -74.11
+    },
+    {
+      "n": 375,
+      "cum_profit": -93.0
+    },
+    {
+      "n": 400,
+      "cum_profit": -108.44
+    }
+  ],
+  "note": "Окно: последние N завершённых матчей с ненулевыми вероятностями mill, сортировка по match_date DESC. Ставка flat 1 у.е. на исход с max p."
+}
