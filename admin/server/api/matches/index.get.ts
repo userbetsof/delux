@@ -6,7 +6,7 @@ export default defineEventHandler((event) => {
   const sport = q.sport !== undefined && q.sport !== '' ? Number(q.sport) : null
   const dateFrom = typeof q.date_from === 'string' ? q.date_from.trim() : ''
   const dateTo = typeof q.date_to === 'string' ? q.date_to.trim() : ''
-  const limit = Math.min(Math.max(Number(q.limit) || 50, 1), 500)
+  const limit = Math.min(Math.max(Number(q.limit) || 10, 1), 500)
   const offset = Math.max(Number(q.offset) || 0, 0)
 
   const db = openDb(dbName)

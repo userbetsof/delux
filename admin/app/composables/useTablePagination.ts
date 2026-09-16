@@ -1,6 +1,6 @@
 import type { Paginated } from '~/types/db'
 
-export function useTablePagination(defaultLimit = 50) {
+export function useTablePagination(defaultLimit = 10) {
   const limit = ref(defaultLimit)
   const offset = ref(0)
 
