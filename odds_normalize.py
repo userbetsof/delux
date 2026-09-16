@@ -38,6 +38,10 @@ def canonicalize_market(
     # Already canonical
     if upper in ("1X2_1", "1X2_X", "1X2_2", "BTTS_YES", "BTTS_NO", "DC_1X", "DC_12", "DC_X2"):
         return upper
+    if upper.startswith("CS ") or re.match(r"^\d+:\d+$", upper):
+        m = re.search(r"(\d+)\s*[:\-]\s*(\d+)", upper)
+        if m:
+            return f"CS {int(m.group(1))}:{int(m.group(2))}"
     if upper.startswith(("OVER ", "UNDER ", "1ST HALF OVER ", "1ST HALF UNDER ", "HANDICAP HOME ", "HANDICAP AWAY ")):
         return upper
 
@@ -131,6 +135,10 @@ def split_canonical(market_name: str) -> Dict[str, Any]:
         info["outcome"] = "12"
     elif key == "DC_X2":
         info["outcome"] = "X2"
+    elif key.startswith("CS "):
+        m = re.search(r"(\d+)\s*[:\-]\s*(\d+)", key)
+        if m:
+            info["outcome"] = f"{m.group(1)}:{m.group(2)}"
     elif key.startswith("OVER "):
         info["line_value"] = to_float(key.split()[-1])
     elif key.startswith("UNDER "):

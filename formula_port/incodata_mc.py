@@ -9,6 +9,8 @@ from formula_port.cell_store import CellStore
 from sheets_config import SHEET_AWAY_AWAY, SHEET_HOME_HOME
 
 SHEET_INCO = "IncoData"
+GOAL_MAX = 12
+GOAL_BINS = GOAL_MAX + 1  # 0..12
 
 
 def _avedev(vals: Sequence[float]) -> float:
@@ -43,23 +45,25 @@ def _histogram(
     sig_b: float,
     rng: random.Random,
 ) -> List[int]:
-    """Счётчики ROUND((N(μa,σa)+N(μb,σb))/2) для голов 0..5."""
+    """Счётчики ROUND((N(μa,σa)+N(μb,σb))/2) для голов 0..GOAL_MAX (хвост в 12)."""
     sig_a = max(sig_a, 1e-9)
     sig_b = max(sig_b, 1e-9)
-    hist = [0] * 6
+    hist = [0] * GOAL_BINS
     for _ in range(n):
         ae = rng.gauss(mean_a, sig_a)
         af = rng.gauss(mean_b, sig_b)
         goals = int(round((ae + af) / 2.0))
-        if 0 <= goals <= 5:
-            hist[goals] += 1
+        if goals < 0:
+            continue
+        if goals > GOAL_MAX:
+            goals = GOAL_MAX
+        hist[goals] += 1
     return hist
 
 
 def apply_incodata_goal_probs(store: CellStore, *, n: int = 50_000, seed: int = 42) -> None:
     """
-    Заполняет IncoData!AT21:AT26 и AW21:AW26 (и AS/AV),
-    как COUNTIF(AH)/50000 и COUNTIF(AI)/50000 после MC на листе.
+    Заполняет IncoData!AT21:AT{20+GOAL_BINS} и AW (и AS/AV) — вероятности 0..12 голов.
     """
     # ДомаДома L/M → I/J; ГостиГости L/M → N/O  (как формулы I4/J4/N4/O4)
     home_scored = _goal_series(store, SHEET_HOME_HOME, "L")  # I4:I8
@@ -82,7 +86,7 @@ def apply_incodata_goal_probs(store: CellStore, *, n: int = 50_000, seed: int = 
     hist_home = _histogram(n, i10, i20, o10, o20, rng)
     hist_away = _histogram(n, n10, n20, j10, j20, rng)
 
-    for k in range(6):
+    for k in range(GOAL_BINS):
         row = 21 + k
         store.set_value(SHEET_INCO, f"AS{row}", float(hist_home[k]))
         store.set_value(SHEET_INCO, f"AT{row}", hist_home[k] / float(n))

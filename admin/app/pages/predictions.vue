@@ -35,7 +35,50 @@ const strategyId = ref<number | null>(null)
 const sport = ref<number | null>(null)
 const settledOnly = ref(false)
 const stake = ref(1)
+const oddsMin = ref<number | null>(null)
+const oddsMax = ref<number | null>(null)
+const edgeMin = ref<number | null>(null)
+const edgeMax = ref<number | null>(null)
+const dateMenu = ref(false)
+const dateFrom = ref<string | null>(null)
+const dateTo = ref<string | null>(null)
 const { limit, offset, nextPage, prevPage, resetOffset, setLimit } = useTablePagination(50)
+
+function formatDate(d: Date | null): string | null {
+  if (!d) return null
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+const dateRange = computed<Date[]>({
+  get: () => {
+    if (dateFrom.value && dateTo.value) {
+      return [new Date(dateFrom.value), new Date(dateTo.value)]
+    }
+    return []
+  },
+  set: (val: Date[]) => {
+    if (val.length >= 2) {
+      dateFrom.value = formatDate(val[0])
+      dateTo.value = formatDate(val[1])
+    }
+  },
+})
+
+const dateLabel = computed(() => {
+  const parts: string[] = []
+  if (dateFrom.value) parts.push(dateFrom.value)
+  if (dateTo.value) parts.push(dateTo.value)
+  return parts.length ? parts.join(' — ') : ''
+})
+
+function clearDate() {
+  dateFrom.value = null
+  dateTo.value = null
+  dateMenu.value = false
+}
 
 const strategyItems = [
   { title: 'Все', value: null },
@@ -47,6 +90,7 @@ const strategyItems = [
   { title: '6 StavkaTV', value: 6 },
   { title: '7 Moneyway', value: 7 },
   { title: '8 1pr', value: 8 },
+  { title: '9 WhoScored', value: 9 },
 ]
 
 const sportItems = [
@@ -57,11 +101,27 @@ const sportItems = [
   { title: 'Бейсбол', value: 6 },
 ]
 
+function numOrUndef(v: unknown): number | undefined {
+  if (v == null || v === '') return undefined
+  const n = Number(v)
+  return Number.isFinite(n) ? n : undefined
+}
+
+const filterNums = computed(() => ({
+  odds_min: numOrUndef(oddsMin.value),
+  odds_max: numOrUndef(oddsMax.value),
+  edge_min: numOrUndef(edgeMin.value),
+  edge_max: numOrUndef(edgeMax.value),
+}))
+
 const listQuery = computed(() => ({
   ...dbQuery.value,
   match_id: matchId.value || undefined,
   strategy_id: strategyId.value ?? undefined,
   sport: sport.value ?? undefined,
+  date_from: dateFrom.value || undefined,
+  date_to: dateTo.value || undefined,
+  ...filterNums.value,
   limit: limit.value,
   offset: offset.value,
 }))
@@ -71,8 +131,11 @@ const summaryQuery = computed(() => ({
   match_id: matchId.value || undefined,
   strategy_id: strategyId.value ?? undefined,
   sport: sport.value ?? undefined,
+  date_from: dateFrom.value || undefined,
+  date_to: dateTo.value || undefined,
   settled: settledOnly.value ? '1' : undefined,
   stake: stake.value || 1,
+  ...filterNums.value,
 }))
 
 const { data, pending, error, refresh } = await useFetch<Paginated<Record<string, unknown>>>(
@@ -97,6 +160,7 @@ const headers = [
   { title: 'Стратегия', key: 'strategy_name' },
   { title: 'Прогноз', key: 'prediction' },
   { title: 'Кф', key: 'odds' },
+  { title: 'Edge', key: 'edge' },
   { title: 'Счёт', key: 'score' },
   { title: 'Результат', key: 'result' },
   { title: 'Профит', key: 'profit' },
@@ -106,6 +170,7 @@ const stratHeaders = [
   { title: 'Стратегия', key: 'strategy_name' },
   { title: 'Всего', key: 'total' },
   { title: 'Расчёт', key: 'settled' },
+  { title: 'Ожид.', key: 'pending' },
   { title: 'W', key: 'wins' },
   { title: 'L', key: 'losses' },
   { title: 'P', key: 'pushes' },
@@ -114,11 +179,19 @@ const stratHeaders = [
   { title: 'ROI %', key: 'roi' },
 ]
 
-watch([matchId, strategyId, sport, limit, settledOnly, stake], resetOffset)
+watch([matchId, strategyId, sport, dateFrom, dateTo, limit, settledOnly, stake, oddsMin, oddsMax, edgeMin, edgeMax], resetOffset)
 
 function fmt(n: number | null | undefined, digits = 2) {
   if (n == null || Number.isNaN(Number(n))) return '—'
   return Number(n).toFixed(digits)
+}
+
+function fmtEdge(v: unknown) {
+  const n = Number(v)
+  if (v == null || v === '' || Number.isNaN(n)) return '—'
+  const pp = Math.abs(n) <= 1.5 ? n * 100 : n
+  const sign = pp > 0 ? '+' : ''
+  return `${sign}${pp.toFixed(1)} pp`
 }
 
 function profitColor(n: number | null | undefined) {
@@ -161,6 +234,73 @@ async function refreshAll() {
           density="compact"
           hide-details
           style="min-width: 130px"
+        />
+        <v-menu v-model="dateMenu" transition="slide-y-transition">
+          <template #activator="{ props }">
+            <v-text-field
+              v-bind="props"
+              :label="dateLabel || 'Дата'"
+              prepend-inner-icon="mdi-calendar-range"
+              density="compact"
+              hide-details
+              clearable
+              style="min-width: 200px"
+              :value="dateLabel || undefined"
+            />
+          </template>
+          <v-date-picker
+            v-model="dateRange"
+            mode="range"
+            density="compact"
+            color="primary"
+          >
+            <template #append>
+              <v-btn variant="text" color="error" @click.stop="clearDate">Очистить</v-btn>
+              <v-btn variant="tonal" @click="dateMenu = false">Готово</v-btn>
+            </template>
+          </v-date-picker>
+        </v-menu>
+        <v-text-field
+          v-model.number="oddsMin"
+          label="Кф от"
+          type="number"
+          density="compact"
+          hide-details
+          clearable
+          style="max-width: 88px"
+          min="1"
+          step="0.05"
+        />
+        <v-text-field
+          v-model.number="oddsMax"
+          label="Кф до"
+          type="number"
+          density="compact"
+          hide-details
+          clearable
+          style="max-width: 88px"
+          min="1"
+          step="0.05"
+        />
+        <v-text-field
+          v-model.number="edgeMin"
+          label="Edge от, pp"
+          type="number"
+          density="compact"
+          hide-details
+          clearable
+          style="max-width: 100px"
+          step="0.1"
+        />
+        <v-text-field
+          v-model.number="edgeMax"
+          label="Edge до, pp"
+          type="number"
+          density="compact"
+          hide-details
+          clearable
+          style="max-width: 100px"
+          step="0.1"
         />
         <v-text-field
           v-model.number="stake"
@@ -234,7 +374,7 @@ async function refreshAll() {
       <div class="pa-3 text-subtitle-1 font-weight-medium">
         Прибыль по стратегиям
         <span class="text-caption text-medium-emphasis ml-2">
-          (пересчёт при смене фильтров, stake={{ summary?.stake_unit ?? 1 }})
+          (только завершённые матчи, stake={{ summary?.stake_unit ?? 1 }})
         </span>
       </div>
       <v-data-table
@@ -274,6 +414,15 @@ async function refreshAll() {
             {{ item.score_home }} : {{ item.score_away }}
           </span>
           <span v-else class="text-medium-emphasis">—</span>
+        </template>
+        <template #item.edge="{ item }">
+          <span
+            :class="
+              Number(item.edge) > 0 ? 'text-success' : Number(item.edge) < 0 ? 'text-error' : ''
+            "
+          >
+            {{ fmtEdge(item.edge) }}
+          </span>
         </template>
         <template #item.profit="{ item }">
           <span

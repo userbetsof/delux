@@ -10,7 +10,7 @@ from formula_port.analiz import extract_results
 from formula_port.cell_store import CellStore
 from formula_port.com_guard import reset_com_calls
 from formula_port.formula_evaluator import Evaluator, topological_sort
-from formula_port.match_context import apply_metadata_overrides, sync_match_context
+from formula_port.match_context import apply_metadata_overrides
 from formula_port.static_cache import StaticCache
 from formula_port.team_stats import (
     apply_odds_to_store,
@@ -62,12 +62,12 @@ class PythonCalcEngine:
 
     def __init__(
         self,
-        workbook_path: str,
+        workbook_path: str = "",
         lookups_db: Optional[str] = None,
         *,
-        pure_eval: bool = False,
+        pure_eval: bool = True,
     ):
-        self.workbook_path = str(Path(workbook_path).resolve())
+        self.workbook_path = str(Path(workbook_path).resolve()) if workbook_path else ""
         self.static_cache = StaticCache(lookups_db)
         self._formula_cache: Optional[Dict[str, Dict[str, str]]] = None
         self._constants_cache: Optional[Dict[str, Dict[str, object]]] = None
@@ -111,6 +111,10 @@ class PythonCalcEngine:
             reset_com_calls()
             apply_metadata_overrides(store, payload)
             return store
+
+        if not self.workbook_path:
+            raise RuntimeError("hybrid calc requires .xlsm; use FORMULA_PURE_EVAL=true")
+        from formula_port.match_context import sync_match_context
 
         sync_match_context(store, self.workbook_path, payload, odds, list_odds)
         apply_metadata_overrides(store, payload)

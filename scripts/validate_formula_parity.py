@@ -13,53 +13,15 @@ from typing import Any, Dict, List
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from analysis_data import MatchInfo, build_settings, load_analysis_data  # noqa: E402
+from analysis_data import build_settings, load_analysis_data  # noqa: E402
 from calc_engine import ExcelCalcEngine  # noqa: E402
 from db import create_database, get_db_connection  # noqa: E402
 from formula_port.com_guard import com_call_count, reset_com_calls  # noqa: E402
+from formula_port.parity import STRATEGY_TOL, compare_calc_results  # noqa: E402
 from formula_port.engine import PythonCalcEngine  # noqa: E402
 from match_store import QueuedMatch, get_queued_match, list_queued_matches  # noqa: E402
 from odds_service import load_odds  # noqa: E402
 from settings import DeluxSettings  # noqa: E402
-
-
-def _norm_pred(val: Any) -> str:
-    s = str(val or "").strip()
-    if s in ("-", "—", "None"):
-        return ""
-    return s
-
-
-def _float_close(a: Any, b: Any, tol: float = 0.01) -> bool:
-    """Допуск 1 п.п. (0.01) для вероятностей стратегий."""
-    try:
-        return abs(float(a) - float(b)) <= tol
-    except (TypeError, ValueError):
-        return _norm_pred(a) == _norm_pred(b)
-
-
-def _compare_results(excel_r: Dict, py_r: Dict, *, strategy_tol: float = 0.01) -> List[str]:
-    """Успех: одинаковые прогнозы; 10 стратегий — отклонение ≤ strategy_tol (по умолч. 1%)."""
-    diffs: List[str] = []
-    for key in ("prediction_ntb", "prediction_betalone", "prediction_sniper"):
-        ev = _norm_pred(excel_r.get(key))
-        pv = _norm_pred(py_r.get(key))
-        if ev != pv:
-            diffs.append(f"{key}: excel={excel_r.get(key)!r} python={py_r.get(key)!r}")
-
-    eo = excel_r.get("outcome_probabilities") or []
-    po = py_r.get("outcome_probabilities") or []
-    if len(eo) < 10 or len(po) < 10:
-        diffs.append(f"strategies_count: excel={len(eo)} python={len(po)} (need 10)")
-    for i in range(min(10, len(eo), len(po))):
-        e, p = eo[i], po[i]
-        for fld in ("home_prob", "draw_prob", "away_prob"):
-            if not _float_close(e.get(fld), p.get(fld), strategy_tol):
-                diffs.append(
-                    f"strategy[{i}].{fld}: excel={e.get(fld)} python={p.get(fld)} "
-                    f"(tol={strategy_tol})"
-                )
-    return diffs
 
 
 def _list_odds(queued: QueuedMatch):
@@ -132,7 +94,9 @@ def validate_match(
     reset_com_calls()
     py_results = py_engine.run(payload, odds_data, list_odds=list_odds)
     com_used = com_call_count()
-    diffs = _compare_results(excel_results, py_results)
+    diffs = compare_calc_results(
+        excel_results, py_results, strategy_tol=STRATEGY_TOL, left_name="excel", right_name="python"
+    )
     if com_used:
         diffs.append(f"COM_USED={com_used} (pure_eval must not call Excel)")
 

@@ -1,33 +1,12 @@
 import argparse
+import re
 from typing import Dict, Tuple
 
 import win32com.client
 
 from excel_com import connect_excel, open_workbook
 from flashscore_feed import fetch_feed, iter_feed_rows, map_source, parse_fields
-
-
-STATUSES = {
-    "45": "Будет доигран позже",
-    "42": "Ждем...",
-    "2": "Live",
-    "14": "1-й период",
-    "15": "2-й период",
-    "16": "3-й период",
-    "6": "Овертайм",
-    "7": "Буллиты",
-    "46": "Перерыв",
-    "3": "Завершен",
-    "10": "После овертайма",
-    "11": "После буллитов",
-    "9": "Неявка",
-    "43": "Задержка",
-    "36": "Прерван",
-    "4": "Перенесен",
-    "5": "Отменен",
-    "37": "Прерван",
-    "54": "Тех. поражение",
-}
+from match_settle import STATUSES
 
 
 def parse_match_time(time_string: str) -> Tuple[str, str]:
@@ -128,6 +107,11 @@ def calc_forecast_result(forecast: str, result: str, total_home: int, total_away
         return handle_total(clean, "UNDER", total_home, total_away, coeff)
     if clean == "ОЗ":
         return ("Выигрыш", coeff - 1) if total_home > 0 and total_away > 0 else ("Проигрыш", -1)
+    cs = re.match(r"^(\d+)[:\-.](\d+)$", clean)
+    if cs:
+        ph, pa = int(cs.group(1)), int(cs.group(2))
+        won = int(total_home) == ph and int(total_away) == pa
+        return ("Выигрыш", coeff - 1) if won else ("Проигрыш", -1)
     return "Неизвестный прогноз", 0
 
 

@@ -1,4 +1,4 @@
-"""CLI: анализ матчей из БД-очереди → calc .xlsm → matches.db."""
+"""CLI: анализ матчей из БД-очереди → Python-calc → matches.db."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ def run_analyze(
     limit: int = 0,
 ) -> int:
     cfg = DeluxSettings.from_env()
-    calc_workbook = workbook or cfg.resolve_calc_workbook()
+    calc_workbook = workbook or ""
     create_database()
 
     if match_id:
@@ -108,7 +108,22 @@ def run_analyze(
         except Exception as exc:
             print(f"[!] Moneyway (#7): Arbworld fetch failed — {exc}")
 
-    print("[*] Strategies on analyze: #1-3 calc, #4 BTS, #5 Favorites, #6 StavkaTV, #7 Moneyway, #8 1pr")
+    whoscored_index = None
+    if any(int(q.sport or 1) == 1 for q in matches):
+        try:
+            from whoscored_strategy import last_whoscored_error, load_whoscored_index
+
+            leagues = cfg.leagues_for_sport(1)
+            print("[*] WhoScored (#9): fetching previews for favorite leagues")
+            whoscored_index = load_whoscored_index(leagues)
+            if whoscored_index is not None:
+                print(f"[*] WhoScored (#9): previews={len(whoscored_index)}")
+            else:
+                print(f"[!] WhoScored (#9): skip — {last_whoscored_error() or 'unknown'}")
+        except Exception as exc:
+            print(f"[!] WhoScored (#9): fetch failed — {exc}")
+
+    print("[*] Strategies on analyze: #1-3 calc, #4 BTS, #5 Favorites, #6 StavkaTV, #7 Moneyway, #8 1pr, #9 WhoScored")
 
     ok = 0
     with get_calc_engine(cfg) as engine:
@@ -144,6 +159,7 @@ def run_analyze(
                     queued=queued,
                     engine=engine,
                     arbworld_index=arbworld_index,
+                    whoscored_index=whoscored_index,
                 )
                 ok += 1
                 print(f"[+] Сохранено в БД: {match.match_id}")

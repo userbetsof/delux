@@ -2,8 +2,6 @@ import argparse
 import re
 from typing import Optional
 
-import win32com.client
-
 
 MAPPING = {
     "П1": "1X2_1",
@@ -129,6 +127,8 @@ def calc_prediction_value(prediction: str, ws_odds) -> Optional[float]:
 
 
 def update_coefficients(workbook_path: str, target_row: int) -> int:
+    import win32com.client
+
     try:
         xl = win32com.client.GetObject(Class="Excel.Application")
     except Exception:

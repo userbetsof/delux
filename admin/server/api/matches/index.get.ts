@@ -4,6 +4,8 @@ export default defineEventHandler((event) => {
   const status = typeof q.status === 'string' ? q.status.trim() : ''
   const search = typeof q.q === 'string' ? q.q.trim() : ''
   const sport = q.sport !== undefined && q.sport !== '' ? Number(q.sport) : null
+  const dateFrom = typeof q.date_from === 'string' ? q.date_from.trim() : ''
+  const dateTo = typeof q.date_to === 'string' ? q.date_to.trim() : ''
   const limit = Math.min(Math.max(Number(q.limit) || 50, 1), 500)
   const offset = Math.max(Number(q.offset) || 0, 0)
 
@@ -29,6 +31,14 @@ export default defineEventHandler((event) => {
       )
       const like = `%${search}%`
       params.push(like, like, like, like, like)
+    }
+    if (dateFrom) {
+      where.push('m.match_date >= ?')
+      params.push(dateFrom)
+    }
+    if (dateTo) {
+      where.push('m.match_date <= ?')
+      params.push(dateTo)
     }
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : ''
 

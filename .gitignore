@@ -2,6 +2,7 @@
 .env.*
 !.env.example
 *.db
+!data/lookups.db
 *.db-journal
 *.db-wal
 *.db-shm
@@ -21,3 +22,12 @@ backups/
 formulas_dump.txt
 .DS_Store
 Thumbs.db
+159C3300
+F66A3300
+_ws_*.html
+_tmp_*
+archive/excel_dumps/
+artifacts/ml/
+mlruns/
+*.cbm
+*.ubj

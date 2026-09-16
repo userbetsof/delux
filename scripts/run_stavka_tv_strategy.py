@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from db import create_database, get_db_connection, upsert_strategy_prediction  # noqa: E402
-from match_store import list_queued_matches  # noqa: E402
+from match_store import list_matches_for_strategy  # noqa: E402
 from settings import DeluxSettings  # noqa: E402
 from stavka_tv_strategy import (  # noqa: E402
     STAVKA_TV_STRATEGY_ID,
@@ -26,12 +26,10 @@ def run_stavka_tv_for_queue(*, new_only: bool = False, limit: int = 0) -> dict:
         print(f"[-] StavkaTV DB не найдена: {db}")
         return {"total": 0, "ok": 0, "skip": 0, "fail": 1}
 
-    matches = list_queued_matches(
-        leagues_by_sport=cfg.leagues_by_sport,
-        new_only=False,
-        limit=limit or 0,
-    )
+    matches = list_matches_for_strategy(leagues_by_sport=cfg.leagues_by_sport)
     matches = [q for q in matches if cfg.is_favorite_league(q.sport, q.tour_name)]
+    if limit > 0:
+        matches = matches[:limit]
 
     print(f"[*] StavkaTV (#{STAVKA_TV_STRATEGY_ID}): {len(matches)} matches, db={db}")
     ok = skip = fail = 0

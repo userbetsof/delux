@@ -1,0 +1,29 @@
+{
+  "experiment_name": "delux-football",
+  "database_path": "",
+  "artifacts_dir": "artifacts/ml",
+  "mlflow_tracking_uri": "",
+  "models": ["xgboost", "catboost"],
+  "targets": ["1x2", "over_2_5"],
+  "include_stacking": false,
+  "split": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "xgboost": {
+    "n_estimators": 250,
+    "max_depth": 6,
+    "learning_rate": 0.05,
+    "subsample": 0.85,
+    "colsample_bytree": 0.85,
+    "random_state": 42
+  },
+  "catboost": {
+    "iterations": 250,
+    "depth": 6,
+    "learning_rate": 0.05,
+    "random_seed": 42,
+    "verbose": false
+  }
+}

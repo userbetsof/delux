@@ -5,14 +5,17 @@ type TeamRow = {
   id: number
   name: string
   name_arbworld?: string | null
+  name_whoscored?: string | null
 }
 
 const { db, dbQuery } = useAdminDb()
 const search = ref('')
 const unmappedOnly = ref(false)
+const unmappedWsOnly = ref(false)
 const { limit, offset, nextPage, prevPage, resetOffset, setLimit } = useTablePagination(50)
 
-const drafts = ref<Record<number, string>>({})
+const draftsArb = ref<Record<number, string>>({})
+const draftsWs = ref<Record<number, string>>({})
 const savingId = ref<number | null>(null)
 const saveError = ref('')
 const saveOk = ref('')
@@ -21,12 +24,13 @@ const query = computed(() => ({
   ...dbQuery.value,
   q: search.value || undefined,
   unmapped: unmappedOnly.value ? '1' : undefined,
+  unmapped_ws: unmappedWsOnly.value ? '1' : undefined,
   limit: limit.value,
   offset: offset.value,
 }))
 
 const { data, pending, error, refresh } = await useFetch<
-  Paginated<TeamRow> & { has_arbworld?: boolean }
+  Paginated<TeamRow> & { has_arbworld?: boolean; has_whoscored?: boolean }
 >('/api/teams', {
   query,
   watch: [query],
@@ -35,30 +39,38 @@ const { data, pending, error, refresh } = await useFetch<
 watch(
   () => data.value?.items,
   (items) => {
-    const next: Record<number, string> = { ...drafts.value }
+    const nextArb: Record<number, string> = { ...draftsArb.value }
+    const nextWs: Record<number, string> = { ...draftsWs.value }
     for (const t of items || []) {
-      if (!(t.id in next)) {
-        next[t.id] = t.name_arbworld || ''
-      }
+      if (!(t.id in nextArb)) nextArb[t.id] = t.name_arbworld || ''
+      if (!(t.id in nextWs)) nextWs[t.id] = t.name_whoscored || ''
     }
-    drafts.value = next
+    draftsArb.value = nextArb
+    draftsWs.value = nextWs
   },
   { immediate: true },
 )
 
-watch([search, unmappedOnly, limit], resetOffset)
+watch([search, unmappedOnly, unmappedWsOnly, limit], resetOffset)
 
 const headers = [
   { title: 'ID', key: 'id', width: '80px' },
   { title: 'Flashscore', key: 'name' },
   { title: 'Arbworld', key: 'name_arbworld' },
+  { title: 'WhoScored', key: 'name_whoscored' },
   { title: '', key: 'actions', sortable: false, width: '120px' },
 ]
 
+function dirtyArb(item: TeamRow) {
+  return (draftsArb.value[item.id] ?? '').trim() !== (item.name_arbworld || '').trim()
+}
+
+function dirtyWs(item: TeamRow) {
+  return (draftsWs.value[item.id] ?? '').trim() !== (item.name_whoscored || '').trim()
+}
+
 function dirty(item: TeamRow) {
-  const cur = (drafts.value[item.id] ?? '').trim()
-  const orig = (item.name_arbworld || '').trim()
-  return cur !== orig
+  return dirtyArb(item) || dirtyWs(item)
 }
 
 async function saveTeam(item: TeamRow) {
@@ -66,15 +78,17 @@ async function saveTeam(item: TeamRow) {
   saveOk.value = ''
   savingId.value = item.id
   try {
-    const name_arbworld = (drafts.value[item.id] ?? '').trim() || null
+    const name_arbworld = (draftsArb.value[item.id] ?? '').trim() || null
+    const name_whoscored = (draftsWs.value[item.id] ?? '').trim() || null
     await $fetch(`/api/teams/${item.id}`, {
       method: 'PATCH',
       query: { db: db.value },
-      body: { name_arbworld },
+      body: { name_arbworld, name_whoscored },
     })
     saveOk.value = `Сохранено: ${item.name}`
     await refresh()
-    drafts.value[item.id] = name_arbworld || ''
+    draftsArb.value[item.id] = name_arbworld || ''
+    draftsWs.value[item.id] = name_whoscored || ''
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string }; message?: string }
     saveError.value = err?.data?.statusMessage || err?.message || String(e)
@@ -83,8 +97,12 @@ async function saveTeam(item: TeamRow) {
   }
 }
 
-function copyFs(item: TeamRow) {
-  drafts.value[item.id] = item.name
+function copyFsArb(item: TeamRow) {
+  draftsArb.value[item.id] = item.name
+}
+
+function copyFsWs(item: TeamRow) {
+  draftsWs.value[item.id] = item.name
 }
 </script>
 
@@ -94,7 +112,7 @@ function copyFs(item: TeamRow) {
       <div>
         <div class="text-h5 font-weight-bold">Команды</div>
         <div class="text-caption text-medium-emphasis">
-          name = Flashscore; name_arbworld — имя в Arbworld (для Moneyway)
+          Flashscore → Arbworld (Moneyway) и WhoScored (стратегия #9)
         </div>
       </div>
       <div class="d-flex align-center ga-2 flex-wrap">
@@ -110,6 +128,13 @@ function copyFs(item: TeamRow) {
         <v-switch
           v-model="unmappedOnly"
           label="Без Arbworld"
+          density="compact"
+          hide-details
+          color="primary"
+        />
+        <v-switch
+          v-model="unmappedWsOnly"
+          label="Без WhoScored"
           density="compact"
           hide-details
           color="primary"
@@ -143,20 +168,40 @@ function copyFs(item: TeamRow) {
         <template #item.name_arbworld="{ item }">
           <div class="d-flex align-center ga-1">
             <v-text-field
-              v-model="drafts[item.id]"
+              v-model="draftsArb[item.id]"
               density="compact"
               hide-details
               variant="outlined"
               placeholder="имя в Arbworld"
-              style="min-width: 220px"
-              :class="{ 'bg-amber-lighten-5': dirty(item) }"
+              style="min-width: 200px"
+              :class="{ 'bg-amber-lighten-5': dirtyArb(item) }"
             />
             <v-btn
               icon="mdi-content-copy"
               size="x-small"
               variant="text"
               title="Скопировать Flashscore"
-              @click="copyFs(item)"
+              @click="copyFsArb(item)"
+            />
+          </div>
+        </template>
+        <template #item.name_whoscored="{ item }">
+          <div class="d-flex align-center ga-1">
+            <v-text-field
+              v-model="draftsWs[item.id]"
+              density="compact"
+              hide-details
+              variant="outlined"
+              placeholder="имя в WhoScored"
+              style="min-width: 200px"
+              :class="{ 'bg-amber-lighten-5': dirtyWs(item) }"
+            />
+            <v-btn
+              icon="mdi-content-copy"
+              size="x-small"
+              variant="text"
+              title="Скопировать Flashscore"
+              @click="copyFsWs(item)"
             />
           </div>
         </template>

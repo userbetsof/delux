@@ -1,3 +1,10 @@
+import { sqlOddsEdgeFilters } from '../../utils/strategyNotes'
+import {
+  isFinished,
+  settleRowProfit,
+  toNum,
+} from '../../utils/settle'
+
 type PredRow = {
   id: number
   match_id: string
@@ -8,6 +15,7 @@ type PredRow = {
   stake: number | null
   result: string | null
   profit: number | null
+  notes: string | null
   score_home: number | null
   score_away: number | null
   match_status: string | null
@@ -15,104 +23,10 @@ type PredRow = {
   match_date: string | null
 }
 
-function toNum(v: unknown): number | null {
-  if (v === null || v === undefined || v === '') return null
-  const n = Number(v)
-  return Number.isFinite(n) ? n : null
-}
-
-function normalizePred(raw: string | null | undefined): {
-  kind: string
-  sel?: string
-  side?: string
-  line?: number
-} | null {
-  if (!raw) return null
-  const p = String(raw).trim()
-  if (!p || p === '-' || p === 'None') return null
-  let u = p.toUpperCase().replace(/Х/g, 'X').replace(/х/g, 'X')
-  u = u.replace(/П1/g, '1').replace(/П2/g, '2')
-  const compact = u.replace(/\s+/g, '')
-
-  if (['1', 'X', '2', '1X', 'X2', '12'].includes(compact)) {
-    return { kind: '1x2', sel: compact }
-  }
-  if (u.includes('ОЗ') || u.includes('BTTS') || compact.includes('ОБЕЗАБ')) {
-    const no = u.includes('НЕТ') || u.includes('NO')
-    return { kind: 'btts', sel: no ? 'no' : 'yes' }
-  }
-  const ou = u.match(/(ТБ|ТМ|OVER|UNDER)\s*([0-9]+(?:[.,][0-9]+)?)/i)
-  if (ou) {
-    const side = ['ТБ', 'OVER'].includes(ou[1].toUpperCase()) ? 'over' : 'under'
-    return { kind: 'ou', side, line: Number(ou[2].replace(',', '.')) }
-  }
-  const ah = u.match(/Ф([12])\s*\(([-+]?\d+(?:[.,]\d+)?)\)/)
-  if (ah) {
-    return {
-      kind: 'ah',
-      side: ah[1] === '1' ? 'home' : 'away',
-      line: Number(ah[2].replace(',', '.')),
-    }
-  }
-  const ah0 = u.match(/Ф([12])/)
-  if (ah0) {
-    return { kind: 'ah', side: ah0[1] === '1' ? 'home' : 'away', line: 0 }
-  }
-  return { kind: 'unknown', sel: p }
-}
-
-function settle1x2(h: number, a: number): '1' | 'X' | '2' {
-  if (h > a) return '1'
-  if (h < a) return '2'
-  return 'X'
-}
-
-function settle(
-  info: ReturnType<typeof normalizePred>,
-  h: number,
-  a: number,
-): boolean | 'push' | null {
-  if (!info) return null
-  if (info.kind === '1x2' && info.sel) {
-    const res = settle1x2(h, a)
-    const map: Record<string, boolean> = {
-      '1': res === '1',
-      '2': res === '2',
-      X: res === 'X',
-      '1X': res === '1' || res === 'X',
-      X2: res === 'X' || res === '2',
-      '12': res === '1' || res === '2',
-    }
-    return map[info.sel] ?? null
-  }
-  if (info.kind === 'btts') {
-    const both = h > 0 && a > 0
-    return info.sel === 'yes' ? both : !both
-  }
-  if (info.kind === 'ou' && info.line != null && info.side) {
-    const total = h + a
-    if (Math.abs(info.line - Math.round(info.line)) < 1e-9 && total === info.line) return 'push'
-    return info.side === 'over' ? total > info.line : total < info.line
-  }
-  if (info.kind === 'ah' && info.line != null && info.side) {
-    const adj = info.side === 'home' ? h + info.line - a : a + info.line - h
-    if (Math.abs(adj) < 1e-9) return 'push'
-    return adj > 0
-  }
-  return null
-}
-
-function isFinished(status: string | null | undefined, h: number | null, a: number | null): boolean {
-  if (h == null || a == null) return false
-  const s = String(status || '').toLowerCase()
-  return (
-    s.includes('заверш') ||
-    s.includes('законч') ||
-    s.includes('finished') ||
-    s.includes('ended') ||
-    s.includes('после матч') ||
-    s.includes('after')
-  )
+type OddsRow = {
+  match_id: string
+  market_name: string
+  odds_value: number | null
 }
 
 export default defineEventHandler((event) => {
@@ -157,13 +71,16 @@ export default defineEventHandler((event) => {
       where.push('m.sport = ?')
       params.push(sport)
     }
+    const extra = sqlOddsEdgeFilters(q as Record<string, unknown>)
+    where.push(...extra.clauses)
+    params.push(...extra.params)
 
     const items = rows<PredRow>(
       db,
       `
       SELECT
         sp.id, sp.match_id, sp.strategy_id, s.name AS strategy_name,
-        sp.prediction, sp.odds, sp.stake, sp.result, sp.profit,
+        sp.prediction, sp.odds, sp.stake, sp.result, sp.profit, sp.notes,
         m.score_home, m.score_away, m.match_status, m.sport, m.match_date
       FROM strategy_predictions sp
       LEFT JOIN strategies s ON s.id = sp.strategy_id
@@ -172,6 +89,29 @@ export default defineEventHandler((event) => {
       `,
       params,
     )
+
+    const oddsByMatch = new Map<string, Map<string, number>>()
+    if (tableExists(db, 'odds')) {
+      const oddsRows = rows<OddsRow>(
+        db,
+        `
+        SELECT match_id, UPPER(market_name) AS market_name, MAX(odds_value) AS odds_value
+        FROM odds
+        WHERE odds_value IS NOT NULL AND odds_value > 1
+        GROUP BY match_id, UPPER(market_name)
+        `,
+      )
+      for (const r of oddsRows) {
+        const odds = toNum(r.odds_value)
+        if (!odds) continue
+        let m = oddsByMatch.get(r.match_id)
+        if (!m) {
+          m = new Map()
+          oddsByMatch.set(r.match_id, m)
+        }
+        m.set(String(r.market_name || '').toUpperCase(), odds)
+      }
+    }
 
     type Acc = {
       strategy_id: number
@@ -226,7 +166,13 @@ export default defineEventHandler((event) => {
       const acc = touch(sid, item.strategy_name)
       const h = toNum(item.score_home)
       const a = toNum(item.score_away)
-      const finished = isFinished(item.match_status, h, a)
+      const finished = isFinished({
+        status: item.match_status,
+        scoreHome: h,
+        scoreAway: a,
+        matchDate: item.match_date,
+        sport: toNum(item.sport),
+      })
 
       if (!finished || h == null || a == null) {
         if (settledOnly) continue
@@ -240,48 +186,40 @@ export default defineEventHandler((event) => {
       acc.total += 1
       totalAcc.total += 1
 
-      const stake = toNum(item.stake) ?? stakeDefault
-      const odds = toNum(item.odds) ?? 1
-      const info = normalizePred(item.prediction)
-      let outcome = settle(info, h, a)
-
-      let profit = 0
-      if (outcome === true) {
-        profit = stake * (odds - 1)
-        acc.wins += 1
-        totalAcc.wins += 1
-      } else if (outcome === false) {
-        profit = -stake
-        acc.losses += 1
-        totalAcc.losses += 1
-      } else if (outcome === 'push') {
-        profit = 0
-        acc.pushes += 1
-        totalAcc.pushes += 1
-      } else {
-        const stored = String(item.result || '')
-        const storedProfit = toNum(item.profit)
-        if (stored.includes('Выигр') && storedProfit != null) {
-          profit = storedProfit
-          acc.wins += 1
-          totalAcc.wins += 1
-        } else if (stored.includes('Проигр') && storedProfit != null) {
-          profit = storedProfit
-          acc.losses += 1
-          totalAcc.losses += 1
-        } else {
-          acc.unknown += 1
-          totalAcc.unknown += 1
-          continue
-        }
+      const lookup = (market: string) =>
+        oddsByMatch.get(item.match_id)?.get(String(market || '').toUpperCase()) ?? null
+      const settled = settleRowProfit(
+        item.prediction,
+        h,
+        a,
+        toNum(item.stake) ?? stakeDefault,
+        toNum(item.odds),
+        item.notes,
+        lookup,
+      )
+      if (settled.outcome == null) {
+        acc.unknown += 1
+        totalAcc.unknown += 1
+        continue
       }
 
       acc.settled += 1
       totalAcc.settled += 1
-      acc.stake_sum += stake
-      totalAcc.stake_sum += stake
+      acc.stake_sum += settled.stakeSum
+      totalAcc.stake_sum += settled.stakeSum
+      const profit = settled.profit ?? 0
       acc.profit += profit
       totalAcc.profit += profit
+      if (settled.outcome === true) {
+        acc.wins += 1
+        totalAcc.wins += 1
+      } else if (settled.outcome === false) {
+        acc.losses += 1
+        totalAcc.losses += 1
+      } else {
+        acc.pushes += 1
+        totalAcc.pushes += 1
+      }
     }
 
     const by_strategy = [...byMap.values()]

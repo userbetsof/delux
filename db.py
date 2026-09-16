@@ -5,7 +5,6 @@ import threading
 import sys
 from contextlib import contextmanager
 from dotenv import load_dotenv
-import openpyxl
 
 try:
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
@@ -79,6 +78,11 @@ SHEET_ARCHIVE = os.environ.get('SHEET_ARCHIVE', 'achive')
 SHEET_ODDS = os.environ.get('SHEET_ODDS', 'Коэффициенты')
 EXCEL_FILENAME = os.environ.get('EXCEL_FILENAME', 'DeluX_IncoProrok_mvp0.xlsm')
 EXCEL_FALLBACK_PATH = os.environ.get('EXCEL_FALLBACK_PATH', r'DeluX_IncoProrok_mvp0.xlsm')
+GOAL_PROB_MAX = 12
+GOAL_PROB_BINS = GOAL_PROB_MAX + 1
+GOAL_PROB_COLUMNS = [f"home_goals_{i}" for i in range(GOAL_PROB_BINS)] + [
+    f"away_goals_{i}" for i in range(GOAL_PROB_BINS)
+]
 
 
 def get_database_path(explicit: str | None = None) -> str:
@@ -327,6 +331,7 @@ def create_database(path: str | None = None):
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     match_id VARCHAR(8) UNIQUE NOT NULL,
                     match_date TEXT NOT NULL,
+                    start_ts INTEGER,
                     league_id INTEGER,
                     home_team_id INTEGER,
                     away_team_id INTEGER,
@@ -344,6 +349,7 @@ def create_database(path: str | None = None):
                 )
                 """
             )
+            _migrate_matches_columns(cursor)
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS odds (
@@ -358,28 +364,22 @@ def create_database(path: str | None = None):
                 )
                 """
             )
+            _migrate_odds_schema(cursor)
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS goal_probabilities (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    match_id VARCHAR(8) NOT NULL,
-                    home_goals_0 DECIMAL(5,2),
-                    home_goals_1 DECIMAL(5,2),
-                    home_goals_2 DECIMAL(5,2),
-                    home_goals_3 DECIMAL(5,2),
-                    home_goals_4 DECIMAL(5,2),
-                    home_goals_5 DECIMAL(5,2),
-                    away_goals_0 DECIMAL(5,2),
-                    away_goals_1 DECIMAL(5,2),
-                    away_goals_2 DECIMAL(5,2),
-                    away_goals_3 DECIMAL(5,2),
-                    away_goals_4 DECIMAL(5,2),
-                    away_goals_5 DECIMAL(5,2),
-                    FOREIGN KEY (match_id) REFERENCES matches(match_id),
-                    UNIQUE(match_id)
+                    match_id VARCHAR(8) NOT NULL UNIQUE,
+                    """
+                + ",\n                    ".join(
+                    f"{col} DECIMAL(5,2)" for col in GOAL_PROB_COLUMNS
+                )
+                + """,
+                    FOREIGN KEY (match_id) REFERENCES matches(match_id)
                 )
                 """
             )
+            _migrate_goal_probability_columns(cursor)
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS strategies (
@@ -479,6 +479,125 @@ def create_database(path: str | None = None):
                 )
                 """
             )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS match_snapshot (
+                    match_id VARCHAR(8) PRIMARY KEY,
+                    referee TEXT,
+                    referee_country TEXT,
+                    referee_country_id TEXT,
+                    venue TEXT,
+                    town TEXT,
+                    capacity INTEGER,
+                    attendance INTEGER,
+                    standings_json TEXT,
+                    form_json TEXT,
+                    h2h_json TEXT,
+                    team_matches_json TEXT,
+                    weather_json TEXT,
+                    raw_json TEXT,
+                    fetched_at TEXT DEFAULT (datetime('now')),
+                    FOREIGN KEY (match_id) REFERENCES matches(match_id)
+                )
+                """
+            )
+            _migrate_match_snapshot_columns(cursor)
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS venues (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    venue TEXT NOT NULL,
+                    town TEXT NOT NULL,
+                    latitude REAL NOT NULL,
+                    longitude REAL NOT NULL,
+                    timezone TEXT,
+                    roof INTEGER NOT NULL DEFAULT 0,
+                    source TEXT,
+                    updated_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(venue, town)
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS match_weather (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    match_id VARCHAR(8) NOT NULL,
+                    kind TEXT NOT NULL DEFAULT 'forecast',
+                    valid_at TEXT NOT NULL,
+                    fetched_at TEXT NOT NULL,
+                    lead_hours REAL,
+                    temperature_c REAL,
+                    apparent_temperature_c REAL,
+                    wind_ms REAL,
+                    gust_ms REAL,
+                    precipitation_mm REAL,
+                    precipitation_probability INTEGER,
+                    snowfall_cm REAL,
+                    cloud_pct INTEGER,
+                    humidity_pct INTEGER,
+                    weather_code INTEGER,
+                    latitude REAL,
+                    longitude REAL,
+                    provider TEXT,
+                    raw_json TEXT,
+                    FOREIGN KEY (match_id) REFERENCES matches(match_id),
+                    UNIQUE(match_id, kind, fetched_at)
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ml_runs (
+                    run_id TEXT PRIMARY KEY,
+                    experiment TEXT NOT NULL,
+                    model_type TEXT NOT NULL,
+                    target TEXT NOT NULL,
+                    schema_hash TEXT,
+                    config_json TEXT,
+                    metrics_json TEXT,
+                    artifact_path TEXT,
+                    created_at TEXT DEFAULT (datetime('now'))
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS ml_predictions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    match_id VARCHAR(8) NOT NULL,
+                    run_id TEXT NOT NULL,
+                    model_type TEXT NOT NULL,
+                    target TEXT NOT NULL,
+                    prediction TEXT,
+                    probability_json TEXT,
+                    created_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(match_id, run_id, target),
+                    FOREIGN KEY (match_id) REFERENCES matches(match_id),
+                    FOREIGN KEY (run_id) REFERENCES ml_runs(run_id)
+                )
+                """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS whoscored_preview (
+                    match_id VARCHAR(8) PRIMARY KEY,
+                    ws_id TEXT,
+                    ws_url TEXT,
+                    home_name TEXT,
+                    away_name TEXT,
+                    score_home INTEGER,
+                    score_away INTEGER,
+                    formation_home TEXT,
+                    formation_away TEXT,
+                    team_news_json TEXT,
+                    missing_json TEXT,
+                    lineups_json TEXT,
+                    fetched_at TEXT DEFAULT (datetime('now')),
+                    FOREIGN KEY (match_id) REFERENCES matches(match_id)
+                )
+                """
+            )
             _migrate_missing_players_columns(cursor)
             for idx in (
                 "CREATE INDEX IF NOT EXISTS idx_odds_match_id ON odds(match_id)",
@@ -491,10 +610,54 @@ def create_database(path: str | None = None):
                 "CREATE INDEX IF NOT EXISTS idx_missing_players_player ON match_missing_players(player_id)",
                 "CREATE INDEX IF NOT EXISTS idx_moneyway_signal ON moneyway(has_signal)",
                 "CREATE INDEX IF NOT EXISTS idx_moneyway_fetched ON moneyway(fetched_at)",
+                "CREATE INDEX IF NOT EXISTS idx_whoscored_preview_fetched ON whoscored_preview(fetched_at)",
+                "CREATE INDEX IF NOT EXISTS idx_match_snapshot_fetched ON match_snapshot(fetched_at)",
+                "CREATE INDEX IF NOT EXISTS idx_match_weather_match ON match_weather(match_id, fetched_at)",
+                "CREATE INDEX IF NOT EXISTS idx_match_weather_valid ON match_weather(valid_at)",
+                "CREATE INDEX IF NOT EXISTS idx_venues_town ON venues(town)",
+                "CREATE INDEX IF NOT EXISTS idx_ml_predictions_match ON ml_predictions(match_id)",
             ):
                 cursor.execute(idx)
             _ensure_main_strategies(cursor)
             conn.commit()
+
+
+def _migrate_goal_probability_columns(cursor) -> None:
+    """Добавляет home/away_goals_6..12 на существующих БД."""
+    try:
+        rows = cursor.execute("PRAGMA table_info(goal_probabilities)").fetchall()
+    except Exception:
+        return
+    existing = {row[1] for row in rows}
+    if not existing:
+        return
+    for col in GOAL_PROB_COLUMNS:
+        if col not in existing:
+            cursor.execute(f"ALTER TABLE goal_probabilities ADD COLUMN {col} DECIMAL(5,2)")
+
+
+def _migrate_matches_columns(cursor) -> None:
+    rows = cursor.execute("PRAGMA table_info(matches)").fetchall()
+    existing = {row[1] for row in rows}
+    if existing and "start_ts" not in existing:
+        cursor.execute("ALTER TABLE matches ADD COLUMN start_ts INTEGER")
+
+
+def _migrate_match_snapshot_columns(cursor) -> None:
+    """Добавляет колонки снимка (таблица/форма/H2H/матчи) на существующих БД."""
+    rows = cursor.execute("PRAGMA table_info(match_snapshot)").fetchall()
+    existing = {row[1] for row in rows}
+    if not existing:
+        return
+    for name, col_type in (
+        ("standings_json", "TEXT"),
+        ("form_json", "TEXT"),
+        ("h2h_json", "TEXT"),
+        ("team_matches_json", "TEXT"),
+        ("weather_json", "TEXT"),
+    ):
+        if name not in existing:
+            cursor.execute(f"ALTER TABLE match_snapshot ADD COLUMN {name} {col_type}")
 
 
 def _migrate_missing_players_columns(cursor) -> None:
@@ -513,14 +676,97 @@ def _migrate_missing_players_columns(cursor) -> None:
             cursor.execute(f"ALTER TABLE match_missing_players ADD COLUMN {name} {col_type}")
 
 
+def _migrate_odds_schema(cursor) -> None:
+    """Старая таблица odds (home_win_odds/…) → market_name + odds_value."""
+    rows = cursor.execute("PRAGMA table_info(odds)").fetchall()
+    if not rows:
+        return
+    existing = {row[1] for row in rows}
+    needed = ("market_name", "outcome", "side", "line_value", "odds_value")
+    if all(col in existing for col in needed):
+        return
+
+    from odds_normalize import expand_wide_1x2_row, split_canonical, to_float
+
+    old_rows = cursor.execute("SELECT * FROM odds").fetchall()
+    col_names = [row[1] for row in rows]
+    rebuilt: list[tuple] = []
+    seen: set[tuple[str, str]] = set()
+
+    def _add(match_id: str, market: str, odds_value: float) -> None:
+        if not match_id or not market or not odds_value:
+            return
+        key = (str(match_id), str(market).upper())
+        if key in seen:
+            return
+        seen.add(key)
+        meta = split_canonical(market)
+        rebuilt.append(
+            (
+                match_id,
+                market,
+                meta.get("outcome"),
+                meta.get("side"),
+                meta.get("line_value"),
+                odds_value,
+            )
+        )
+
+    for raw in old_rows:
+        item = dict(raw) if isinstance(raw, sqlite3.Row) else dict(zip(col_names, raw))
+        match_id = str(item.get("match_id") or "")
+        for market, odds in expand_wide_1x2_row(item):
+            _add(match_id, market, odds)
+        market_name = item.get("market_name")
+        odds_value = to_float(item.get("odds_value"))
+        if market_name and odds_value and odds_value > 1:
+            _add(
+                match_id,
+                str(market_name).strip(),
+                odds_value,
+            )
+
+    cursor.execute("ALTER TABLE odds RENAME TO odds_legacy_wide")
+    cursor.execute(
+        """
+        CREATE TABLE odds (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            match_id VARCHAR(8) NOT NULL,
+            market_name VARCHAR(50) NOT NULL,
+            outcome VARCHAR(20),
+            side VARCHAR(20),
+            line_value DECIMAL(5,2),
+            odds_value DECIMAL(10,2),
+            FOREIGN KEY (match_id) REFERENCES matches(match_id)
+        )
+        """
+    )
+    if rebuilt:
+        cursor.executemany(
+            """
+            INSERT INTO odds (match_id, market_name, outcome, side, line_value, odds_value)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            rebuilt,
+        )
+    cursor.execute("DROP TABLE odds_legacy_wide")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_odds_match_id ON odds(match_id)")
+    print(f"[db] odds migrated: {len(old_rows)} old rows → {len(rebuilt)} canonical")
+
+
 def _migrate_teams_columns(cursor) -> None:
     """Flashscore name остаётся в name; внешние сервисы — отдельные колонки."""
     rows = cursor.execute("PRAGMA table_info(teams)").fetchall()
     existing = {row[1] for row in rows}
     if "name_arbworld" not in existing:
         cursor.execute("ALTER TABLE teams ADD COLUMN name_arbworld TEXT")
+    if "name_whoscored" not in existing:
+        cursor.execute("ALTER TABLE teams ADD COLUMN name_whoscored TEXT")
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_teams_name_arbworld ON teams(name_arbworld)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_teams_name_whoscored ON teams(name_whoscored)"
     )
 
 
@@ -535,6 +781,7 @@ def _ensure_main_strategies(cursor) -> None:
         (6, "StavkaTV", "Прогнозы tipster'ов stavka.tv (4 прогнозиста)"),
         (7, "Moneyway", "Arbworld moneyway: max odds = max volume, vol > 1000"),
         (8, "1pr", "Исход с макс. вероятностью подстратегии «1 пр»"),
+        (9, "WhoScored", "Точный счёт WhoScored + фора (2 прогноза в 1 строке)"),
     )
     for sid, name, desc in defaults:
         row = cursor.execute("SELECT id FROM strategies WHERE name = ?", (name,)).fetchone()
@@ -564,6 +811,7 @@ FAVORITES_STRATEGY_ID = 5
 STAVKA_TV_STRATEGY_ID = 6
 DOGS_STRATEGY_ID = 7
 ONEPR_STRATEGY_ID = 8
+WHOSCORED_STRATEGY_ID = 9
 
 
 def upsert_strategy_prediction(
@@ -655,6 +903,213 @@ def upsert_moneyway(match_id: str, snap: dict) -> None:
         conn.commit()
 
 
+MATCH_SNAPSHOT_COLUMNS = (
+    "referee",
+    "referee_country",
+    "referee_country_id",
+    "venue",
+    "town",
+    "capacity",
+    "attendance",
+    "standings_json",
+    "form_json",
+    "h2h_json",
+    "team_matches_json",
+    "weather_json",
+    "raw_json",
+)
+
+
+def upsert_match_snapshot(match_id: str, data: dict) -> None:
+    """Снимок данных матча на момент анализа (пустые поля не затирают прежние)."""
+    values = [data.get(col) for col in MATCH_SNAPSHOT_COLUMNS]
+    columns = ", ".join(MATCH_SNAPSHOT_COLUMNS)
+    placeholders = ", ".join("?" for _ in MATCH_SNAPSHOT_COLUMNS)
+    updates = ", ".join(
+        f"{col} = COALESCE(excluded.{col}, match_snapshot.{col})"
+        for col in MATCH_SNAPSHOT_COLUMNS
+    )
+    with get_db_connection() as conn:
+        conn.execute(
+            f"""
+            INSERT INTO match_snapshot (match_id, {columns}, fetched_at)
+            VALUES (?, {placeholders}, datetime('now'))
+            ON CONFLICT(match_id) DO UPDATE SET
+                {updates},
+                fetched_at = excluded.fetched_at
+            """,
+            (match_id, *values),
+        )
+        conn.commit()
+
+
+def get_cached_venue(venue: str, town: str):
+    with get_db_connection() as conn:
+        return conn.execute(
+            """
+            SELECT * FROM venues
+            WHERE venue = ? COLLATE NOCASE AND town = ? COLLATE NOCASE
+            """,
+            ((venue or "").strip(), (town or "").strip()),
+        ).fetchone()
+
+
+def upsert_venue(venue: str, town: str, data: dict) -> None:
+    with get_db_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO venues (
+                venue, town, latitude, longitude, timezone, roof, source, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            ON CONFLICT(venue, town) DO UPDATE SET
+                latitude = excluded.latitude,
+                longitude = excluded.longitude,
+                timezone = excluded.timezone,
+                source = excluded.source,
+                updated_at = excluded.updated_at
+            """,
+            (
+                (venue or "").strip(),
+                (town or "").strip(),
+                data.get("latitude"),
+                data.get("longitude"),
+                data.get("timezone"),
+                1 if data.get("roof") else 0,
+                data.get("source"),
+            ),
+        )
+        conn.commit()
+
+
+def insert_match_weather(match_id: str, data: dict) -> int:
+    columns = (
+        "kind",
+        "valid_at",
+        "fetched_at",
+        "lead_hours",
+        "temperature_c",
+        "apparent_temperature_c",
+        "wind_ms",
+        "gust_ms",
+        "precipitation_mm",
+        "precipitation_probability",
+        "snowfall_cm",
+        "cloud_pct",
+        "humidity_pct",
+        "weather_code",
+        "latitude",
+        "longitude",
+        "provider",
+        "raw_json",
+    )
+    with get_db_connection() as conn:
+        cur = conn.execute(
+            f"""
+            INSERT OR IGNORE INTO match_weather (
+                match_id, {", ".join(columns)}
+            ) VALUES (?, {", ".join("?" for _ in columns)})
+            """,
+            (match_id, *(data.get(col) for col in columns)),
+        )
+        conn.commit()
+        return int(cur.lastrowid or 0)
+
+
+def upsert_ml_run(data: dict) -> None:
+    with get_db_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO ml_runs (
+                run_id, experiment, model_type, target, schema_hash,
+                config_json, metrics_json, artifact_path, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            ON CONFLICT(run_id) DO UPDATE SET
+                metrics_json=excluded.metrics_json,
+                artifact_path=excluded.artifact_path
+            """,
+            (
+                data["run_id"],
+                data["experiment"],
+                data["model_type"],
+                data["target"],
+                data.get("schema_hash"),
+                data.get("config_json"),
+                data.get("metrics_json"),
+                data.get("artifact_path"),
+            ),
+        )
+        conn.commit()
+
+
+def upsert_ml_prediction(data: dict) -> None:
+    with get_db_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO ml_predictions (
+                match_id, run_id, model_type, target, prediction,
+                probability_json, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+            ON CONFLICT(match_id, run_id, target) DO UPDATE SET
+                prediction=excluded.prediction,
+                probability_json=excluded.probability_json,
+                created_at=excluded.created_at
+            """,
+            (
+                data["match_id"],
+                data["run_id"],
+                data["model_type"],
+                data["target"],
+                data.get("prediction"),
+                data.get("probability_json"),
+            ),
+        )
+        conn.commit()
+
+
+def upsert_whoscored_preview(match_id: str, data: dict) -> None:
+    """Снимок WhoScored preview: составы, absents, team news."""
+    import json
+
+    with get_db_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO whoscored_preview (
+                match_id, ws_id, ws_url, home_name, away_name,
+                score_home, score_away, formation_home, formation_away,
+                team_news_json, missing_json, lineups_json, fetched_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            ON CONFLICT(match_id) DO UPDATE SET
+                ws_id = excluded.ws_id,
+                ws_url = excluded.ws_url,
+                home_name = excluded.home_name,
+                away_name = excluded.away_name,
+                score_home = excluded.score_home,
+                score_away = excluded.score_away,
+                formation_home = excluded.formation_home,
+                formation_away = excluded.formation_away,
+                team_news_json = excluded.team_news_json,
+                missing_json = excluded.missing_json,
+                lineups_json = excluded.lineups_json,
+                fetched_at = excluded.fetched_at
+            """,
+            (
+                match_id,
+                data.get("ws_id"),
+                data.get("ws_url"),
+                data.get("home_name"),
+                data.get("away_name"),
+                data.get("score_home"),
+                data.get("score_away"),
+                data.get("formation_home"),
+                data.get("formation_away"),
+                json.dumps(data.get("team_news") or {"home": [], "away": []}, ensure_ascii=False),
+                json.dumps(data.get("missing") or {"home": [], "away": []}, ensure_ascii=False),
+                json.dumps(data.get("lineups") or {}, ensure_ascii=False),
+            ),
+        )
+        conn.commit()
+
+
 # ============================================================================
 # ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 # ============================================================================
@@ -710,6 +1165,7 @@ def load_team_name_map(service: str = "arbworld") -> dict[str, str]:
     """
     col = {
         "arbworld": "name_arbworld",
+        "whoscored": "name_whoscored",
     }.get(service)
     if not col:
         return {}
@@ -745,6 +1201,8 @@ def resolve_service_team_name(flashscore_name: str, service: str = "arbworld") -
 
 def read_excel_file(file_path):
     """Оптимизированное чтение Excel файла (read_only режим)"""
+    import openpyxl
+
     try:
         wb = openpyxl.load_workbook(file_path, data_only=True, read_only=True)
         
@@ -803,6 +1261,8 @@ def read_excel_file(file_path):
 
 def _read_odds_sheet_optimized(file_path):
     """Чтение листа коэффициентов (вертикальная раскладка по БК)."""
+    import openpyxl
+
     try:
         wb = openpyxl.load_workbook(file_path, data_only=True, read_only=True)
 
@@ -951,6 +1411,8 @@ def _insert_strategy_predictions(conn, match_id, strategy_predictions):
 
 def insert_goal_probabilities(excel_file_path, match_id):
     """Чтение и вставка вероятностей голов"""
+    import openpyxl
+
     try:
         wb = openpyxl.load_workbook(excel_file_path, data_only=True)
         
@@ -971,15 +1433,15 @@ def insert_goal_probabilities(excel_file_path, match_id):
         with get_db_connection() as conn:
             cursor = conn.cursor()
             
-            home_percent = [p * 100 for p in home_goals]
-            away_percent = [p * 100 for p in away_goals]
+            home_percent = [float(p) * 100 for p in (list(home_goals) + [0] * GOAL_PROB_BINS)[:GOAL_PROB_BINS]]
+            away_percent = [float(p) * 100 for p in (list(away_goals) + [0] * GOAL_PROB_BINS)[:GOAL_PROB_BINS]]
             
-            cursor.execute('''
-            INSERT OR REPLACE INTO goal_probabilities 
-            (match_id, home_goals_0, home_goals_1, home_goals_2, home_goals_3, home_goals_4, home_goals_5,
-             away_goals_0, away_goals_1, away_goals_2, away_goals_3, away_goals_4, away_goals_5)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (match_id, *home_percent, *away_percent))
+            cols = ", ".join(["match_id"] + GOAL_PROB_COLUMNS)
+            placeholders = ", ".join(["?"] * (1 + len(GOAL_PROB_COLUMNS)))
+            cursor.execute(
+                f"INSERT OR REPLACE INTO goal_probabilities ({cols}) VALUES ({placeholders})",
+                (match_id, *home_percent, *away_percent),
+            )
             
             conn.commit()
         
@@ -994,8 +1456,8 @@ def insert_goal_probabilities(excel_file_path, match_id):
 
 def _extract_goal_probabilities(sheet):
     """Извлечение вероятностей голов из листа"""
-    home_columns = [22, 23, 24, 25, 26, 27]
-    away_columns = [35, 36, 37, 38, 39, 40]
+    home_columns = list(range(22, 28))
+    away_columns = list(range(35, 41))
     data_rows = [10, 11]
     
     home_goals = []
@@ -1027,7 +1489,7 @@ def _print_goal_probabilities_debug(match_id, home_goals, away_goals):
     print("=" * 70)
     print(f"[debug] Dannye dlya matcha {match_id}:")
     
-    goals_labels = ['0', '1', '2', '3', '4', '5+']
+    goals_labels = [str(i) if i < GOAL_PROB_MAX else f"{GOAL_PROB_MAX}+" for i in range(GOAL_PROB_BINS)]
     print("\n[debug] Hozyaeva:")
     for i, prob in enumerate(home_goals):
         print(f"  • {goals_labels[i]:2} golov: {prob:.4f} ({prob*100:.2f}%)")
@@ -1041,6 +1503,8 @@ def _print_goal_probabilities_debug(match_id, home_goals, away_goals):
 
 def insert_outcome_probabilities_from_analysis(excel_file_path, match_id):
     """Чтение и вставка вероятностей исходов для подстратегий"""
+    import openpyxl
+
     try:
         wb = openpyxl.load_workbook(excel_file_path, data_only=True)
         
@@ -1218,23 +1682,20 @@ def insert_outcome_probabilities_from_values(match_id: str, probabilities: list)
 
 
 def insert_goal_probabilities_from_values(match_id: str, home_goals: list, away_goals: list) -> bool:
-    """Сохраняет вероятности голов из Python-списков."""
+    """Сохраняет вероятности голов из Python-списков (0..12)."""
     if not home_goals and not away_goals:
         return False
     try:
-        home = (list(home_goals) + [0] * 6)[:6]
-        away = (list(away_goals) + [0] * 6)[:6]
+        home = (list(home_goals) + [0] * GOAL_PROB_BINS)[:GOAL_PROB_BINS]
+        away = (list(away_goals) + [0] * GOAL_PROB_BINS)[:GOAL_PROB_BINS]
         home_pct = [float(v) * 100 for v in home]
         away_pct = [float(v) * 100 for v in away]
+        cols = ", ".join(["match_id"] + GOAL_PROB_COLUMNS)
+        placeholders = ", ".join(["?"] * (1 + len(GOAL_PROB_COLUMNS)))
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute(
-                """
-                INSERT OR REPLACE INTO goal_probabilities
-                (match_id, home_goals_0, home_goals_1, home_goals_2, home_goals_3, home_goals_4, home_goals_5,
-                 away_goals_0, away_goals_1, away_goals_2, away_goals_3, away_goals_4, away_goals_5)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
+                f"INSERT OR REPLACE INTO goal_probabilities ({cols}) VALUES ({placeholders})",
                 (match_id, *home_pct, *away_pct),
             )
         return True
@@ -1286,16 +1747,15 @@ def get_goal_probabilities(match_id):
     """Получение вероятностей голов"""
     with get_db_connection() as conn:
         cursor = conn.cursor()
-        cursor.execute('''
-        SELECT home_goals_0, home_goals_1, home_goals_2, home_goals_3, home_goals_4, home_goals_5,
-               away_goals_0, away_goals_1, away_goals_2, away_goals_3, away_goals_4, away_goals_5
-        FROM goal_probabilities
-        WHERE match_id = ?
-        ''', (match_id,))
+        cols = ", ".join(GOAL_PROB_COLUMNS)
+        cursor.execute(
+            f"SELECT {cols} FROM goal_probabilities WHERE match_id = ?",
+            (match_id,),
+        )
         result = cursor.fetchone()
     
     if result:
-        return {'home': result[:6], 'away': result[6:]}
+        return {'home': list(result[:GOAL_PROB_BINS]), 'away': list(result[GOAL_PROB_BINS:])}
     return None
 
 

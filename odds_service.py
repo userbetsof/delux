@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import urllib.parse
 import urllib.request
 from collections import defaultdict
@@ -119,6 +120,30 @@ def is_active(odd: dict) -> bool:
     if "active" not in odd:
         return True
     return bool(odd.get("active"))
+
+
+def _correct_score_pair(odd: dict) -> Tuple[Optional[int], Optional[int]]:
+    cs = odd.get("correctScore") or {}
+    raw = (
+        odd.get("homeScore"),
+        odd.get("awayScore"),
+        cs.get("home") if isinstance(cs, dict) else None,
+        cs.get("away") if isinstance(cs, dict) else None,
+        odd.get("home"),
+        odd.get("away"),
+    )
+    hs = raw[0] if raw[0] is not None else raw[2] if raw[2] is not None else raw[4]
+    aws = raw[1] if raw[1] is not None else raw[3] if raw[3] is not None else raw[5]
+    if hs is None or aws is None:
+        hv = str((odd.get("handicap") or {}).get("value") or odd.get("selection") or "").strip()
+        m = re.search(r"(\d+)\s*[:\-]\s*(\d+)", hv)
+        if m:
+            hs, aws = m.group(1), m.group(2)
+    try:
+        hi, ai = int(float(hs)), int(float(aws))
+    except (TypeError, ValueError):
+        return None, None
+    return hi, ai
 
 
 def safe_num(v):
@@ -277,6 +302,20 @@ def parse_groups_for_bookmaker(
                         odd.get("opening"),
                         odd.get("value"),
                     )
+
+        elif betting_type == "CORRECT_SCORE" and scope == "FULL_TIME":
+            for odd in odds:
+                if not is_active(odd):
+                    continue
+                hs, aws = _correct_score_pair(odd)
+                if hs is None or aws is None:
+                    continue
+                builder.write_market(
+                    bookmaker_id,
+                    f"CS {int(hs)}:{int(aws)}",
+                    odd.get("opening"),
+                    odd.get("value"),
+                )
 
 
 def build_fallback_odds(event_id: str) -> Optional[OddsSheetData]:

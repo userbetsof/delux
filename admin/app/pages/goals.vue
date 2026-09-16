@@ -18,14 +18,8 @@ const { data, pending, error, refresh } = await useFetch<Paginated<Record<string
 const headers = [
   { title: 'ID', key: 'id' },
   { title: 'Матч', key: 'match_id' },
-  { title: 'Д0', key: 'home_goals_0' },
-  { title: 'Д1', key: 'home_goals_1' },
-  { title: 'Д2', key: 'home_goals_2' },
-  { title: 'Д3', key: 'home_goals_3' },
-  { title: 'Г0', key: 'away_goals_0' },
-  { title: 'Г1', key: 'away_goals_1' },
-  { title: 'Г2', key: 'away_goals_2' },
-  { title: 'Г3', key: 'away_goals_3' },
+  ...Array.from({ length: 13 }, (_, n) => ({ title: `Д${n}`, key: `home_goals_${n}` })),
+  ...Array.from({ length: 13 }, (_, n) => ({ title: `Г${n}`, key: `away_goals_${n}` })),
 ]
 
 watch(limit, resetOffset)

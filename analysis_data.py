@@ -158,9 +158,16 @@ def fetch_match_page_html(match_id: str) -> str:
 
 
 def detect_sport_from_html(html: str) -> Optional[int]:
-    for pattern, sport_id in SPORT_FROM_PAGE:
-        if pattern.search(html):
-            return sport_id
+    # Ищем URL текущего матча: /sport/team-home-team-away/?mid=XXX
+    # sidebar содержит ссылки на все виды спорта, поэтому нельзя искать по всему HTML
+    # Паттерн: /{sport}/.../?mid={match_id} (кавычки в HTML обрезают URL)
+    pattern = re.compile(
+        r"/(football|soccer|baseball|basketball|hockey)/[^\"'\s]*\?mid=", re.I
+    )
+    match = pattern.search(html)
+    if match:
+        sport_name = match.group(1).lower()
+        return {"football": 1, "soccer": 1, "baseball": 6, "basketball": 3, "hockey": 4}.get(sport_name)
     return None
 
 
@@ -365,7 +372,7 @@ def fetch_team_history(
 ) -> Tuple[List[HistoryMatch], List[HistoryMatch], List[HistoryMatch]]:
     url = (
         f"https://{settings.sourcer}x/feed/pr_{settings.sport}_"
-        f"{country_id}_{participant_id}_0_0_ru_1"
+        f"{country_id}_{participant_id}_0_0{settings.suffix}"
     )
     return _parse_team_feed(url, settings, participant_id, "PX", exclude_match_id, before_dt)
 
@@ -379,7 +386,7 @@ def fetch_away_team_history(
 ) -> Tuple[List[HistoryMatch], List[HistoryMatch], List[HistoryMatch]]:
     url = (
         f"https://{settings.sourcer}x/feed/pr_{settings.sport}_"
-        f"{country_id}_{participant_id}_0_0_ru_1"
+        f"{country_id}_{participant_id}_0_0{settings.suffix}"
     )
     return _parse_team_feed(url, settings, participant_id, "PY", exclude_match_id, before_dt)
 

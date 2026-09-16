@@ -3,6 +3,8 @@ export default defineEventHandler((event) => {
   const dbName = typeof q.db === 'string' ? q.db : 'matches'
   const search = typeof q.q === 'string' ? q.q.trim() : ''
   const sport = q.sport !== undefined && q.sport !== '' ? Number(q.sport) : null
+  const dateFrom = typeof q.date_from === 'string' ? q.date_from.trim() : ''
+  const dateTo = typeof q.date_to === 'string' ? q.date_to.trim() : ''
   const limit = Math.min(Math.max(Number(q.limit) || 100, 1), 500)
   const offset = Math.max(Number(q.offset) || 0, 0)
 
@@ -22,6 +24,14 @@ export default defineEventHandler((event) => {
       where.push(`(match_id LIKE ? OR tour_name LIKE ? OR home_name LIKE ? OR away_name LIKE ?)`)
       const like = `%${search}%`
       params.push(like, like, like, like)
+    }
+    if (dateFrom) {
+      where.push('date_match >= ?')
+      params.push(dateFrom)
+    }
+    if (dateTo) {
+      where.push('date_match <= ?')
+      params.push(dateTo)
     }
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : ''
 

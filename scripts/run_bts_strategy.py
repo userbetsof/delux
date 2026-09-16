@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT))
 from analysis_data import build_settings  # noqa: E402
 from bts_strategy import BTS_STRATEGY_ID, compute_bts_prediction  # noqa: E402
 from db import create_database, get_db_connection, upsert_strategy_prediction  # noqa: E402
-from match_store import list_queued_matches  # noqa: E402
+from match_store import list_matches_for_strategy  # noqa: E402
 from odds_service import build_fallback_odds, load_odds  # noqa: E402
 from settings import DeluxSettings  # noqa: E402
 
@@ -25,15 +25,14 @@ def run_bts_for_queue(
     cfg = DeluxSettings.from_env()
     create_database()
 
-    matches = list_queued_matches(
-        leagues_by_sport=cfg.leagues_by_sport,
+    matches = list_matches_for_strategy(
         sport=sport,
-        new_only=False,
-        limit=limit or 0,
+        leagues_by_sport=cfg.leagues_by_sport,
     )
     matches = [q for q in matches if cfg.is_favorite_league(q.sport, q.tour_name)]
 
-    print(f"[*] BTS (#{BTS_STRATEGY_ID}): {len(matches)} football matches in queue")
+    if limit > 0:
+        matches = matches[:limit]
     ok = skip = fail = 0
 
     for idx, q in enumerate(matches, 1):

@@ -1,4 +1,4 @@
-"""Анализ матча: данные из API → calc .xlsm → сохранение в БД."""
+"""Анализ матча: данные из API → Python-calc → сохранение в БД."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from bts_strategy import BTS_STRATEGY_ID, compute_bts_prediction
 from dogs_strategy import DOGS_STRATEGY_ID, build_moneyway_snapshot
 from favorites_strategy import FAVORITES_STRATEGY_ID, compute_favorites_win_prediction
 from stavka_tv_strategy import STAVKA_TV_STRATEGY_ID, compute_stavka_tv_prediction
+from whoscored_strategy import WHOSCORED_STRATEGY_ID, compute_whoscored_prediction
 from favorites_stats.injuries import fetch_and_store_for_match
 from calc_backend import CalcEngine, get_calc_engine
 from db import (
@@ -25,7 +26,14 @@ from db import (
     parse_league,
     upsert_moneyway,
 )
+from match_snapshot import (
+    describe_match_info,
+    describe_payload_snapshot,
+    save_match_info,
+    save_payload_snapshot,
+)
 from match_store import QueuedMatch
+from weather import describe_weather, save_weather_snapshot
 from odds_service import build_fallback_odds, load_odds
 from settings import DeluxSettings, queue_sport_id
 from date_utils import normalize_match_date
@@ -48,15 +56,23 @@ def save_analysis_to_db(
         away_team_id = insert_or_get_team(cursor, str(results.get("away") or ""))
 
         prediction = str(results.get("prediction_ntb") or results.get("prediction_sniper") or "")
+        existing = cursor.execute(
+            "SELECT start_ts FROM matches WHERE match_id = ?",
+            (match_id,),
+        ).fetchone()
+        start_ts = results.get("start_ts")
+        if start_ts is None and existing:
+            start_ts = existing["start_ts"]
         cursor.execute(
             """
             INSERT OR REPLACE INTO matches
-            (match_id, match_date, league_id, home_team_id, away_team_id, prediction, sport)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            (match_id, match_date, start_ts, league_id, home_team_id, away_team_id, prediction, sport)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 match_id,
                 normalize_match_date(results.get("match_date") or ""),
+                start_ts,
                 league_id,
                 home_team_id,
                 away_team_id,
@@ -117,6 +133,7 @@ def save_analysis_to_db(
         for key, sid in (
             ("stavka", STAVKA_TV_STRATEGY_ID),
             ("dogs", DOGS_STRATEGY_ID),
+            ("whoscored", WHOSCORED_STRATEGY_ID),
         ):
             pred = str(results.get(f"prediction_{key}") or "").strip()
             if pred:
@@ -210,6 +227,7 @@ def analyze_match(
     queued: Optional[QueuedMatch] = None,
     engine: Optional[CalcEngine] = None,
     arbworld_index: Optional[dict] = None,
+    whoscored_index: Optional[list] = None,
 ) -> Dict[str, Any]:
     settings = settings or build_settings()
     payload = load_analysis_data(match, settings)
@@ -254,6 +272,7 @@ def analyze_match(
     db_sport = queue_sport_id(queued.sport) if queued and queued.sport else queue_sport_id(settings.sport)
     results["match_id"] = match.match_id
     results["sport"] = db_sport
+    results["start_ts"] = queued.start_ts if queued else None
 
     if db_sport == 1:
         bts = compute_bts_prediction(
@@ -279,6 +298,39 @@ def analyze_match(
             print(f"    Injuries: {inj['players']} absent ({inj['injuries']} injury)")
     except Exception as exc:
         print(f"    [!] injuries fetch: {exc}")
+
+    try:
+        info = save_match_info(
+            match.match_id,
+            sport=settings.sport,
+            sourcer=settings.sourcer,
+        )
+        if info:
+            print(f"    Инфо: {describe_match_info(info)}")
+    except Exception as exc:
+        print(f"    [!] инфо о матче: {exc}")
+        info = {}
+
+    if info.get("town"):
+        try:
+            weather = save_weather_snapshot(
+                match.match_id,
+                venue=str(info.get("venue") or ""),
+                town=str(info["town"]),
+                start_ts=queued.start_ts if queued else None,
+                date_match=match.date or (queued.date_match if queued else ""),
+                local_utc_offset=settings.timezone + settings.time_offset,
+            )
+            if weather:
+                print(f"    Погода: {describe_weather(weather)}")
+        except Exception as exc:
+            print(f"    [!] погода: {exc}")
+
+    try:
+        if save_payload_snapshot(match.match_id, payload):
+            print(f"    Снимок: {describe_payload_snapshot(payload)}")
+    except Exception as exc:
+        print(f"    [!] снимок данных анализа: {exc}")
 
     fav = compute_favorites_win_prediction(
         match.match_id,
@@ -352,6 +404,29 @@ def analyze_match(
             except Exception as exc:
                 print(f"    [!] Moneyway (#7): {exc}")
 
+    if db_sport == 1:
+        try:
+            ws = compute_whoscored_prediction(
+                match.match_id,
+                match.home,
+                match.away,
+                match.league or (queued.tour_name if queued else ""),
+                match.date or (queued.date_match if queued else ""),
+                sport=db_sport,
+                odds_data=odds_data,
+                previews=whoscored_index,
+            )
+            if ws:
+                results["prediction_whoscored"] = ws["prediction"]
+                results["whoscored_odds"] = ws.get("odds")
+                results["whoscored_notes"] = ws.get("notes")
+                print(
+                    f"    WhoScored (#9)={ws['prediction']} "
+                    f"cs@{ws.get('cs_odds')} ah@{ws.get('ah_odds')}"
+                )
+        except Exception as exc:
+            print(f"    [!] WhoScored (#9): {exc}")
+
     if save_to_db:
         pred_ntb = results.get("prediction_ntb")
         pred_sniper = results.get("prediction_sniper")
@@ -393,7 +468,7 @@ def main():
     args = parser.parse_args()
     try:
         cfg = DeluxSettings.from_env()
-        workbook = args.workbook or cfg.resolve_calc_workbook()
+        workbook = args.workbook or ""
         raise SystemExit(
             run_cli(
                 workbook,

@@ -1,6 +1,7 @@
-"""Сравнение 10 стратегий Excel vs Python (допуск 1%)."""
+"""Проверка 10 подстратегий Python-calc (допуск 1%). Excel не требуется."""
 from __future__ import annotations
 
+import argparse
 import sys
 from pathlib import Path
 
@@ -8,20 +9,52 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from analysis_data import build_settings, load_analysis_data
-from calc_engine import ExcelCalcEngine
-from formula_port.engine import PythonCalcEngine
+from calc_backend import get_calc_engine
+from formula_port.parity import STRATEGY_TOL, compare_calc_results
 from match_store import get_queued_match
 from odds_service import load_odds
 from settings import DeluxSettings
 
-TOL = 0.01
+
+def _print_substrats(results: dict) -> None:
+    probs = results.get("outcome_probabilities") or []
+    print("  подстратегии (H / D / A):")
+    for i, row in enumerate(probs[:10]):
+        print(
+            f"    [{i}] {float(row.get('home_prob') or 0):.4f}  "
+            f"{float(row.get('draw_prob') or 0):.4f}  "
+            f"{float(row.get('away_prob') or 0):.4f}"
+        )
 
 
 def main() -> int:
-    mid = sys.argv[1] if len(sys.argv) > 1 else "G8d2h42n"
+    parser = argparse.ArgumentParser(description="Python-calc: стратегии и 10 подстратегий")
+    parser.add_argument("match_id", nargs="?", default="")
+    parser.add_argument(
+        "--excel",
+        action="store_true",
+        help="Опционально сравнить с Excel COM (если .xlsm есть), допуск 1%",
+    )
+    parser.add_argument("--tol", type=float, default=STRATEGY_TOL)
+    args = parser.parse_args()
+
     cfg = DeluxSettings.from_env()
-    q = get_queued_match(mid)
-    assert q, mid
+    mid = args.match_id or ""
+    if not mid:
+        from match_store import list_queued_matches
+
+        queued_list = list_queued_matches(leagues_by_sport=cfg.leagues_by_sport, new_only=False, limit=1)
+        if not queued_list:
+            print("[-] нет матча в очереди, укажите match_id")
+            return 1
+        q = queued_list[0]
+        mid = q.match_id
+    else:
+        q = get_queued_match(mid)
+        if not q:
+            print(f"[-] матч {mid} не в очереди")
+            return 1
+
     ms = build_settings(
         sport=q.sport,
         source=cfg.source,
@@ -39,39 +72,39 @@ def main() -> int:
     if odds.away_id:
         payload_match.away_participant_id = odds.away_id
     payload = load_analysis_data(payload_match, ms)
-    if odds.home_id:
-        payload.match.home_participant_id = odds.home_id
-    if odds.away_id:
-        payload.match.away_participant_id = odds.away_id
-    wb = cfg.resolve_calc_workbook()
+
+    with get_calc_engine(cfg) as eng:
+        py = eng.run(payload, odds)
+
+    print(f"match {mid} | {py.get('home')} - {py.get('away')}")
+    print(
+        f"NTB={py.get('prediction_ntb')!r}  "
+        f"Betalone={py.get('prediction_betalone')!r}  "
+        f"Sniper={py.get('prediction_sniper')!r}"
+    )
+    _print_substrats(py)
+
+    if not args.excel:
+        print(f"[+] Python-calc без Excel (допуск подстратегий {args.tol})")
+        return 0
+
+    try:
+        wb = cfg.resolve_calc_workbook()
+    except FileNotFoundError as exc:
+        print(f"[-] Excel недоступен: {exc}")
+        return 1
+    from calc_engine import ExcelCalcEngine
 
     with ExcelCalcEngine(wb, fresh=True) as eng:
         ex = eng.run(payload, odds)
-    pr = PythonCalcEngine(wb, pure_eval=True).run(payload, odds)
-
-    print(f"match {mid} | {ex.get('home')} - {ex.get('away')}")
-    print(
-        f"NTB excel={ex.get('prediction_ntb')!r} py={pr.get('prediction_ntb')!r} | "
-        f"Betalone excel={ex.get('prediction_betalone')!r} py={pr.get('prediction_betalone')!r} | "
-        f"Sniper excel={ex.get('prediction_sniper')!r} py={pr.get('prediction_sniper')!r}"
-    )
-    ok = 0
-    for i in range(10):
-        e = (ex.get("outcome_probabilities") or [{}])[i]
-        p = (pr.get("outcome_probabilities") or [{}])[i]
-        diffs = []
-        for fld in ("home_prob", "draw_prob", "away_prob"):
-            ev, pv = float(e.get(fld) or 0), float(p.get(fld) or 0)
-            if abs(ev - pv) > TOL:
-                diffs.append(f"{fld}: {ev:.4f} vs {pv:.4f}")
-        status = "OK" if not diffs else "FAIL"
-        if not diffs:
-            ok += 1
-        print(f"  strat[{i}] {status}  excel=({e.get('home_prob'):.4f},{e.get('draw_prob'):.4f},{e.get('away_prob'):.4f})  "
-              f"py=({p.get('home_prob'):.4f},{p.get('draw_prob'):.4f},{p.get('away_prob'):.4f})"
-              + (f"  {'; '.join(diffs)}" if diffs else ""))
-    print(f"[+] strategies OK {ok}/10 (tol={TOL})")
-    return 0 if ok == 10 else 1
+    diffs = compare_calc_results(ex, py, strategy_tol=args.tol, left_name="excel", right_name="python")
+    if diffs:
+        print("[-] расхождение Excel vs Python:")
+        for line in diffs:
+            print(f"    {line}")
+        return 1
+    print(f"[+] Excel vs Python: стратегии и 10 подстратегий совпали (tol={args.tol})")
+    return 0
 
 
 if __name__ == "__main__":

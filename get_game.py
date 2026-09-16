@@ -22,16 +22,7 @@ from analysis_data import (  # noqa: E402
     detect_sport_from_match_page,
     load_analysis_data,
 )
-from archive_excel import archive_match  # noqa: E402
 from calc_backend import get_calc_engine  # noqa: E402
-from calc_engine import ExcelCalcEngine  # noqa: E402
-from db import create_database, resolve_workbook_path  # noqa: E402
-from excel_com import (  # noqa: E402
-    connect_excel,
-    open_workbook,
-    restore_excel_ui,
-    snapshot_excel_ui,
-)
 from match_analysis import save_analysis_to_db  # noqa: E402
 from match_store import get_queued_match  # noqa: E402
 from odds_service import build_fallback_odds, load_odds  # noqa: E402
@@ -181,15 +172,16 @@ def _match_from_queue(match_id: str, cfg: DeluxSettings) -> Tuple[MatchInfo, Dic
 
 
 def get_game(
-    workbook: str,
-    match_id: str,
+    workbook: str = "",
+    match_id: str = "",
     *,
     do_archive: bool = False,
     do_db: bool = True,
 ) -> Dict[str, Any]:
+    from db import create_database
+
     cfg = DeluxSettings.from_env()
     workbook_arg = str(workbook or "").strip()
-    workbook = resolve_workbook_path(workbook) if workbook else cfg.resolve_calc_workbook()
     match_id = match_id.strip()
     if not match_id:
         raise ValueError("match_id пустой")
@@ -197,14 +189,22 @@ def get_game(
     xl = None
     wb = None
     ui_state = None
+    workbook_path = workbook_arg
     # VBA передаёт --workbook → пишем листы и Excel-пересчёт (иначе Анализ пустой в UI).
-    # Headless CLI без --workbook может считать Python pure_eval.
+    # Headless CLI без --workbook считает Python-calc (кэш формул, без Excel).
     force_excel_ui = bool(workbook_arg)
     need_excel = force_excel_ui or do_archive or cfg.calc_backend == "excel"
     use_excel_engine = force_excel_ui or cfg.calc_backend == "excel"
 
     try:
         if need_excel:
+            from calc_engine import ExcelCalcEngine
+            from db import resolve_workbook_path
+            from excel_com import connect_excel, open_workbook, restore_excel_ui, snapshot_excel_ui
+
+            workbook_path = (
+                resolve_workbook_path(workbook_arg) if workbook_arg else cfg.resolve_calc_workbook()
+            )
             xl = connect_excel()
             ui_state = snapshot_excel_ui(xl)
             try:
@@ -215,7 +215,7 @@ def get_game(
             xl.ScreenUpdating = False
             xl.DisplayAlerts = False
             xl.EnableEvents = False
-            wb = open_workbook(xl, workbook)
+            wb = open_workbook(xl, workbook_path)
             match, meta = read_match_from_list(wb, match_id)
             # Матчи только в SQLite-очереди (list --db-only) → Список пустой.
             if meta.get("list_row") is None or not (match.home and match.away):
@@ -248,7 +248,9 @@ def get_game(
             print(f"[!] {match_id}: fallback odds (код {code})")
 
         if use_excel_engine and wb is not None and xl is not None:
-            engine = ExcelCalcEngine(workbook, xl=xl, wb=wb, manage_ui=False)
+            from calc_engine import ExcelCalcEngine
+
+            engine = ExcelCalcEngine(workbook_path, xl=xl, wb=wb, manage_ui=False)
             with engine:
                 results = engine.run(payload, odds_data, list_odds=meta.get("list_odds"))
         else:
@@ -263,11 +265,17 @@ def get_game(
 
         archive_row = None
         if do_archive:
+            from archive_excel import archive_match
+            from excel_com import connect_excel, open_workbook, snapshot_excel_ui
+
             if wb is None:
+                from db import resolve_workbook_path
+
+                workbook_path = workbook_path or resolve_workbook_path(workbook_arg)
                 xl = connect_excel()
                 ui_state = snapshot_excel_ui(xl)
                 xl.ScreenUpdating = False
-                wb = open_workbook(xl, workbook)
+                wb = open_workbook(xl, workbook_path)
             archive_row = archive_match(wb, save=True)
 
         db_sport = queue_sport_id(meta.get("sport") or settings.sport)
@@ -293,6 +301,8 @@ def get_game(
         return results
     finally:
         if xl is not None:
+            from excel_com import restore_excel_ui
+
             try:
                 xl.ScreenUpdating = True
                 xl.EnableEvents = True

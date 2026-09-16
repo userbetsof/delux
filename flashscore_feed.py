@@ -12,7 +12,7 @@ TEAM_SUFFIX_RE = re.compile(r"\s\(...\)")
 FLASHSCORE_HOST = "www.flashscorekz.com"
 FLASHSCORE_BASE = f"https://{FLASHSCORE_HOST}/"
 FLASHSCORE_SOURCER = f"{FLASHSCORE_HOST}/"
-DEFAULT_FEED_SUFFIX = "_ru_1_"
+DEFAULT_FEED_SUFFIX = "_ru_1"
 
 # Без нормального UA flashscorekz иногда рвёт TLS (WinError 10054).
 API_HEADERS = {
@@ -60,6 +60,15 @@ def match_list_feed_url(
     suffix: str = DEFAULT_FEED_SUFFIX,
 ) -> str:
     return f"https://{sourcer}x/feed/f_{int(sport_id)}_{dayzone}_{timezone}{suffix}"
+
+
+def match_detail_feed_url(
+    sport_id: int,
+    match_id: str,
+    *,
+    sourcer: str = FLASHSCORE_SOURCER,
+) -> str:
+    return f"https://{sourcer}x/feed/dc_{int(sport_id)}_{match_id}"
 
 
 def odds_list_feed_url(

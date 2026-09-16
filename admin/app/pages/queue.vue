@@ -20,12 +20,53 @@ interface QueueRow {
 const { dbQuery } = useAdminDb()
 const search = ref('')
 const sport = ref<number | null>(null)
+const dateMenu = ref(false)
+const dateFrom = ref<string | null>(null)
+const dateTo = ref<string | null>(null)
 const { limit, offset, nextPage, prevPage, resetOffset, setLimit } = useTablePagination(50)
+
+function formatDate(d: Date | null): string | null {
+  if (!d) return null
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+const dateRange = computed<Date[]>({
+  get: () => {
+    if (dateFrom.value && dateTo.value) {
+      return [new Date(dateFrom.value), new Date(dateTo.value)]
+    }
+    return []
+  },
+  set: (val: Date[]) => {
+    if (val.length >= 2) {
+      dateFrom.value = formatDate(val[0])
+      dateTo.value = formatDate(val[1])
+    }
+  },
+})
+
+const dateLabel = computed(() => {
+  const parts: string[] = []
+  if (dateFrom.value) parts.push(dateFrom.value)
+  if (dateTo.value) parts.push(dateTo.value)
+  return parts.length ? parts.join(' — ') : ''
+})
+
+function clearDate() {
+  dateFrom.value = null
+  dateTo.value = null
+  dateMenu.value = false
+}
 
 const query = computed(() => ({
   ...dbQuery.value,
   q: search.value || undefined,
   sport: sport.value ?? undefined,
+  date_from: dateFrom.value || undefined,
+  date_to: dateTo.value || undefined,
   limit: limit.value,
   offset: offset.value,
 }))
@@ -52,7 +93,7 @@ const sportItems = [
   { title: 'Бейсбол', value: 6 },
 ]
 
-watch([search, sport, limit], resetOffset)
+watch([search, sport, dateFrom, dateTo, limit], resetOffset)
 </script>
 
 <template>
@@ -76,6 +117,31 @@ watch([search, sport, limit], resetOffset)
           hide-details
           style="min-width: 140px"
         />
+        <v-menu v-model="dateMenu" transition="slide-y-transition">
+          <template #activator="{ props }">
+            <v-text-field
+              v-bind="props"
+              :label="dateLabel || 'Дата'"
+              prepend-inner-icon="mdi-calendar-range"
+              density="compact"
+              hide-details
+              clearable
+              style="min-width: 200px"
+              :value="dateLabel || undefined"
+            />
+          </template>
+          <v-date-picker
+            v-model="dateRange"
+            mode="range"
+            density="compact"
+            color="primary"
+          >
+            <template #append>
+              <v-btn variant="text" color="error" @click.stop="clearDate">Очистить</v-btn>
+              <v-btn variant="tonal" @click="dateMenu = false">Готово</v-btn>
+            </template>
+          </v-date-picker>
+        </v-menu>
         <v-btn variant="outlined" :loading="pending" @click="refresh()">Обновить</v-btn>
       </div>
     </div>

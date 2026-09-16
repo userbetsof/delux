@@ -2,7 +2,6 @@ import argparse
 import time
 from typing import Dict, List
 
-from excel_com import com_retry, connect_excel, open_workbook, resolve_workbook_path
 from flashscore_feed import (
     adjust_half_scores,
     clean_team_name,
@@ -90,6 +89,7 @@ def parse_matches_feed(feed_text: str, timezone: int, time_offset: int) -> List[
             {
                 "tour_name": tour_name,
                 "date_match": format_match_date(data.get("AD", ""), timezone, time_offset),
+                "start_ts": int(float(data.get("AD", "0") or 0)) or None,
                 "home_name": home_name,
                 "away_name": away_name,
                 "match_id": data.get("AA", ""),
@@ -173,6 +173,8 @@ def write_matches(ws_list, start_row: int, matches: List[Dict], sport_id: int = 
         if start_row == 2:
             ws_list.Range("U1").Value = "Sport_ID"
 
+    from excel_com import com_retry
+
     com_retry(_write)
     return end_row + 1
 
@@ -184,6 +186,8 @@ def apply_odds(ws_list, odds_by_match: Dict[str, Dict[str, float]]) -> None:
 
     def _read_ids():
         return ws_list.Range(f"E2:E{last_row}").Value
+
+    from excel_com import com_retry
 
     raw_ids = com_retry(_read_ids)
     if raw_ids is None:
@@ -320,6 +324,8 @@ def run(
     if db_only:
         print(f"[+] Всего в очереди: {total_written}")
         return 0
+
+    from excel_com import connect_excel, open_workbook, resolve_workbook_path
 
     if not workbook_path:
         workbook_path = cfg.resolve_calc_workbook()

@@ -13,19 +13,19 @@ echo.
 echo ========================================
 echo   DeluX IncoProrok (Python)
 echo ========================================
-echo   1^) Полный цикл   ^(list + analyze --new, все стратегии 1-8^)
+echo   1^) Полный цикл   ^(list + check + analyze --new, все стратегии 1-9^)
 echo   2^) Только список матчей
-echo   3^) Анализ новых матчей ^(все стратегии 1-8^)
+echo   3^) Анализ новых матчей ^(все стратегии 1-9^)
 echo   4^) Проверка результатов ^(БД^)
-echo   5^) Открыть Excel ^(xlsm^)
-echo   6^) Паритет Excel vs Python ^(день^)
-echo   7^) Админка БД ^(Nuxt^)
-echo   8^) BTS — обе забьют ^(стратегия #4^)
-echo   9^) Favorites — победа фаворита ^(стратегия #5^)
-echo  10^) Фавориты — статистика кф ^(backtest^)
-echo  11^) StavkaTV — прогнозы stavka.tv ^(стратегия #6^)
-echo  12^) Moneyway — dogs/Arbworld ^(стратегия #7^)
-echo  13^) 1pr — макс. вероятность «1 пр» ^(стратегия #8^)
+echo   5^) Проверка calc: стратегии + 10 подстратегий ^(допуск 1%^)
+echo   6^) Админка БД ^(Nuxt^)
+echo   7^) BTS — обе забьют ^(стратегия #4^)
+echo   8^) Favorites — победа фаворита ^(стратегия #5^)
+echo   9^) Фавориты — статистика кф ^(backtest^)
+echo  10^) StavkaTV — прогнозы stavka.tv ^(стратегия #6^)
+echo  11^) Moneyway — dogs/Arbworld ^(стратегия #7^)
+echo  12^) 1pr — макс. вероятность «1 пр» ^(стратегия #8^)
+echo  13^) WhoScored — точный счёт + фора ^(стратегия #9^)
 echo   0^) Выход
 echo ========================================
 set /p "CHOICE=Выбор: "
@@ -34,15 +34,15 @@ if "%CHOICE%"=="1" goto :pipeline
 if "%CHOICE%"=="2" goto :list
 if "%CHOICE%"=="3" goto :analyze
 if "%CHOICE%"=="4" goto :check
-if "%CHOICE%"=="5" goto :excel
-if "%CHOICE%"=="6" goto :parity
-if "%CHOICE%"=="7" goto :admin
-if "%CHOICE%"=="8" goto :bts
-if "%CHOICE%"=="9" goto :favorites
-if "%CHOICE%"=="10" goto :favorites_stats
-if "%CHOICE%"=="11" goto :stavka_tv
-if "%CHOICE%"=="12" goto :dogs
-if "%CHOICE%"=="13" goto :onepr
+if "%CHOICE%"=="5" goto :calc_check
+if "%CHOICE%"=="6" goto :admin
+if "%CHOICE%"=="7" goto :bts
+if "%CHOICE%"=="8" goto :favorites
+if "%CHOICE%"=="9" goto :favorites_stats
+if "%CHOICE%"=="10" goto :stavka_tv
+if "%CHOICE%"=="11" goto :dogs
+if "%CHOICE%"=="12" goto :onepr
+if "%CHOICE%"=="13" goto :whoscored
 if "%CHOICE%"=="0" exit /b 0
 echo Неверный выбор.
 goto :menu
@@ -53,7 +53,7 @@ goto :done
 
 :pipeline
 echo.
-echo [*] Пайплайн: загрузка + анализ новых...
+echo [*] Пайплайн: загрузка + проверка результатов + анализ новых...
 %PY% delux.py pipeline
 goto :done
 
@@ -75,24 +75,10 @@ echo [*] Проверка результатов в БД...
 %PY% delux.py check --db-only
 goto :done
 
-:excel
-set "XLSM="
-if exist "delux_incoprorok_mvp.xlsm" set "XLSM=delux_incoprorok_mvp.xlsm"
-if exist "DeluX_IncoProrok_mvp.xlsm" set "XLSM=DeluX_IncoProrok_mvp.xlsm"
-if exist "DeluX_IncoProrok_mvp0.xlsm" if "%XLSM%"=="" set "XLSM=DeluX_IncoProrok_mvp0.xlsm"
-if "%XLSM%"=="" (
-    echo [-] xlsm не найден в %cd%
-    goto :done
-)
-echo [*] Открытие %XLSM% ...
-start "" "%XLSM%"
-goto :eof
-
-:parity
+:calc_check
 echo.
-echo [*] Паритет Excel vs Python за сегодня...
-set "DELUX_SKIP_ONEPR=1"
-%PY% scripts\run_daily_parity.py --date today
+echo [*] Python-calc: NTB/Betalone/Sniper + 10 подстратегий (допуск 1%%)...
+%PY% delux.py calc-check
 goto :done
 
 :admin
@@ -137,6 +123,12 @@ goto :done
 echo.
 echo [*] 1pr — макс. вероятность «1 пр» (стратегия #8)...
 %PY% scripts\run_onepr_strategy.py --new
+goto :done
+
+:whoscored
+echo.
+echo [*] WhoScored — точный счёт + фора (стратегия #9)...
+%PY% scripts\run_whoscored_strategy.py --new
 goto :done
 
 :done

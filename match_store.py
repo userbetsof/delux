@@ -16,6 +16,7 @@ class QueuedMatch:
     sport: int
     tour_name: str = ""
     date_match: str = ""
+    start_ts: Optional[int] = None
     home_name: str = ""
     away_name: str = ""
     country_id: str = ""
@@ -47,6 +48,7 @@ class QueuedMatch:
             sport=int(row["sport"] or 1),
             tour_name=row["tour_name"] or "",
             date_match=row["date_match"] or "",
+            start_ts=row["start_ts"] if "start_ts" in row.keys() else None,
             home_name=row["home_name"] or "",
             away_name=row["away_name"] or "",
             country_id=row["country_id"] or "",
@@ -72,6 +74,7 @@ def ensure_match_queue_schema() -> None:
                 sport INTEGER NOT NULL DEFAULT 1,
                 tour_name TEXT,
                 date_match TEXT,
+                start_ts INTEGER,
                 home_name TEXT,
                 away_name TEXT,
                 country_id TEXT,
@@ -87,6 +90,9 @@ def ensure_match_queue_schema() -> None:
             )
             """
         )
+        cols = {row[1] for row in conn.execute("PRAGMA table_info(match_queue)").fetchall()}
+        if "start_ts" not in cols:
+            conn.execute("ALTER TABLE match_queue ADD COLUMN start_ts INTEGER")
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_match_queue_sport ON match_queue(sport)"
         )
@@ -180,15 +186,16 @@ def upsert_matches(
             conn.execute(
                 """
                 INSERT INTO match_queue (
-                    match_id, sport, tour_name, date_match, home_name, away_name,
+                    match_id, sport, tour_name, date_match, start_ts, home_name, away_name,
                     country_id, score_home, score_away,
                     start_home, start_draw, start_away,
                     current_home, current_draw, current_away, loaded_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
                 ON CONFLICT(match_id) DO UPDATE SET
                     sport=excluded.sport,
                     tour_name=excluded.tour_name,
                     date_match=excluded.date_match,
+                    start_ts=excluded.start_ts,
                     home_name=excluded.home_name,
                     away_name=excluded.away_name,
                     country_id=excluded.country_id,
@@ -207,6 +214,7 @@ def upsert_matches(
                     sport,
                     tour,
                     normalize_match_date(match.get("date_match") or ""),
+                    match.get("start_ts"),
                     match.get("home_name") or "",
                     match.get("away_name") or "",
                     match.get("country_id") or "",
@@ -233,6 +241,72 @@ def get_queued_match(match_id: str) -> Optional[QueuedMatch]:
         )
         row = cur.fetchone()
     return QueuedMatch.from_row(row) if row else None
+
+
+def list_analyzed_matches(*, sport: Optional[int] = None) -> List[QueuedMatch]:
+    """Матчи, по которым уже есть calc-прогнозы (для догона BTS / StavkaTV / Moneyway)."""
+    sql = """
+        SELECT
+            m.match_id,
+            m.sport,
+            COALESCE(c.name || ': ' || l.name, l.name, '') AS tour_name,
+            m.match_date AS date_match,
+            t1.name AS home_name,
+            t2.name AS away_name
+        FROM matches m
+        LEFT JOIN leagues l ON l.id = m.league_id
+        LEFT JOIN countries c ON c.id = l.country_id
+        JOIN teams t1 ON t1.id = m.home_team_id
+        JOIN teams t2 ON t2.id = m.away_team_id
+        WHERE EXISTS (
+            SELECT 1 FROM strategy_predictions sp
+            WHERE sp.match_id = m.match_id AND sp.strategy_id IN (1, 2, 3)
+        )
+    """
+    params: list = []
+    if sport is not None:
+        sql += " AND m.sport = ?"
+        params.append(sport)
+    sql += " ORDER BY m.match_date, m.match_id"
+    with get_db_connection() as conn:
+        rows = conn.execute(sql, params).fetchall()
+    return [
+        QueuedMatch(
+            match_id=row["match_id"],
+            sport=int(row["sport"] or 1),
+            tour_name=row["tour_name"] or "",
+            date_match=row["date_match"] or "",
+            home_name=row["home_name"] or "",
+            away_name=row["away_name"] or "",
+        )
+        for row in rows
+    ]
+
+
+def list_matches_for_strategy(
+    *,
+    sport: Optional[int] = None,
+    leagues_by_sport: Optional[Dict[int, Optional[List[str]]]] = None,
+) -> List[QueuedMatch]:
+    """Очередь + уже разобранные матчи, без дублей."""
+    seen: Dict[str, QueuedMatch] = {}
+    for q in list_queued_matches(
+        leagues_by_sport=leagues_by_sport,
+        sport=sport,
+        new_only=False,
+    ):
+        seen[q.match_id] = q
+    for q in list_analyzed_matches(sport=sport):
+        if q.match_id in seen:
+            continue
+        if leagues_by_sport is not None:
+            if q.sport not in leagues_by_sport:
+                continue
+            allowed = leagues_by_sport[q.sport]
+            if allowed is not None and not _league_allowed(q.tour_name, allowed):
+                continue
+        seen[q.match_id] = q
+    return list(seen.values())
 
 
 def match_needs_analysis(match_id: str) -> bool:

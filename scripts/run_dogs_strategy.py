@@ -14,7 +14,7 @@ from dogs_strategy import (  # noqa: E402
     build_moneyway_snapshot,
     fetch_arbworld_index,
 )
-from match_store import list_queued_matches  # noqa: E402
+from match_store import list_matches_for_strategy  # noqa: E402
 from settings import DeluxSettings  # noqa: E402
 
 
@@ -22,13 +22,13 @@ def run_dogs_for_queue(*, new_only: bool = False, limit: int = 0, sport: int = 1
     cfg = DeluxSettings.from_env()
     create_database()
 
-    matches = list_queued_matches(
-        leagues_by_sport=cfg.leagues_by_sport,
+    matches = list_matches_for_strategy(
         sport=sport,
-        new_only=False,
-        limit=limit or 0,
+        leagues_by_sport=cfg.leagues_by_sport,
     )
-    matches = [q for q in matches if cfg.is_favorite_league(q.sport, q.league_name)]
+    matches = [q for q in matches if cfg.is_favorite_league(q.sport, q.tour_name)]
+    if limit > 0:
+        matches = matches[:limit]
 
     print(f"[*] Moneyway (#{DOGS_STRATEGY_ID}): {len(matches)} football matches")
     ok = skip = fail = saved_snap = 0

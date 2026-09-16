@@ -426,19 +426,35 @@ class ExcelCalcEngine:
                 }
             )
 
-        home_goals = []
-        for col in [22, 23, 24, 25, 26, 27]:
-            letter = _col_letter(col)
-            home_goals.append(
-                _first_number(_cell_value(ws, f"{letter}10"), _cell_value(ws, f"{letter}11"))
-            )
+        from formula_port.incodata_mc import GOAL_BINS
 
+        home_goals = []
         away_goals = []
-        for col in [35, 36, 37, 38, 39, 40]:
-            letter = _col_letter(col)
-            away_goals.append(
-                _first_number(_cell_value(ws, f"{letter}10"), _cell_value(ws, f"{letter}11"))
-            )
+        try:
+            ws_inco = self.wb.Worksheets("IncoData")
+            for k in range(GOAL_BINS):
+                home_goals.append(_first_number(_cell_value(ws_inco, f"AT{21 + k}")))
+                away_goals.append(_first_number(_cell_value(ws_inco, f"AW{21 + k}")))
+            if not any(home_goals) and not any(away_goals):
+                home_goals = []
+                away_goals = []
+        except Exception:
+            home_goals = []
+            away_goals = []
+        if not home_goals:
+            for col in range(22, 28):
+                letter = _col_letter(col)
+                home_goals.append(
+                    _first_number(_cell_value(ws, f"{letter}10"), _cell_value(ws, f"{letter}11"))
+                )
+            home_goals = (home_goals + [0.0] * GOAL_BINS)[:GOAL_BINS]
+        if not away_goals:
+            for col in range(35, 41):
+                letter = _col_letter(col)
+                away_goals.append(
+                    _first_number(_cell_value(ws, f"{letter}10"), _cell_value(ws, f"{letter}11"))
+                )
+            away_goals = (away_goals + [0.0] * GOAL_BINS)[:GOAL_BINS]
 
         ntb = str(_cell_value(ws, "S13") or "")
         if sport == 6:

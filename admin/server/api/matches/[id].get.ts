@@ -1,3 +1,15 @@
+import { withStrategyEdge } from '../../utils/strategyNotes'
+
+function parseJson<T>(raw: unknown, fallback: T): T {
+  if (raw == null || raw === '') return fallback
+  if (typeof raw === 'object') return raw as T
+  try {
+    return JSON.parse(String(raw)) as T
+  } catch {
+    return fallback
+  }
+}
+
 export default defineEventHandler((event) => {
   const matchId = getRouterParam(event, 'id')
   if (!matchId) {
@@ -42,7 +54,7 @@ export default defineEventHandler((event) => {
           ORDER BY sp.strategy_id
           `,
           [matchId],
-        )
+        ).map((row) => withStrategyEdge(row))
       : []
 
     const outcomes = tableExists(db, 'outcome_probabilities')
@@ -63,7 +75,61 @@ export default defineEventHandler((event) => {
       ? row(db, `SELECT * FROM goal_probabilities WHERE match_id = ?`, [matchId])
       : null
 
-    return { match, odds, predictions, outcomes, goals }
+    const snapRow = tableExists(db, 'match_snapshot')
+      ? row(db, `SELECT * FROM match_snapshot WHERE match_id = ?`, [matchId])
+      : null
+    const snapshot = snapRow
+      ? {
+          ...snapRow,
+          standings: parseJson(snapRow.standings_json, null),
+          form: parseJson(snapRow.form_json, null),
+          h2h: parseJson(snapRow.h2h_json, null),
+          team_matches: parseJson(snapRow.team_matches_json, null),
+          weather: parseJson(snapRow.weather_json, null),
+        }
+      : null
+
+    const weatherHistory = tableExists(db, 'match_weather')
+      ? rows(
+          db,
+          `SELECT * FROM match_weather WHERE match_id = ? ORDER BY fetched_at DESC`,
+          [matchId],
+        )
+      : []
+    const weather = {
+      snapshot: snapshot?.weather || null,
+      latest: weatherHistory.find((item) => item.kind === 'forecast') || null,
+      actual: weatherHistory.find((item) => item.kind === 'actual') || null,
+      history: weatherHistory,
+    }
+
+    const emptySides = { home: [] as unknown[], away: [] as unknown[] }
+    const emptyLineups = {
+      home: { formation: '', players: [] as unknown[] },
+      away: { formation: '', players: [] as unknown[] },
+    }
+    const wsRow = tableExists(db, 'whoscored_preview')
+      ? row(db, `SELECT * FROM whoscored_preview WHERE match_id = ?`, [matchId])
+      : null
+    const whoscored = wsRow
+      ? {
+          match_id: wsRow.match_id,
+          ws_id: wsRow.ws_id,
+          ws_url: wsRow.ws_url,
+          home_name: wsRow.home_name,
+          away_name: wsRow.away_name,
+          score_home: wsRow.score_home,
+          score_away: wsRow.score_away,
+          formation_home: wsRow.formation_home,
+          formation_away: wsRow.formation_away,
+          fetched_at: wsRow.fetched_at,
+          team_news: parseJson(wsRow.team_news_json, emptySides),
+          missing: parseJson(wsRow.missing_json, emptySides),
+          lineups: parseJson(wsRow.lineups_json, emptyLineups),
+        }
+      : null
+
+    return { match, odds, predictions, outcomes, goals, snapshot, weather, whoscored }
   } finally {
     db.close()
   }

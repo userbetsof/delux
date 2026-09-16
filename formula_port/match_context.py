@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Optional, Set, Tuple
 
 from analysis_data import AnalysisPayload
-from calc_engine import ExcelCalcEngine
 from formula_port.cell_store import CellStore
 from formula_port.com_guard import note_com_call
 from odds_service import OddsSheetData
@@ -59,6 +58,8 @@ def sync_match_context(
     list_odds: Optional[Tuple[float, float, float]] = None,
 ) -> int:
     """Excel: payload + calc → значения всех ячеек графа кроме Расчеты/Графики/Анализ."""
+    from calc_engine import ExcelCalcEngine
+
     note_com_call()
     nodes = _load_graph_nodes()
     with ExcelCalcEngine(workbook_path) as eng:

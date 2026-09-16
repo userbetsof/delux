@@ -50,16 +50,31 @@ def cmd_pipeline(args) -> int:
 
 
 def cmd_check(args) -> int:
-    from matches_check import run as check_run
+    from result_checker import run_db_check
 
-    if not args.workbook and not args.db_only:
-        print("[-] check: укажите --db-only или --workbook для legacy Excel-архива")
-        return 1
-    if args.db_only:
-        from result_checker import run_db_check
+    if args.workbook:
+        from matches_check import run as check_run
 
-        return run_db_check()
-    return check_run(args.workbook)
+        return check_run(args.workbook)
+    return run_db_check()
+
+
+def cmd_calc_check(args) -> int:
+    from scripts.compare_strategies import main as calc_check_main
+    import sys as _sys
+
+    saved = _sys.argv[:]
+    argv = ["compare_strategies.py"]
+    if args.match_id:
+        argv.append(args.match_id)
+    if args.excel:
+        argv.append("--excel")
+    argv.extend(["--tol", str(args.tol)])
+    _sys.argv = argv
+    try:
+        return calc_check_main()
+    finally:
+        _sys.argv = saved
 
 
 def cmd_bts(args) -> int:
@@ -101,6 +116,65 @@ def cmd_onepr(args) -> int:
     return 0 if summary.get("fail", 0) == 0 else 1
 
 
+def cmd_whoscored(args) -> int:
+    from scripts.run_whoscored_strategy import run_whoscored_for_queue
+
+    summary = run_whoscored_for_queue(new_only=args.new, limit=args.limit)
+    return 0 if summary.get("fail", 0) == 0 else 1
+
+
+def cmd_match_info(args) -> int:
+    from scripts.run_match_info import run_match_info
+
+    summary = run_match_info(match_id=args.match_id, new_only=args.new, limit=args.limit)
+    return 0 if summary.get("fail", 0) == 0 else 1
+
+
+def cmd_ml_train(args) -> int:
+    from src.ml.train import train_models
+
+    models = [args.model] if args.model else None
+    targets = [args.target] if args.target else None
+    train_models(config_path=args.config or None, models=models, targets=targets, limit=args.limit)
+    return 0
+
+
+def cmd_ml_predict(args) -> int:
+    from src.ml.predict import predict_matches
+
+    predict_matches(
+        config_path=args.config or None,
+        run_id=args.run_id,
+        model_type=args.model,
+        match_id=args.match_id,
+    )
+    return 0
+
+
+def cmd_mlflow_ui(args) -> int:
+    import subprocess
+    import sys
+
+    from src.ml.config import artifacts_dir, load_config, tracking_uri
+
+    config = load_config(args.config or None)
+    artifacts_dir(config).mkdir(parents=True, exist_ok=True)
+    return subprocess.call(
+        [
+            sys.executable,
+            "-m",
+            "mlflow",
+            "ui",
+            "--backend-store-uri",
+            tracking_uri(config),
+            "--host",
+            args.host,
+            "--port",
+            str(args.port),
+        ]
+    )
+
+
 def cmd_favorites_stats(args) -> int:
     from favorites_stats.report import build_report, print_summary, save_report
     from pathlib import Path
@@ -126,7 +200,7 @@ def cmd_favorites_stats(args) -> int:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="DeluX IncoProrok — полный Python-пайплайн (БД + calc .xlsm)",
+        description="DeluX IncoProrok — Python-пайплайн (Flashscore + SQLite, без Excel)",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -142,7 +216,7 @@ def main():
 
     p_an = sub.add_parser(
         "analyze",
-        help="Анализ матчей в БД (стратегии #1–8 по умолчанию)",
+        help="Анализ матчей в БД (стратегии #1–9 по умолчанию)",
     )
     p_an.add_argument("--match-id", default="")
     g = p_an.add_mutually_exclusive_group()
@@ -153,7 +227,7 @@ def main():
 
     p_pipe = sub.add_parser(
         "pipeline",
-        help="list + analyze --new (все стратегии #1–8)",
+        help="list + check + analyze --new (все стратегии #1–9)",
     )
     p_pipe.add_argument(
         "--auto",
@@ -166,8 +240,16 @@ def main():
     p_pipe.add_argument("--workbook", default="")
 
     p_chk = sub.add_parser("check", help="Проверить результаты матчей")
-    p_chk.add_argument("--db-only", action="store_true", help="Обновить matches в БД")
-    p_chk.add_argument("--workbook", default="")
+    p_chk.add_argument("--db-only", action="store_true", help="Только БД (по умолчанию)")
+    p_chk.add_argument("--workbook", default="", help="Legacy: Excel-архив")
+
+    p_calc = sub.add_parser(
+        "calc-check",
+        help="Python-calc: NTB/Betalone/Sniper + 10 подстратегий (допуск 1%%)",
+    )
+    p_calc.add_argument("match_id", nargs="?", default="")
+    p_calc.add_argument("--excel", action="store_true", help="Опционально сравнить с Excel COM")
+    p_calc.add_argument("--tol", type=float, default=0.01)
 
     p_bts = sub.add_parser("bts", help="Стратегия BTS (#4) для очереди")
     p_bts.add_argument("--new", action="store_true", help="Пропускать матчи с уже сохранённым BTS")
@@ -201,18 +283,50 @@ def main():
     p_onepr.add_argument("--new", action="store_true")
     p_onepr.add_argument("--limit", type=int, default=0)
 
+    p_ws = sub.add_parser("whoscored", help="Стратегия WhoScored (#9) — точный счёт + фора")
+    p_ws.add_argument("--new", action="store_true")
+    p_ws.add_argument("--limit", type=int, default=0)
+
+    p_info = sub.add_parser("match-info", help="Снимок инфо о матче: стадион, судья, зрители")
+    p_info.add_argument("--match-id", default="")
+    p_info.add_argument("--new", action="store_true", help="Только матчи без снимка")
+    p_info.add_argument("--limit", type=int, default=0)
+
+    p_ml_train = sub.add_parser("ml-train", help="Обучить XGBoost и CatBoost с MLflow")
+    p_ml_train.add_argument("--config", default="")
+    p_ml_train.add_argument("--model", choices=("xgboost", "catboost"), default="")
+    p_ml_train.add_argument("--target", choices=("1x2", "over_2_5"), default="")
+    p_ml_train.add_argument("--limit", type=int, default=0)
+
+    p_ml_predict = sub.add_parser("ml-predict", help="ML-прогнозы для будущих матчей")
+    p_ml_predict.add_argument("--config", default="")
+    p_ml_predict.add_argument("--run-id", default="")
+    p_ml_predict.add_argument("--model", choices=("xgboost", "catboost"), default="")
+    p_ml_predict.add_argument("--match-id", default="")
+
+    p_mlflow = sub.add_parser("mlflow-ui", help="Локальный интерфейс MLflow")
+    p_mlflow.add_argument("--config", default="")
+    p_mlflow.add_argument("--host", default="127.0.0.1")
+    p_mlflow.add_argument("--port", type=int, default=5001)
+
     args = parser.parse_args()
     handlers = {
         "list": cmd_list,
         "analyze": cmd_analyze,
         "pipeline": cmd_pipeline,
         "check": cmd_check,
+        "calc-check": cmd_calc_check,
         "bts": cmd_bts,
         "favorites": cmd_favorites,
         "favorites-stats": cmd_favorites_stats,
         "stavka-tv": cmd_stavka_tv,
         "dogs": cmd_dogs,
         "onepr": cmd_onepr,
+        "whoscored": cmd_whoscored,
+        "match-info": cmd_match_info,
+        "ml-train": cmd_ml_train,
+        "ml-predict": cmd_ml_predict,
+        "mlflow-ui": cmd_mlflow_ui,
     }
     raise SystemExit(handlers[args.command](args))
 

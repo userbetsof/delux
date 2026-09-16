@@ -16,18 +16,7 @@ DEFAULT_EXCEL_DB = ROOT / "data" / "parity_excel.db"
 DEFAULT_PYTHON_DB = ROOT / "data" / "parity_python.db"
 
 
-def _norm_pred(val: Any) -> str:
-    s = str(val or "").strip()
-    if s in ("-", "—", "None", "none"):
-        return ""
-    return s
-
-
-def _float_close(a: Any, b: Any, tol: float = 0.01) -> bool:
-    try:
-        return abs(float(a) - float(b)) <= tol
-    except (TypeError, ValueError):
-        return _norm_pred(a) == _norm_pred(b)
+from formula_port.parity import STRATEGY_TOL, compare_calc_results
 
 
 def _connect(path: Path) -> sqlite3.Connection:
@@ -105,7 +94,7 @@ def compare_match_bundles(
     excel: Dict[str, Any],
     python: Dict[str, Any],
     *,
-    strategy_tol: float = 0.01,
+    strategy_tol: float = STRATEGY_TOL,
 ) -> List[str]:
     diffs: List[str] = []
     if not excel:
@@ -114,24 +103,11 @@ def compare_match_bundles(
     if not python:
         diffs.append("missing_in_python")
         return diffs
-    for key in ("prediction_ntb", "prediction_betalone", "prediction_sniper"):
-        ev = _norm_pred(excel.get(key))
-        pv = _norm_pred(python.get(key))
-        if ev != pv:
-            diffs.append(f"{key}: excel={excel.get(key)!r} python={python.get(key)!r}")
-
-    eo = excel.get("outcome_probabilities") or []
-    po = python.get("outcome_probabilities") or []
-    if len(eo) < 10 or len(po) < 10:
-        diffs.append(f"strategies_count: excel={len(eo)} python={len(po)} (need 10)")
-    for i in range(min(10, len(eo), len(po))):
-        e, p = eo[i], po[i]
-        for fld in ("home_prob", "draw_prob", "away_prob"):
-            if not _float_close(e.get(fld), p.get(fld), strategy_tol):
-                diffs.append(
-                    f"strategy[{i}].{fld}: excel={e.get(fld)} python={p.get(fld)} "
-                    f"(tol={strategy_tol})"
-                )
+    diffs.extend(
+        compare_calc_results(
+            excel, python, strategy_tol=strategy_tol, left_name="excel", right_name="python"
+        )
+    )
     return diffs
 
 
@@ -140,7 +116,7 @@ def compare_parity_dbs(
     python_db: Path,
     *,
     day: str,
-    strategy_tol: float = 0.01,
+    strategy_tol: float = STRATEGY_TOL,
 ) -> Dict[str, Any]:
     with _connect(excel_db) as ex, _connect(python_db) as py:
         ids_ex = set(_match_ids_for_date(ex, day))
@@ -206,7 +182,7 @@ def main() -> int:
     parser.add_argument("--excel-db", default=str(DEFAULT_EXCEL_DB))
     parser.add_argument("--python-db", default=str(DEFAULT_PYTHON_DB))
     parser.add_argument("--date", default="today", help="YYYY.MM.DD или today")
-    parser.add_argument("--tol", type=float, default=0.01)
+    parser.add_argument("--tol", type=float, default=STRATEGY_TOL)
     parser.add_argument("--output", default="")
     args = parser.parse_args()
 

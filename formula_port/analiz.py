@@ -7,6 +7,7 @@ from typing import Any, Dict, List
 from formula_port.cell_store import CellStore
 from formula_port.excel_functions import SUBSTITUTE
 from formula_port.formula_evaluator import Evaluator, topological_sort
+from formula_port.incodata_mc import GOAL_BINS, SHEET_INCO
 from formula_port.raschety import read_raschety_outputs
 from sheets_config import SHEET_ANALYSIS, SHEET_CALC, SHEET_START
 
@@ -40,9 +41,33 @@ def _first_number(*vals) -> float:
 
 
 def _col_letter(n: int) -> str:
-    from openpyxl.utils import get_column_letter
+    letters = ""
+    while n:
+        n, rem = divmod(n - 1, 26)
+        letters = chr(65 + rem) + letters
+    return letters
 
-    return get_column_letter(n)
+
+def _goal_probs_from_incodata(store: CellStore, col: str) -> List[float]:
+    out: List[float] = []
+    for k in range(GOAL_BINS):
+        out.append(_safe_float(store.get(SHEET_INCO, f"{col}{21 + k}")))
+    if any(v > 0 for v in out):
+        return out
+    return []
+
+
+def _goal_probs_from_analysis(store: CellStore, start_col: int, count: int = 6) -> List[float]:
+    out: List[float] = []
+    for col in range(start_col, start_col + count):
+        letter = _col_letter(col)
+        out.append(
+            _first_number(
+                store.get(SHEET_ANALYSIS, f"{letter}10"),
+                store.get(SHEET_ANALYSIS, f"{letter}11"),
+            )
+        )
+    return out
 
 
 def evaluate_analiz(store: CellStore) -> None:
@@ -83,25 +108,12 @@ def extract_results(store: CellStore, sport: int = 1, *, skip_eval: bool = False
             }
         )
 
-    home_goals = []
-    for col in [22, 23, 24, 25, 26, 27]:
-        letter = _col_letter(col)
-        home_goals.append(
-            _first_number(
-                store.get(SHEET_ANALYSIS, f"{letter}10"),
-                store.get(SHEET_ANALYSIS, f"{letter}11"),
-            )
-        )
-
-    away_goals = []
-    for col in [35, 36, 37, 38, 39, 40]:
-        letter = _col_letter(col)
-        away_goals.append(
-            _first_number(
-                store.get(SHEET_ANALYSIS, f"{letter}10"),
-                store.get(SHEET_ANALYSIS, f"{letter}11"),
-            )
-        )
+    home_goals = _goal_probs_from_incodata(store, "AT")
+    if not home_goals:
+        home_goals = (_goal_probs_from_analysis(store, 22) + [0.0] * GOAL_BINS)[:GOAL_BINS]
+    away_goals = _goal_probs_from_incodata(store, "AW")
+    if not away_goals:
+        away_goals = (_goal_probs_from_analysis(store, 35) + [0.0] * GOAL_BINS)[:GOAL_BINS]
     ntb = store.get(SHEET_ANALYSIS, "S13")
     if ntb in (None, ""):
         ntb = prediction_ntb(store, sport)
