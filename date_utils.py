@@ -95,9 +95,14 @@ def parse_match_datetime(value: Union[str, datetime, None]) -> Optional[datetime
 def normalize_match_date(
     value: Union[str, datetime, None],
     *,
-    force_year: Optional[int] = 2026,
+    force_year: Optional[int] = None,
 ) -> str:
-    """Любой вход → 'YYYY.MM.DD HH:MM' (пример: 2026.09.04 12:00) или ''."""
+    """Любой вход → 'YYYY.MM.DD HH:MM' (пример: 2015.08.08 17:00) или ''.
+
+    Год НЕ подменяется по умолчанию: исторические матчи (2014, 2015, …)
+    должны сохранять свой год. force_year передаётся явно только там, где
+    источник даёт дату без года (например лента дня текущего сезона).
+    """
     dt = parse_match_datetime(value)
     if dt is None:
         return ""
