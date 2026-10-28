@@ -29,6 +29,7 @@ echo  13^) WhoScored — точный счёт + фора ^(стратегия #
 echo  14^) Загрузить матч по ID
 echo  15^) Анализ по выбору ^(все / сезон / матч / сезон заново + стратегия^)
 echo  16^) Обнулить рейтинги ^(ELO / Glicko-2 / OpenSkill к исходным^)
+echo  17^) Бэкап ^(git-коммит + снимок БД^)
 echo   0^) Выход
 echo ========================================
 set /p "CHOICE=Выбор: "
@@ -49,6 +50,7 @@ if "%CHOICE%"=="13" goto :whoscored
 if "%CHOICE%"=="14" goto :single_match
 if "%CHOICE%"=="15" goto :season_url
 if "%CHOICE%"=="16" goto :reset_ratings
+if "%CHOICE%"=="17" goto :backup
 if "%CHOICE%"=="0" exit /b 0
 echo Неверный выбор.
 goto :menu
@@ -165,6 +167,18 @@ if /i not "%CONFIRM%"=="y" (
     goto :done
 )
 %PY% scripts\reset_ratings.py
+goto :done
+
+:backup
+echo.
+echo [*] Бэкап: снимок БД + git-коммит кода.
+echo     БД копируется в backups\db\ (сжатый снимок), код коммитится в git.
+set /p "BKMSG=Сообщение коммита (Enter — по умолчанию): "
+if "%BKMSG%"=="" (
+    %PY% backup.py --tag
+) else (
+    %PY% backup.py --tag -m "%BKMSG%"
+)
 goto :done
 
 :done

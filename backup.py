@@ -271,7 +271,10 @@ def main() -> int:
                 if not message:
                     if sys.stdin.isatty():
                         default = f"backup: {started}"
-                        message = input(f"  Сообщение коммита [{default}]: ").strip()
+                        try:
+                            message = input(f"  Сообщение коммита [{default}]: ").strip()
+                        except (EOFError, KeyboardInterrupt, OSError):
+                            message = ""
                         message = message or default
                     else:
                         message = f"backup: {started}"
