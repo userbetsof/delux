@@ -5,6 +5,7 @@ title DeluX - Google Drive setup
 
 REM ============================================================
 REM  Google Drive setup for DB backups (rclone). Run ONCE.
+REM  Steps verified against rclone v1.75 on this machine.
 REM ============================================================
 
 echo ========================================
@@ -26,22 +27,24 @@ echo Current remotes:
 rclone listremotes
 echo.
 
-echo Interactive setup will start now.
+echo Interactive setup starts next. Answer exactly as listed:
 echo.
-echo   1. "n/s/q"              - type: n
-echo   2. name for remote      - type: gdrive
-echo   3. storage type         - choose Google Drive
-echo   4. client_id            - Enter
-echo   5. client_secret        - Enter
-echo   6. scope                - type: 1   (full access)
-echo   7. root_folder_id       - Enter
-echo   8. service_account_file - Enter
-echo   9. Edit advanced config - type: n
-echo  10. Use web browser      - type: y   (browser will open)
-echo  11. Sign in to Google and allow access
-echo  12. Shared Drive         - type: n
-echo  13. "y/e/d"              - type: y
-echo  14. "n/s/q"              - type: q
+echo   1. "n/s/q"                    : n      exit new remote
+echo   2. name for the new remote    : gdrive
+echo   3. storage type               : 24     Google Drive
+echo   4. Option client_id           : Enter  use shared one
+echo   5. Continue using shared id?  : y
+echo   6. Option client_secret       : Enter
+echo   7. Option scope               : 1      full access
+echo   8. Option service_account_file: Enter
+echo   9. Edit advanced config?      : n
+echo  10. Use web browser?           : y      browser opens
+echo  11. Configure as Shared Drive? : n
+echo  12. Keep this remote?          : y
+echo  13. "n/s/q"                    : q      quit
+echo.
+echo NOTE: rclone shared client_id is retired during 2026.
+echo       If it fails, create your own client_id in Google Cloud.
 echo.
 pause
 
@@ -63,12 +66,13 @@ if errorlevel 1 (
 
 echo [+] Remote "gdrive" is configured.
 echo.
-echo Checking access to folder:
+echo Checking access ^(folder created on first upload^):
 rclone lsd gdrive:DeluX 2>nul
-if errorlevel 1 echo     Folder DeluX does not exist yet - it will be created on first upload.
+if errorlevel 1 echo     Folder DeluX does not exist yet - that is fine.
 
 echo.
-echo Done. Backup in start.bat item 17 will now upload to Google Drive.
+echo Done. Backup ^(start.bat item 17^) will now upload to Google Drive.
+echo Check: py -3 gdrive_backup.py --status
 echo.
 pause
 exit /b 0
