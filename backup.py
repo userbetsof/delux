@@ -29,6 +29,7 @@ import shutil
 import sqlite3
 import subprocess
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -53,33 +54,45 @@ def _fmt_mb(size: int) -> str:
 
 
 # --------------------------------------------------------------------- БД
-def check_db_integrity(db_path: Path) -> tuple[bool, str]:
+def check_db_integrity(db_path: Path, *, retries: int = 3) -> tuple[bool, str]:
     """PRAGMA integrity_check + foreign_key_check.
 
     Важно: соединение открывается ОБЫЧНЫМ (read-write), не read-only.
     В режиме WAL read-only соединение не видит неhекпоинченный лог и может
     показать «нарушения», которых нет в реальной базе.
+
+    Нарушения FK проверяются с повторами: если в этот момент идёт анализ,
+    дочерняя строка может быть записана раньше родительской (снимок пишется
+    до вставки в matches). Через мгновение всё сходится.
     """
     if not db_path.is_file():
         return False, f"файл не найден: {db_path}"
-    try:
-        conn = sqlite3.connect(str(db_path), timeout=60)
+    last = ""
+    for attempt in range(max(1, retries)):
         try:
-            integrity = conn.execute("PRAGMA integrity_check").fetchone()[0]
-            if integrity != "ok":
-                return False, f"integrity_check: {integrity}"
-            fk = conn.execute("PRAGMA foreign_key_check").fetchall()
-            if fk:
-                tables = sorted({r[0] for r in fk})
-                return False, f"нарушено внешних ключей: {len(fk)} ({', '.join(tables)})"
-            quick = conn.execute("PRAGMA quick_check").fetchone()[0]
-            if quick != "ok":
-                return False, f"quick_check: {quick}"
-        finally:
-            conn.close()
-        return True, "ok"
-    except Exception as exc:  # noqa: BLE001
-        return False, f"{type(exc).__name__}: {exc}"
+            conn = sqlite3.connect(str(db_path), timeout=60)
+            try:
+                integrity = conn.execute("PRAGMA integrity_check").fetchone()[0]
+                if integrity != "ok":
+                    return False, f"integrity_check: {integrity}"
+                fk = conn.execute("PRAGMA foreign_key_check").fetchall()
+                quick = conn.execute("PRAGMA quick_check").fetchone()[0]
+                if quick != "ok":
+                    return False, f"quick_check: {quick}"
+            finally:
+                conn.close()
+            if not fk:
+                return True, "ok"
+            tables = sorted({r[0] for r in fk})
+            last = f"нарушено внешних ключей: {len(fk)} ({', '.join(tables)})"
+            # Повторяем: возможно, идёт запись прямо сейчас.
+            if attempt + 1 < retries:
+                time.sleep(1.0 * (attempt + 1))
+        except Exception as exc:  # noqa: BLE001
+            last = f"{type(exc).__name__}: {exc}"
+            if attempt + 1 < retries:
+                time.sleep(1.0 * (attempt + 1))
+    return False, last
 
 
 def make_db_backup(db_path: Path, out_dir: Path, *, compress: bool = True) -> Path:
