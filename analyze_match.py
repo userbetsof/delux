@@ -146,6 +146,20 @@ def _coerce_strategies(value) -> set | None:
     return ids or None
 
 
+def _season_alert(kind: str = "error", *, times: int = 1) -> None:
+    """Звуковой сигнал при остановке анализа сезона.
+
+    kind: 'error' — ошибка/прерывание (тревожный нисходящий тон).
+    Не блокирует: звук играет в фоновом потоке.
+    """
+    try:
+        from sound_alert import alert_error_async
+
+        alert_error_async(times=times)
+    except Exception:  # noqa: BLE001
+        pass
+
+
 def run_analyze_season(
     *,
     workbook: str = "",
@@ -182,6 +196,7 @@ def run_analyze_season(
     meta = resolve_season_from_url(season_url)
     if not meta.get("season_id") or not meta.get("tournament_key"):
         print(f"[-] Не удалось резолвить сезон из URL: {season_url}")
+        _season_alert("resolve")
         return 1
 
     sport = int(meta["sport"])
@@ -195,6 +210,7 @@ def run_analyze_season(
     all_matches = fetch_tournament_matches(sport, country_id, tournament_key, season_id)
     if not all_matches:
         print("[-] Не удалось загрузить матчи турнира")
+        _season_alert("no_matches")
         return 1
 
     print(f"[*] Матчей в сезоне: {len(all_matches)}")
@@ -295,7 +311,13 @@ def run_analyze_season(
                 if fail_fast:
                     print(f"[!] Прерывание на матче {mid} (прогресс сохранён). "
                           f"Повторный запуск продолжит с этого места.")
+                    # Звук: прогон остановлен, нужно вмешательство.
+                    _season_alert("fail_fast")
                     break
+
+    # Сигнал, если что-то пошло не так даже при --no-fail-fast.
+    if failed and not fail_fast:
+        _season_alert("errors", times=1)
 
     print(f"\n[+] Готово: ok={ok}, ошибок={failed}, пропущено ранее={skipped_done}")
     return 0 if failed == 0 else 1

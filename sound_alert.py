@@ -21,6 +21,15 @@ _ATTENTION_PATTERN: tuple[tuple[int, int], ...] = (
     (1175, 200),
 )
 
+# Тревожный сигнал ошибки/прерывания: три нисходящих тона.
+_ERROR_PATTERN: tuple[tuple[int, int], ...] = (
+    (660, 180),
+    (0, 40),
+    (440, 180),
+    (0, 40),
+    (330, 320),
+)
+
 
 def sound_enabled() -> bool:
     """Звук включён, если не задан DELUX_SILENT."""
@@ -91,3 +100,32 @@ def alert_attention_async(times: int = 1) -> None:
         ).start()
     except Exception:  # noqa: BLE001
         alert_attention(times)
+
+
+def alert_error(times: int = 1) -> None:
+    """Тревожный звук: анализ прерван / матч не обработан.
+
+    Отличается от alert_attention набором тонов (нисходящий), чтобы на слух
+    можно было понять причину остановки, не глядя в консоль.
+    """
+    if not sound_enabled():
+        return
+    played = False
+    pattern = _ERROR_PATTERN * max(1, times)
+    if sys.platform.startswith("win"):
+        played = _beep_windows(pattern)
+    if not played:
+        for _ in range(max(1, times) * 2):
+            _fallback_bell()
+
+
+def alert_error_async(times: int = 1) -> None:
+    """Неблокирующий вариант тревожного сигнала."""
+    try:
+        import threading
+
+        threading.Thread(
+            target=alert_error, args=(times,), daemon=True
+        ).start()
+    except Exception:  # noqa: BLE001
+        alert_error(times)
