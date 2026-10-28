@@ -1,100 +1,101 @@
 @echo off
-REM Git commit script for delux project
-REM Commits all changes with a descriptive message
-
 chcp 65001 >nul
+setlocal enabledelayedexpansion
 cd /d "%~dp0"
 
+REM ============================================================
+REM  DeluX: коммит кода + push + бэкап БД в Google Drive
+REM  Вся логика в backup.py; этот файл — удобная обёртка.
+REM ============================================================
+
+set "PY=py -3"
+where py >nul 2>&1 || set "PY=python"
+
 echo ========================================
-echo Git Commit Script
+echo   Коммит + Push + Бэкап
 echo ========================================
 echo.
 
-REM Check git status
-echo Checking git status...
+REM --- Проверка окружения
+if not exist "backup.py" (
+    echo [!] backup.py не найден. Запустите из папки проекта.
+    goto :fail
+)
+
+echo Изменённые файлы:
 git status --short
+echo.
 
+echo Что делать?
+echo   1^) Коммит + push + бэкап БД ^(в Google Drive, если настроен^)
+echo   2^) Только коммит + push ^(без снимка БД^)
+echo   3^) Только бэкап БД ^(без git^)
+echo   4^) Проверить состояние Google Drive
+echo   0^) Отмена
+echo.
+set /p "MODE=Выбор [1/2/3/4/0]: "
+
+if "%MODE%"=="0" goto :cancel
+if "%MODE%"=="4" (
+    %PY% gdrive_backup.py --status
+    goto :done
+)
+if "%MODE%"=="3" goto :db_only
+if "%MODE%"=="2" goto :git_only
+
+REM --- 1: полный цикл
+echo.
+echo Настройки:
+echo   тег в git:      да ^(backup-ГГГГММДД-ЧЧММ^)
+echo   push в origin:  да
+echo   Google Drive:   да ^(если rclone настроен^)
+echo.
+set /p "MSG=Сообщение коммита (Enter — по умолчанию): "
+echo.
+if "%MSG%"=="" (
+    %PY% backup.py --tag
+) else (
+    %PY% backup.py --tag -m "%MSG%"
+)
+if errorlevel 1 goto :fail
+goto :done
+
+:git_only
+echo.
+set /p "MSG=Сообщение коммита (Enter — по умолчанию): "
+echo.
+if "%MSG%"=="" (
+    %PY% backup.py --git-only --tag
+) else (
+    %PY% backup.py --git-only --tag -m "%MSG%"
+)
+if errorlevel 1 goto :fail
+goto :done
+
+:db_only
+echo.
+%PY% backup.py --db-only
+if errorlevel 1 goto :fail
+goto :done
+
+:fail
 echo.
 echo ========================================
-echo Review the changes above.
-echo Press any key to continue with commit...
+echo   [!] Завершено с ошибками ^(см. выше^)
 echo ========================================
-pause >nul
-
-echo.
-echo Adding all changes...
-git add -A
-
-echo.
-echo Committing...
-
-REM Generate commit message based on changes
-set "MSG="
-
-echo.
-echo What would you like to commit?
-echo.
-echo 1. Bug fixes (sport detection, team history, goal probs)
-echo 2. Date filter in admin panel
-echo 3. Goal probabilities from odds
-echo 4. All changes with custom message
-echo.
-set /p choice="Enter choice (1-4): "
-
-if "%choice%"=="1" (
-    set "MSG=fix: sport detection, team history loading, and goal probabilities
-
-- Fix detect_sport_from_html: search match URL path instead of full HTML
-  (sidebar contains all sports, causing false positives)
-- Fix fetch_match_page_ids: correct array index (ids[0] instead of ids[2])
-- Fix team history URL: remove double underscore in suffix (_0_0{suffix})
-- Fix recalc_goals_from_odds: lambda limit < 10 -> <= 10
-- Load OVER/UNDER odds via Flashscore API for 260 matches
-- Fix sport_id for baseball matches (sport=1 -> sport=6)
-- Calculate goal_probabilities for all 1669 matches with sport-specific limits"
-) else if "%choice%"=="2" (
-    set "MSG=feat: add date range filter to admin panel
-
-- Add date picker (range mode) to matches, predictions, and queue pages
-- Add date_from/date_to query params to API endpoints
-- Format match dates as YYYY.MM.DD HH:MM in UI
-- Sort matches by date descending"
-) else if "%choice%"=="3" (
-    set "MSG=feat: calculate goal probabilities from odds
-
-- Implement recalc_goals_from_odds.py with sport-specific limits:
-  football=6, hockey=9, baseball=10
-- Load missing odds from Flashscore API for matches without OVER/UNDER
-- Normalize database dates to YYYY.MM.DD HH:MM format
-- Poisson lambda estimation from OVER/UNDER odds via CDF inversion"
-) else if "%choice%"=="4" (
-    set /p custom_msg="Enter commit message: "
-    set "MSG=%custom_msg%"
-) else (
-    echo Invalid choice. Using default message.
-    set "MSG=fix: various bug fixes and improvements
-
-- Fix sport detection from match page HTML
-- Fix team history loading (URL construction, suffix)
-- Fix goal probabilities calculation
-- Add date filter to admin panel
-- Load odds from Flashscore API"
-)
-
-git commit -m "%MSG%"
-
-if %errorlevel% equ 0 (
-    echo.
-    echo ========================================
-    echo Commit successful!
-    echo ========================================
-    git log -n 1 --oneline
-) else (
-    echo.
-    echo ========================================
-    echo Commit failed!
-    echo ========================================
-)
-
 echo.
 pause
+exit /b 1
+
+:cancel
+echo Отменено.
+goto :done
+
+:done
+echo.
+echo ========================================
+echo   Готово.
+echo ========================================
+echo.
+pause
+exit /b 0

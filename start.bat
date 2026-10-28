@@ -172,13 +172,14 @@ goto :done
 :backup
 echo.
 echo [*] Бэкап и восстановление.
-echo     1^) Сделать бэкап (снимок БД + git-коммит)
+echo     1^) Коммит + push + бэкап БД ^(в Google Drive^)
 echo     2^) Список снимков БД
 echo     3^) Восстановить БД из последнего снимка
 set /p "BKACT=Действие [1/2/3]: "
 if "%BKACT%"=="2" goto :backup_list
 if "%BKACT%"=="3" goto :backup_restore
-goto :backup_make
+call commit.bat
+goto :done
 
 :backup_list
 %PY% restore.py --list
@@ -205,7 +206,6 @@ if "%BKMSG%"=="" (
     %PY% backup.py --tag -m "%BKMSG%"
 )
 goto :done
-
 :done
 set "ERR=%ERRORLEVEL%"
 echo.

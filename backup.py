@@ -204,6 +204,53 @@ def git_tag(name: str, message: str) -> tuple[bool, str]:
     return True, f"тег {name} создан"
 
 
+def git_has_remote() -> bool:
+    return bool((_git("remote").stdout or "").strip())
+
+
+def git_current_branch() -> str:
+    out = (_git("rev-parse", "--abbrev-ref", "HEAD").stdout or "").strip()
+    return out if out and out != "HEAD" else ""
+
+
+def git_ahead_count(branch: str) -> int:
+    """Сколько локальных коммитов ещё не в origin/<branch>."""
+    if not branch:
+        return 0
+    res = _git("rev-list", "--count", f"origin/{branch}..{branch}")
+    try:
+        return int((res.stdout or "0").strip() or 0)
+    except ValueError:
+        return 0
+
+
+def git_push(*, tag: bool = False) -> tuple[bool, str]:
+    """Отправить ветку (и, при tag=True, теги) в origin."""
+    if not git_is_repo():
+        return False, "не git-репозиторий"
+    if not git_has_remote():
+        return False, "не настроен remote (git remote add origin <url>)"
+
+    branch = git_current_branch()
+    ahead = git_ahead_count(branch)
+    if not ahead:
+        return True, "origin уже актуален — отправлять нечего"
+
+    res = _git("push", "origin", branch)
+    if res.returncode != 0:
+        text = (res.stdout + res.stderr).strip()
+        # частая причина — нет прав / нет сети
+        return False, f"git push: {' '.join(text.splitlines()[:3])}"
+
+    if tag:
+        res_tag = _git("push", "--tags", "origin")
+        if res_tag.returncode != 0:
+            text = (res_tag.stdout + res_tag.stderr).strip()
+            return False, f"git push --tags: {' '.join(text.splitlines()[:2])}"
+
+    return True, f"отправлено коммитов: {ahead} ({branch} → origin/{branch})"
+
+
 # --------------------------------------------------------------------- CLI
 def main() -> int:
     parser = argparse.ArgumentParser(description="Ручной бэкап кода (git) и БД")
@@ -213,6 +260,8 @@ def main() -> int:
     parser.add_argument("--keep", type=int, default=20, help="Сколько копий БД хранить")
     parser.add_argument("--no-compress", action="store_true", help="Не сжимать копию БД")
     parser.add_argument("--tag", action="store_true", help="Поставить git-тег backup-*")
+    parser.add_argument("--no-push", action="store_true", help="Не делать git push")
+    parser.add_argument("--no-gdrive", action="store_true", help="Не грузить БД в Google Drive")
     parser.add_argument("--db", default="", help="Путь к БД (по умолчанию matches.db)")
     args = parser.parse_args()
 
@@ -228,7 +277,7 @@ def main() -> int:
 
     # --- 1. Проверка БД
     if do_db:
-        print(f"\n[1/3] Проверка БД: {db_path}")
+        print(f"\n[1/4] Проверка БД: {db_path}")
         if not db_path.is_file():
             print(f"  [!] файл не найден: {db_path}")
             problems.append("БД не найдена")
@@ -244,7 +293,7 @@ def main() -> int:
 
     # --- 2. Копия БД
     if do_db and not problems:
-        print(f"\n[2/3] Снимок БД → {BACKUP_DIR.relative_to(ROOT)}")
+        print(f"\n[2/4] Снимок БД → {BACKUP_DIR.relative_to(ROOT)}")
         try:
             backup = make_db_backup(db_path, BACKUP_DIR, compress=not args.no_compress)
             print(f"  создан: {backup.name} ({_fmt_mb(backup.stat().st_size)})")
@@ -259,13 +308,27 @@ def main() -> int:
                 print(f"  удалено старых копий: {len(removed)}")
             total = sorted(BACKUP_DIR.glob("matches_*.db*"))
             print(f"  всего копий: {len(total)} (храню {args.keep})")
+
+            # --- 2.5. Выгрузка в Google Drive
+            if not args.no_gdrive:
+                print("\n[2.5] Google Drive")
+                try:
+                    from gdrive_backup import upload
+
+                    ok_up, detail_up = upload(backup, dry_run=False)
+                    print(f"  {'[+]' if ok_up else '[!]'} {detail_up}")
+                    if not ok_up:
+                        problems.append(f"Google Drive: {detail_up}")
+                except Exception as exc:  # noqa: BLE001
+                    print(f"  [!] загрузка в Google Drive: {exc}")
+                    problems.append(f"Google Drive: {exc}")
         except Exception as exc:  # noqa: BLE001
             print(f"  [!] ошибка снимка: {exc}")
             problems.append(f"снимок не создан: {exc}")
 
     # --- 3. Git
     if do_git:
-        print("\n[3/3] Git")
+        print("\n[3/4] Git")
         if not git_is_repo():
             print("  [!] не git-репозиторий")
             problems.append("нет git-репозитория")
@@ -301,6 +364,14 @@ def main() -> int:
                     print(f"  {detail_tag}")
                     if not ok_tag:
                         problems.append(detail_tag)
+
+            # --- Push в удалённый репозиторий
+            if not args.no_push:
+                print("\n[3.5] Push")
+                ok_push, detail_push = git_push(tag=args.tag)
+                print(f"  {'[+]' if ok_push else '[!]'} {detail_push}")
+                if not ok_push:
+                    problems.append(f"push: {detail_push}")
 
     # --- Итог
     print("\n" + "=" * 60)
