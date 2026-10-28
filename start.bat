@@ -171,8 +171,33 @@ goto :done
 
 :backup
 echo.
-echo [*] Бэкап: снимок БД + git-коммит кода.
-echo     БД копируется в backups\db\ (сжатый снимок), код коммитится в git.
+echo [*] Бэкап и восстановление.
+echo     1^) Сделать бэкап (снимок БД + git-коммит)
+echo     2^) Список снимков БД
+echo     3^) Восстановить БД из последнего снимка
+set /p "BKACT=Действие [1/2/3]: "
+if "%BKACT%"=="2" goto :backup_list
+if "%BKACT%"=="3" goto :backup_restore
+goto :backup_make
+
+:backup_list
+%PY% restore.py --list
+goto :done
+
+:backup_restore
+echo.
+echo [!] Текущая БД будет заменена снимком. Закройте админку и анализ.
+set /p "BKREST=Продолжить? [y/N]: "
+if /i not "%BKREST%"=="y" (
+    echo [-] Отменено
+    goto :done
+)
+%PY% restore.py
+goto :done
+
+:backup_make
+echo.
+echo [*] Снимок БД в backups\db\, затем git-коммит кода.
 set /p "BKMSG=Сообщение коммита (Enter — по умолчанию): "
 if "%BKMSG%"=="" (
     %PY% backup.py --tag
