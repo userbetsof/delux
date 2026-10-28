@@ -43,12 +43,57 @@ def gdrive_disabled() -> bool:
     return value in ("1", "true", "yes", "on")
 
 
+# Имена, которые считаем «нашим» Google Drive, если явно не задан
+# DELUX_GDRIVE_REMOTE. Порядок = приоритет.
+_PREFERRED_REMOTES = ("gdrive", "delux", "google", "gdrive-delux")
+
+
 def default_remote() -> str:
-    return _env("DELUX_GDRIVE_REMOTE", "gdrive") or "gdrive"
+    return _env("DELUX_GDRIVE_REMOTE") or ""
 
 
 def default_remote_path() -> str:
     return _env("DELUX_GDRIVE_PATH", "DeluX/backups/db") or "DeluX/backups/db"
+
+
+def pick_remote(remotes: list[str]) -> str:
+    """Выбрать remote для загрузки.
+
+    1. DELUX_GDRIVE_REMOTE, если задан и существует.
+    2. Первое совпадение из _PREFERRED_REMOTES.
+    3. Если настроен ровно один remote — используем его (имя не важно:
+       пользователь мог назвать его как угодно, например 'delux').
+    """
+    explicit = default_remote()
+    if explicit:
+        return explicit
+    lower = {r.lower(): r for r in remotes}
+    for name in _PREFERRED_REMOTES:
+        if name in lower:
+            return lower[name]
+    if len(remotes) == 1:
+        return remotes[0]
+    return "gdrive"
+
+
+def remote_type(exe: str, name: str) -> str:
+    """Тип remote (drive / onedrive / …) — чтобы предупредить, если это не Drive."""
+    try:
+        res = subprocess.run(
+            [exe, "config", "show", name],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=60,
+        )
+    except Exception:  # noqa: BLE001
+        return ""
+    for line in (res.stdout or "").splitlines():
+        if line.strip().lower().startswith("type"):
+            _, _, value = line.partition("=")
+            return value.strip()
+    return ""
 
 
 def find_rclone() -> Optional[str]:
@@ -107,7 +152,8 @@ def status() -> dict:
     """Что настроено — для вывода в консоль."""
     exe = find_rclone()
     remotes = rclone_remotes(exe) if exe else []
-    remote = default_remote()
+    remote = pick_remote(remotes)
+    rtype = remote_type(exe, remote) if (exe and remote in remotes) else ""
     local = gdrive_local_dir()
     return {
         "disabled": gdrive_disabled(),
@@ -115,6 +161,7 @@ def status() -> dict:
         "remotes": remotes,
         "remote": remote,
         "remote_ready": bool(exe) and remote in remotes,
+        "remote_type": rtype,
         "remote_path": default_remote_path(),
         "local_dir": str(local) if local else "",
     }
@@ -132,8 +179,9 @@ def upload(backup_path: Path, *, dry_run: bool = False) -> tuple[bool, str]:
         return False, f"файл не найден: {backup_path}"
 
     exe = find_rclone()
-    remote = default_remote()
-    if exe and remote in rclone_remotes(exe):
+    remotes = rclone_remotes(exe) if exe else []
+    remote = pick_remote(remotes)
+    if exe and remote in remotes:
         target = f"{remote}:{default_remote_path()}"
         cmd = [exe, "copy", str(backup_path), target, "--stats-one-line", "--stats=0"]
         if dry_run:
@@ -194,7 +242,11 @@ def main() -> int:
         print(f"  отключён:        {st['disabled']}")
         print(f"  rclone:          {st['rclone'] or 'не найден'}")
         print(f"  remote'ы:        {', '.join(st['remotes']) or '—'}")
-        print(f"  используем:      {st['remote']} ({'настроен' if st['remote_ready'] else 'НЕ настроен'})")
+        ready = "настроен" if st["remote_ready"] else "НЕ настроен"
+        print(f"  используем:      {st['remote']} ({ready})")
+        if st.get("remote_type"):
+            mark = "" if st["remote_type"] == "drive" else "  [!] это не Google Drive"
+            print(f"  тип:             {st['remote_type']}{mark}")
         print(f"  путь в облаке:   {st['remote_path']}")
         print(f"  локальная папка: {st['local_dir'] or '—'}")
         if not args.file:

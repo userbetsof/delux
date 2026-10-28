@@ -30,7 +30,7 @@ echo.
 echo Interactive setup starts next. Answer exactly as listed:
 echo.
 echo   1. "n/s/q"                    : n      exit new remote
-echo   2. name for the new remote    : gdrive
+echo   2. name for the new remote    : gdrive   (any name works)
 echo   3. storage type               : 24     Google Drive
 echo   4. Option client_id           : Enter  use shared one
 echo   5. Continue using shared id?  : y
