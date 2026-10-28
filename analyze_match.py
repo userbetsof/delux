@@ -40,15 +40,19 @@ def _match_analyzed(match_id: str) -> bool:
 #   teams / leagues / countries  — справочники, общие для всех матчей;
 #   match_queue                  — очередь, откуда берутся матчи;
 #   team_matches_cache           — история команд (общий кэш, не результат матча);
-#   *_rating_history             — пересчитывается отдельно (ratings.py).
+#   *_rating_history             — пересчитывается отдельно (ratings.py);
+#   match_snapshot               — это ВХОДНЫЕ данные (таблица, форма, H2H, матчи
+#                                  команд), а не результат. Удалять его нельзя:
+#                                  при повторном анализе таблица не загрузится
+#                                  (страница лиги может быть недоступна), и прогноз
+#                                  потеряется. Снимок обновляется сам при анализе;
+#   match_weather                — тоже входные данные (погода на матч);
+#   match_stats                  — статистика матча из фида, не наш расчёт.
 RESET_TABLES = (
     "strategy_predictions",
     "odds",
     "outcome_probabilities",
     "goal_probabilities",
-    "match_snapshot",
-    "match_weather",
-    "match_stats",
     "match_missing_players",
     "moneyway",
     "whoscored_preview",

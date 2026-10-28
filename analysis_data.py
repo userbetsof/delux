@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -805,8 +806,64 @@ def _merge_split_tables(
     return primary + [r for r in secondary if r.team not in primary_teams]
 
 
+def _snapshot_table_rows(match_id: str, table_name: str) -> List[TableRow]:
+    """Таблица из сохранённого снимка match_snapshot (standings_json/form_json).
+
+    Нужна, когда сеть недоступна (страница лиги заблокирована) — иначе
+    повторный анализ остаётся без таблицы и прогноз не считается.
+    Снимок хранит {"overall": [...], "home": [...], "away": [...]}.
+    """
+    field = "form_json" if table_name.startswith("form_") else "standings_json"
+    side = table_name.split("_", 1)[1] if "_" in table_name else "overall"
+    try:
+        from db import get_db_connection
+
+        with get_db_connection() as conn:
+            row = conn.execute(
+                f"SELECT {field} FROM match_snapshot WHERE match_id = ?",
+                (match_id,),
+            ).fetchone()
+    except Exception:  # noqa: BLE001
+        return []
+    if not row or not row[0]:
+        return []
+    try:
+        payload = json.loads(row[0]) if isinstance(row[0], str) else row[0]
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return []
+    if not isinstance(payload, dict):
+        return []
+    out: List[TableRow] = []
+    for item in payload.get(side) or []:
+        if not isinstance(item, dict) or not item.get("team"):
+            continue
+        out.append(
+            TableRow(
+                rank=str(item.get("rank", "")),
+                team=str(item.get("team", "")),
+                played=str(item.get("played", "")),
+                wins=str(item.get("wins", "")),
+                draws=str(item.get("draws", "")),
+                losses=str(item.get("losses", "")),
+                scored=str(item.get("scored", "")),
+                conceded=str(item.get("conceded", "")),
+                points=str(item.get("points", "")),
+            )
+        )
+    return out
+
+
 def fetch_table(settings: MatchSettings, match_id: str, table_name: str) -> List[TableRow]:
-    rows = _fetch_table_once(settings, match_id, table_name)
+    # Сначала сеть; при сбое или пустом ответе — сохранённый снимок,
+    # чтобы повторный анализ не остался без таблицы.
+    try:
+        rows = _fetch_table_once(settings, match_id, table_name)
+    except Exception:  # noqa: BLE001
+        rows = []
+    if not rows:
+        rows = _snapshot_table_rows(match_id, table_name)
+        if rows:
+            print(f"    [snapshot] {table_name}: {len(rows)} строк (сеть недоступна)")
 
     # MLB: home/away от Flashscore — только одна конференция (~15 команд).
     # Подтягиваем вторую из другого матча МЛБ дня.
