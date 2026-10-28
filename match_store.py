@@ -8,6 +8,37 @@ from typing import Dict, List, Optional, Tuple
 from analysis_data import MatchInfo
 from date_utils import normalize_match_date
 from db import create_database, get_db_connection
+from flashscore_feed import FIELD_SEP, ROW_SEP, FLASHSCORE_SOURCER, fetch_feed
+
+
+def _fetch_match_score_from_dc(match_id: str, sport: int) -> Tuple[Optional[int], Optional[int]]:
+    """Итоговый счёт матча из dc_ фида (поля DE/DF)."""
+    url = f"https://{FLASHSCORE_SOURCER}x/feed/dc_{int(sport)}_{match_id}"
+    try:
+        text = fetch_feed(url, retries=2, timeout=30)
+    except Exception:
+        return None, None
+    if not text:
+        return None, None
+
+    score_home = score_away = None
+    for chunk in (text or "").replace("~", ROW_SEP).split(ROW_SEP):
+        key, sep, value = chunk.partition(FIELD_SEP)
+        if not sep:
+            continue
+        key = key.strip()
+        value = value.strip()
+        if key == "DE":
+            try:
+                score_home = int(float(value))
+            except (ValueError, TypeError):
+                pass
+        elif key == "DF":
+            try:
+                score_away = int(float(value))
+            except (ValueError, TypeError):
+                pass
+    return score_home, score_away
 
 
 @dataclass

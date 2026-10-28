@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -12,6 +13,7 @@ from date_utils import parse_match_datetime
 
 GEOCODING_URL = "https://geocoding-api.open-meteo.com/v1/search"
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
+ARCHIVE_URL = "https://archive-api.open-meteo.com/v1/archive"
 PROVIDER = "open-meteo"
 HOURLY_FIELDS = (
     "temperature_2m",
@@ -31,10 +33,31 @@ API_HEADERS = {
 }
 
 
-def _get_json(url: str, timeout: int = 20) -> Dict[str, Any]:
-    req = urllib.request.Request(url, headers=API_HEADERS)
-    with urllib.request.urlopen(req, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8", errors="replace"))
+def _get_json(url: str, timeout: int = 20, *, retries: int = 3) -> Dict[str, Any]:
+    """GET JSON с повторами: Open-Meteo иногда отдаёт 429/таймаут."""
+    import time as _time
+
+    last_err: Optional[BaseException] = None
+    for attempt in range(max(1, retries)):
+        try:
+            req = urllib.request.Request(url, headers=API_HEADERS)
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                return json.loads(response.read().decode("utf-8", errors="replace"))
+        except (
+            urllib.error.HTTPError,
+            urllib.error.URLError,
+            TimeoutError,
+            OSError,
+            json.JSONDecodeError,
+        ) as exc:
+            last_err = exc
+            # 4xx кроме 429 повторять бессмысленно (неверные координаты и т.п.)
+            code = getattr(exc, "code", None)
+            if code is not None and 400 <= code < 500 and code != 429:
+                raise
+            if attempt + 1 < retries:
+                _time.sleep(0.8 * (attempt + 1))
+    raise RuntimeError(f"weather request failed: {last_err}") from last_err
 
 
 def _utc_iso(dt: datetime) -> str:
@@ -97,7 +120,16 @@ def resolve_venue(venue: str, town: str) -> Optional[Dict[str, Any]]:
 
 
 def forecast_url(latitude: float, longitude: float, valid_at: datetime) -> str:
-    day = valid_at.astimezone(timezone.utc).date().isoformat()
+    """URL Open-Meteo. Для прошедших дат — архивный API.
+
+    Обычный /v1/forecast отдаёт 400 на старые даты (архив там недоступен),
+    исторические матчи обслуживает archive-api.open-meteo.com/v1/archive.
+    """
+    target = valid_at.astimezone(timezone.utc)
+    day = target.date().isoformat()
+    # Архив покрывает данные старше ~5 суток.
+    is_history = (datetime.now(timezone.utc) - target).days > 5
+    base = ARCHIVE_URL if is_history else FORECAST_URL
     query = urllib.parse.urlencode(
         {
             "latitude": f"{latitude:.6f}",
@@ -109,7 +141,7 @@ def forecast_url(latitude: float, longitude: float, valid_at: datetime) -> str:
             "end_date": day,
         }
     )
-    return f"{FORECAST_URL}?{query}"
+    return f"{base}?{query}"
 
 
 def parse_hourly_weather(

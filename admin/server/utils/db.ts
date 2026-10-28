@@ -5,7 +5,7 @@ import { DatabaseSync } from 'node:sqlite'
 const ROOT = resolve(process.cwd(), '..')
 
 const DB_ALIASES: Record<string, string> = {
-  matches: resolve(ROOT, 'matches.db'),
+  matches: 'C:/papki/work/bets/delux/matches.db',
   parity_excel: resolve(ROOT, 'data', 'parity_excel.db'),
   parity_python: resolve(ROOT, 'data', 'parity_python.db'),
 }

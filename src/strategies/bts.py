@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
 from analysis_data import MatchSettings
@@ -45,9 +45,13 @@ def _parse_h2h_block(data: str) -> List[_H2HGame]:
                     except ValueError:
                         g1 = g2 = 0
         if ts and (g1 or g2 or "KL÷" in block):
+            try:
+                game_date = datetime.fromtimestamp(ts, tz=timezone.utc)
+            except (OSError, ValueError, OverflowError):
+                continue
             games.append(
                 _H2HGame(
-                    date=datetime.fromtimestamp(ts),
+                    date=game_date,
                     home_score=g1,
                     away_score=g2,
                 )
@@ -93,9 +97,13 @@ def fetch_bts_h2h(match_id: str, settings: MatchSettings) -> List[_H2HGame]:
                         g1 = g2 = 0
                         
         if ts and (g1 or g2 or "KL÷" in chunk or f"KL{chr(247)}" in chunk):
+            try:
+                game_date = datetime.fromtimestamp(ts, tz=timezone.utc)
+            except (OSError, ValueError, OverflowError):
+                continue
             games.append(
                 _H2HGame(
-                    date=datetime.fromtimestamp(ts),
+                    date=game_date,
                     home_score=g1,
                     away_score=g2,
                 )

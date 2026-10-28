@@ -31,18 +31,17 @@ type Summary = {
 
 const { dbQuery } = useAdminDb()
 const matchId = ref('')
-const strategyId = ref<number | null>(null)
-const sport = ref<number | null>(null)
+const strategyIds = ref<number[]>([])
+const sports = ref<number[]>([])
 const settledOnly = ref(false)
 const stake = ref(1)
 const oddsMin = ref<number | null>(null)
 const oddsMax = ref<number | null>(null)
 const edgeMin = ref<number | null>(null)
 const edgeMax = ref<number | null>(null)
-const dateMenu = ref(false)
 const dateFrom = ref<string | null>(null)
 const dateTo = ref<string | null>(null)
-const { limit, offset, nextPage, prevPage, resetOffset, setLimit } = useTablePagination(50)
+const { limit, offset, nextPage, prevPage, resetOffset, setLimit } = useTablePagination(10)
 
 function formatDate(d: Date | null): string | null {
   if (!d) return null
@@ -52,36 +51,12 @@ function formatDate(d: Date | null): string | null {
   return `${y}-${m}-${day}`
 }
 
-const dateRange = computed<Date[]>({
-  get: () => {
-    if (dateFrom.value && dateTo.value) {
-      return [new Date(dateFrom.value), new Date(dateTo.value)]
-    }
-    return []
-  },
-  set: (val: Date[]) => {
-    if (val.length >= 2) {
-      dateFrom.value = formatDate(val[0])
-      dateTo.value = formatDate(val[1])
-    }
-  },
-})
-
-const dateLabel = computed(() => {
-  const parts: string[] = []
-  if (dateFrom.value) parts.push(dateFrom.value)
-  if (dateTo.value) parts.push(dateTo.value)
-  return parts.length ? parts.join(' — ') : ''
-})
-
 function clearDate() {
   dateFrom.value = null
   dateTo.value = null
-  dateMenu.value = false
 }
 
 const strategyItems = [
-  { title: 'Все', value: null },
   { title: '1 NTB', value: 1 },
   { title: '2 Betalone', value: 2 },
   { title: '3 Sniper', value: 3 },
@@ -91,20 +66,33 @@ const strategyItems = [
   { title: '7 Moneyway', value: 7 },
   { title: '8 1pr', value: 8 },
   { title: '9 WhoScored', value: 9 },
+  { title: '10 XGBoost', value: 10 },
 ]
 
 const sportItems = [
-  { title: 'Все', value: null },
   { title: 'Футбол', value: 1 },
   { title: 'Баскетбол', value: 3 },
   { title: 'Хоккей', value: 4 },
   { title: 'Бейсбол', value: 6 },
 ]
 
+// Пустой выбор = без фильтра (все). Передаём строкой через запятую.
+function joinIds(values: number[]): string | undefined {
+  return values.length ? values.join(',') : undefined
+}
+
 function numOrUndef(v: unknown): number | undefined {
   if (v == null || v === '') return undefined
   const n = Number(v)
   return Number.isFinite(n) ? n : undefined
+}
+
+function stripUndefined(obj: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) result[k] = v
+  }
+  return result
 }
 
 const filterNums = computed(() => ({
@@ -114,29 +102,33 @@ const filterNums = computed(() => ({
   edge_max: numOrUndef(edgeMax.value),
 }))
 
-const listQuery = computed(() => ({
-  ...dbQuery.value,
-  match_id: matchId.value || undefined,
-  strategy_id: strategyId.value ?? undefined,
-  sport: sport.value ?? undefined,
-  date_from: dateFrom.value || undefined,
-  date_to: dateTo.value || undefined,
-  ...filterNums.value,
-  limit: limit.value,
-  offset: offset.value,
-}))
+const listQuery = computed(() =>
+  stripUndefined({
+    ...dbQuery.value,
+    match_id: matchId.value || undefined,
+    strategy_id: joinIds(strategyIds.value),
+    sport: joinIds(sports.value),
+    date_from: dateFrom.value || undefined,
+    date_to: dateTo.value || undefined,
+    ...filterNums.value,
+    limit: limit.value,
+    offset: offset.value,
+  }),
+)
 
-const summaryQuery = computed(() => ({
-  ...dbQuery.value,
-  match_id: matchId.value || undefined,
-  strategy_id: strategyId.value ?? undefined,
-  sport: sport.value ?? undefined,
-  date_from: dateFrom.value || undefined,
-  date_to: dateTo.value || undefined,
-  settled: settledOnly.value ? '1' : undefined,
-  stake: stake.value || 1,
-  ...filterNums.value,
-}))
+const summaryQuery = computed(() =>
+  stripUndefined({
+    ...dbQuery.value,
+    match_id: matchId.value || undefined,
+    strategy_id: joinIds(strategyIds.value),
+    sport: joinIds(sports.value),
+    date_from: dateFrom.value || undefined,
+    date_to: dateTo.value || undefined,
+    settled: settledOnly.value ? '1' : undefined,
+    stake: stake.value || 1,
+    ...filterNums.value,
+  }),
+)
 
 const { data, pending, error, refresh } = await useFetch<Paginated<Record<string, unknown>>>(
   '/api/predictions',
@@ -154,32 +146,39 @@ const {
 })
 
 const headers = [
-  { title: 'ID', key: 'id' },
-  { title: 'Дата', key: 'match_date' },
-  { title: 'Матч', key: 'match_id' },
-  { title: 'Стратегия', key: 'strategy_name' },
+  { title: 'ID', key: 'id', width: '80px' },
+  { title: 'Дата', key: 'match_date', width: '160px' },
+  { title: 'Матч', key: 'match_id', width: '120px' },
+  { title: 'Стратегия', key: 'strategy_name', width: '140px' },
   { title: 'Прогноз', key: 'prediction' },
-  { title: 'Кф', key: 'odds' },
-  { title: 'Edge', key: 'edge' },
-  { title: 'Счёт', key: 'score' },
-  { title: 'Результат', key: 'result' },
-  { title: 'Профит', key: 'profit' },
+  { title: 'Кф', key: 'odds', width: '80px' },
+  { title: 'Edge', key: 'edge', width: '100px' },
+  { title: 'Счёт', key: 'score', width: '90px' },
+  { title: 'Результат', key: 'result', width: '110px' },
+  { title: 'Профит', key: 'profit', width: '100px' },
 ]
 
 const stratHeaders = [
   { title: 'Стратегия', key: 'strategy_name' },
-  { title: 'Всего', key: 'total' },
-  { title: 'Расчёт', key: 'settled' },
-  { title: 'Ожид.', key: 'pending' },
-  { title: 'W', key: 'wins' },
-  { title: 'L', key: 'losses' },
-  { title: 'P', key: 'pushes' },
-  { title: 'Ставка', key: 'stake_sum' },
-  { title: 'Профит', key: 'profit' },
-  { title: 'ROI %', key: 'roi' },
+  { title: 'Всего', key: 'total', width: '80px' },
+  { title: 'Расчёт', key: 'settled', width: '80px' },
+  { title: 'Ожид.', key: 'pending', width: '80px' },
+  { title: 'W', key: 'wins', width: '60px' },
+  { title: 'L', key: 'losses', width: '60px' },
+  { title: 'P', key: 'pushes', width: '60px' },
+  { title: 'Ставка', key: 'stake_sum', width: '100px' },
+  { title: 'Профит', key: 'profit', width: '100px' },
+  { title: 'ROI %', key: 'roi', width: '80px' },
 ]
 
-watch([matchId, strategyId, sport, dateFrom, dateTo, limit, settledOnly, stake, oddsMin, oddsMax, edgeMin, edgeMax], resetOffset)
+watch(
+  [matchId, strategyIds, sports, dateFrom, dateTo, limit, settledOnly, stake, oddsMin, oddsMax, edgeMin, edgeMax],
+  () => {
+    resetOffset()
+    refreshAll()
+  },
+  { deep: true },
+)
 
 function fmt(n: number | null | undefined, digits = 2) {
   if (n == null || Number.isNaN(Number(n))) return '—'
@@ -208,173 +207,197 @@ async function refreshAll() {
 
 <template>
   <div>
-    <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-2">
-      <div class="text-h5 font-weight-bold">Прогнозы стратегий</div>
-      <div class="d-flex align-center ga-2 flex-wrap">
-        <v-text-field
-          v-model="matchId"
-          label="match_id"
-          density="compact"
-          hide-details
-          clearable
-          style="min-width: 140px"
-        />
-        <v-select
-          v-model="strategyId"
-          :items="strategyItems"
-          label="Стратегия"
-          density="compact"
-          hide-details
-          style="min-width: 150px"
-        />
-        <v-select
-          v-model="sport"
-          :items="sportItems"
-          label="Спорт"
-          density="compact"
-          hide-details
-          style="min-width: 130px"
-        />
-        <v-menu v-model="dateMenu" transition="slide-y-transition">
-          <template #activator="{ props }">
-            <v-text-field
-              v-bind="props"
-              :label="dateLabel || 'Дата'"
-              prepend-inner-icon="mdi-calendar-range"
-              density="compact"
-              hide-details
-              clearable
-              style="min-width: 200px"
-              :value="dateLabel || undefined"
-            />
-          </template>
-          <v-date-picker
-            v-model="dateRange"
-            mode="range"
-            density="compact"
-            color="primary"
-          >
-            <template #append>
-              <v-btn variant="text" color="error" @click.stop="clearDate">Очистить</v-btn>
-              <v-btn variant="tonal" @click="dateMenu = false">Готово</v-btn>
-            </template>
-          </v-date-picker>
-        </v-menu>
-        <v-text-field
-          v-model.number="oddsMin"
-          label="Кф от"
-          type="number"
-          density="compact"
-          hide-details
-          clearable
-          style="max-width: 88px"
-          min="1"
-          step="0.05"
-        />
-        <v-text-field
-          v-model.number="oddsMax"
-          label="Кф до"
-          type="number"
-          density="compact"
-          hide-details
-          clearable
-          style="max-width: 88px"
-          min="1"
-          step="0.05"
-        />
-        <v-text-field
-          v-model.number="edgeMin"
-          label="Edge от, pp"
-          type="number"
-          density="compact"
-          hide-details
-          clearable
-          style="max-width: 100px"
-          step="0.1"
-        />
-        <v-text-field
-          v-model.number="edgeMax"
-          label="Edge до, pp"
-          type="number"
-          density="compact"
-          hide-details
-          clearable
-          style="max-width: 100px"
-          step="0.1"
-        />
-        <v-text-field
-          v-model.number="stake"
-          label="Stake"
-          type="number"
-          density="compact"
-          hide-details
-          style="max-width: 90px"
-          min="0.1"
-          step="0.1"
-        />
-        <v-switch
-          v-model="settledOnly"
-          label="Только расчёт"
-          density="compact"
-          hide-details
-          color="primary"
-        />
-        <v-btn variant="outlined" :loading="pending || summaryPending" @click="refreshAll">
-          Обновить
-        </v-btn>
-      </div>
+    <!-- Page Header -->
+    <div class="page-header mb-5">
+      <div class="page-title">Прогнозы стратегий</div>
     </div>
 
-    <v-alert v-if="error || summaryError" type="error" class="mb-3" density="compact">
+    <!-- Filters -->
+    <div class="filter-section">
+      <v-row dense>
+        <v-col cols="12" sm="6" md="2">
+          <v-text-field
+            v-model="matchId"
+            label="match_id"
+            density="compact"
+            hide-details
+            clearable
+            variant="outlined"
+            class="text-black"
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="2">
+          <v-select
+            v-model="strategyIds"
+            :items="strategyItems"
+            label="Стратегия"
+            density="compact"
+            hide-details
+            variant="outlined"
+            multiple
+            chips
+            closable-chips
+            clearable
+            class="text-black"
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="2">
+          <v-select
+            v-model="sports"
+            :items="sportItems"
+            label="Спорт"
+            density="compact"
+            hide-details
+            variant="outlined"
+            multiple
+            chips
+            closable-chips
+            clearable
+            class="text-black"
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="2">
+          <v-text-field
+            v-model="dateFrom"
+            label="Дата от"
+            type="date"
+            density="compact"
+            hide-details
+            clearable
+            variant="outlined"
+            class="text-black"
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="2">
+          <v-text-field
+            v-model="dateTo"
+            label="Дата до"
+            type="date"
+            density="compact"
+            hide-details
+            clearable
+            variant="outlined"
+            class="text-black"
+          />
+        </v-col>
+        <v-col cols="6" sm="4" md="2">
+          <v-text-field
+            v-model.number="oddsMin"
+            label="Кф от"
+            type="number"
+            density="compact"
+            hide-details
+            clearable
+            variant="outlined"
+            min="1"
+            step="0.05"
+          />
+        </v-col>
+        <v-col cols="6" sm="4" md="2">
+          <v-text-field
+            v-model.number="oddsMax"
+            label="Кф до"
+            type="number"
+            density="compact"
+            hide-details
+            clearable
+            variant="outlined"
+            min="1"
+            step="0.05"
+          />
+        </v-col>
+        <v-col cols="6" sm="4" md="2">
+          <v-text-field
+            v-model.number="edgeMin"
+            label="Edge от, pp"
+            type="number"
+            density="compact"
+            hide-details
+            clearable
+            variant="outlined"
+            step="0.1"
+          />
+        </v-col>
+        <v-col cols="6" sm="4" md="2">
+          <v-text-field
+            v-model.number="edgeMax"
+            label="Edge до, pp"
+            type="number"
+            density="compact"
+            hide-details
+            clearable
+            variant="outlined"
+            step="0.1"
+          />
+        </v-col>
+        <v-col cols="12" sm="6" md="2" class="d-flex align-end flex-wrap gap-2">
+          <v-btn
+            variant="outlined"
+            :loading="pending || summaryPending"
+            @click="refreshAll()"
+            color="primary"
+            full-width
+          >
+            <v-icon start>mdi-refresh</v-icon>
+            Обновить
+          </v-btn>
+        </v-col>
+      </v-row>
+    </div>
+
+    <!-- Error Alerts -->
+    <v-alert v-if="error || summaryError" type="error" class="mb-3" density="compact" rounded="lg">
       {{ error?.message || summaryError?.message || error || summaryError }}
     </v-alert>
 
+    <!-- Summary Cards -->
     <v-row class="mb-4" dense>
       <v-col cols="6" sm="4" md="2">
-        <v-card variant="tonal" class="pa-3">
+        <div class="metric-card pa-3">
           <div class="text-caption text-medium-emphasis">Прогнозов</div>
           <div class="text-h6">{{ summary?.total ?? '—' }}</div>
-        </v-card>
+        </div>
       </v-col>
       <v-col cols="6" sm="4" md="2">
-        <v-card variant="tonal" class="pa-3">
+        <div class="metric-card pa-3">
           <div class="text-caption text-medium-emphasis">Расчёт / ожид.</div>
           <div class="text-h6">{{ summary?.settled ?? 0 }} / {{ summary?.pending ?? 0 }}</div>
-        </v-card>
+        </div>
       </v-col>
       <v-col cols="6" sm="4" md="2">
-        <v-card variant="tonal" class="pa-3">
+        <div class="metric-card pa-3">
           <div class="text-caption text-medium-emphasis">W / L / P</div>
-          <div class="text-h6">
+          <div class="text-h6 text-body-2">
             {{ summary?.wins ?? 0 }} / {{ summary?.losses ?? 0 }} / {{ summary?.pushes ?? 0 }}
           </div>
-        </v-card>
+        </div>
       </v-col>
       <v-col cols="6" sm="4" md="2">
-        <v-card variant="tonal" class="pa-3">
+        <div class="metric-card pa-3">
           <div class="text-caption text-medium-emphasis">Оборот (stake)</div>
           <div class="text-h6">{{ fmt(summary?.stake_sum) }}</div>
-        </v-card>
+        </div>
       </v-col>
       <v-col cols="6" sm="4" md="2">
-        <v-card variant="tonal" class="pa-3" :color="profitColor(summary?.profit)">
+        <div class="metric-card pa-3" :class="profitColor(summary?.profit)">
           <div class="text-caption">Профит</div>
           <div class="text-h6">{{ fmt(summary?.profit) }}</div>
-        </v-card>
+        </div>
       </v-col>
       <v-col cols="6" sm="4" md="2">
-        <v-card variant="tonal" class="pa-3" :color="profitColor(summary?.roi)">
+        <div class="metric-card pa-3" :class="profitColor(summary?.roi)">
           <div class="text-caption">ROI %</div>
           <div class="text-h6">{{ fmt(summary?.roi) }}</div>
-        </v-card>
+        </div>
       </v-col>
     </v-row>
 
-    <v-card class="mb-4">
-      <div class="pa-3 text-subtitle-1 font-weight-medium">
+    <!-- Strategy Performance -->
+    <div class="content-card mb-4">
+      <div class="card-header">
         Прибыль по стратегиям
         <span class="text-caption text-medium-emphasis ml-2">
-          (только завершённые матчи, stake={{ summary?.stake_unit ?? 1 }})
+          (только завершённые, stake={{ summary?.stake_unit ?? 1 }})
         </span>
       </div>
       <v-data-table
@@ -384,6 +407,7 @@ async function refreshAll() {
         item-value="strategy_id"
         hide-default-footer
         density="compact"
+        class="elevation-0"
       >
         <template #item.profit="{ item }">
           <span :class="Number(item.profit) > 0 ? 'text-success' : Number(item.profit) < 0 ? 'text-error' : ''">
@@ -396,18 +420,23 @@ async function refreshAll() {
           </span>
         </template>
       </v-data-table>
-    </v-card>
+    </div>
 
-    <v-card>
+    <!-- Predictions Table -->
+    <div class="content-card">
       <v-data-table
         :headers="headers"
         :items="data?.items || []"
         :loading="pending"
         item-value="id"
         hide-default-footer
+        density="compact"
+        class="elevation-0"
       >
         <template #item.match_id="{ item }">
-          <NuxtLink :to="`/matches/${item.match_id}`">{{ item.match_id }}</NuxtLink>
+          <NuxtLink :to="`/matches/${item.match_id}`" class="text-primary font-weight-medium">
+            {{ item.match_id }}
+          </NuxtLink>
         </template>
         <template #item.score="{ item }">
           <span v-if="item.score_home != null && item.score_away != null">
@@ -433,6 +462,17 @@ async function refreshAll() {
             {{ item.profit ?? '—' }}
           </span>
         </template>
+        <template #item.result="{ item }">
+          <v-chip
+            size="small"
+            :color="
+              item.result === 'win' ? 'success' : item.result === 'loss' ? 'error' : 'warning'
+            "
+            variant="tonal"
+          >
+            {{ item.result || '—' }}
+          </v-chip>
+        </template>
       </v-data-table>
       <v-divider />
       <PaginationBar
@@ -444,6 +484,16 @@ async function refreshAll() {
         @next="nextPage"
         @update:limit="setLimit"
       />
-    </v-card>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.ml-2 {
+  margin-left: 8px;
+}
+
+.gap-2 {
+  gap: 8px;
+}
+</style>

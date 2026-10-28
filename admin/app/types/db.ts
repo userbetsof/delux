@@ -49,6 +49,14 @@ export interface WsMissingPlayer {
   rating?: number | null
 }
 
+export interface MatchStats {
+  [key: string]: {
+    home: number
+    away: number
+  }
+  fetched_at?: string
+}
+
 export interface WhoscoredPreview {
   match_id: string
   ws_id?: string | null
@@ -156,6 +164,7 @@ export interface MatchDetail {
     history: MatchWeather[]
   }
   whoscored?: WhoscoredPreview | null
+  matchStats?: MatchStats | null
 }
 
 export const SPORT_LABELS: Record<number, string> = {
@@ -168,4 +177,51 @@ export const SPORT_LABELS: Record<number, string> = {
 export function sportLabel(sport?: number | null): string {
   if (sport == null) return '—'
   return SPORT_LABELS[sport] || String(sport)
+}
+
+// ============================================================================
+// ELO TYPES
+// ============================================================================
+
+export interface EloRating {
+  team_id: number
+  team_name: string
+  sport: number
+  sport_label: string
+  rating: number
+  matches_played: number
+  wins: number
+  losses: number
+  draws: number
+  last_updated: string
+  tier: string
+}
+
+export interface EloSummary {
+  total_teams: number
+  avg_rating: number
+  median_rating: number
+  min_rating: number
+  max_rating: number
+  total_matches: number
+  by_tier: Record<string, number>
+}
+
+export interface EloMatchDelta {
+  match_id: string
+  sport: number
+  home_team: string
+  away_team: string
+  score_home: number | null
+  score_away: number | null
+  elo_before: { home: number; away: number }
+  elo_after: { home: number; away: number }
+  delta: { home: number; away: number }
+}
+
+export function eloTier(rating: number): { label: string; color: string } {
+  if (rating >= 1800) return { label: 'Champion', color: 'success' }
+  if (rating >= 1600) return { label: 'Strong', color: 'primary' }
+  if (rating >= 1400) return { label: 'Average', color: '' }
+  return { label: 'Weak', color: 'error' }
 }

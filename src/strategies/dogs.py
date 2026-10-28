@@ -133,6 +133,11 @@ _ARBWORLD_ALIAS_CACHE: Optional[Dict[str, str]] = None
 
 
 def _arbworld_alias_map() -> Dict[str, str]:
+    """Flashscore-имя (casefold) → имя Arbworld.
+
+    Кеш сбрасывается при записи нового alias (см. set_service_team_name),
+    иначе введённое во время анализа имя не применилось бы до перезапуска.
+    """
     global _ARBWORLD_ALIAS_CACHE
     if _ARBWORLD_ALIAS_CACHE is not None:
         return _ARBWORLD_ALIAS_CACHE

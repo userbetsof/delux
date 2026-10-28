@@ -117,6 +117,95 @@ def _first_number(*vals) -> float:
     return 0.0
 
 
+def _find_team_in_table(rows: List[List], team_name: str) -> Optional[List]:
+    """Найти строку команды в таблице по имени."""
+    team_lower = team_name.casefold()
+    for row in rows:
+        row_team = (row[1] or "").casefold()
+        if team_lower in row_team or row_team in team_lower:
+            return row
+    return None
+
+
+def _team_rates(row: List) -> Optional[Tuple[float, float, float]]:
+    """Вычислить win/draw/loss rates для одной команды."""
+    try:
+        played = float(row[2] or 0)
+        wins = float(row[3] or 0)
+        draws = float(row[4] or 0)
+        losses = float(row[5] or 0)
+    except (TypeError, ValueError):
+        return None
+
+    if played <= 0:
+        return None
+
+    return (wins / played, draws / played, losses / played)
+
+
+def _populate_incognito_data_excel(
+    wb, home_team: str, away_team: str,
+    overall_rows: List[List], home_rows: List[List], away_rows: List[List],
+) -> None:
+    """Заполнить Incognito DATA!B2-D11 из Python (минуя VLOOKUP).
+    
+    Table sheet columns: B=team, C=played, D=wins, E=draws, F=losses,
+                         G=scored, H=conceded, I=points
+    
+    Incognito DATA:
+    - B2-D2: overall stats for home team (played, wins, draws)
+    - B3-D3: overall stats for away team
+    - B4-D4: 3rd team overall stats
+    - B5-D5: 4th team overall stats
+    - B8-D8: home team stats from HOME table
+    - B9-D9, B10-D10, B11-D11: 2nd, 3rd, 4th teams from HOME table
+    """
+    try:
+        ws_inco = wb.Worksheets("Incognito DATA")
+    except Exception:
+        return
+
+    def _find(rows, name):
+        team_lower = name.casefold()
+        for row in rows:
+            row_team = (row[1] or "").casefold()
+            if team_lower in row_team or row_team in team_lower:
+                return row
+        return None
+
+    def _set_row(row_idx, team_row):
+        """B=played(index 2), C=wins(index 3), D=draws(index 4)"""
+        if team_row:
+            ws_inco.Range(f"B{row_idx}").Value = _safe_float(team_row[2])
+            ws_inco.Range(f"C{row_idx}").Value = _safe_float(team_row[3])
+            ws_inco.Range(f"D{row_idx}").Value = _safe_float(team_row[4])
+        else:
+            ws_inco.Range(f"B{row_idx}").Value = 0
+            ws_inco.Range(f"C{row_idx}").Value = 0
+            ws_inco.Range(f"D{row_idx}").Value = 0
+
+    # Overall: B2-D2 = home, B3-D3 = away
+    _set_row(2, _find(overall_rows, home_team))
+    _set_row(3, _find(overall_rows, away_team))
+    # B4-D4, B5-D5 = 3rd, 4th teams
+    if len(overall_rows) > 2:
+        _set_row(4, overall_rows[2])
+    if len(overall_rows) > 3:
+        _set_row(5, overall_rows[3])
+
+    # B8-D11: HOME table stats
+    if home_rows:
+        _set_row(8, _find(home_rows, home_team))
+        for i, row_idx in enumerate((9, 10, 11), start=1):
+            if i < len(home_rows):
+                _set_row(row_idx, home_rows[i])
+            else:
+                _set_row(row_idx, None)
+    else:
+        for row_idx in (8, 9, 10, 11):
+            _set_row(row_idx, None)
+
+
 def _cell_value(ws, addr: str):
     val = ws.Range(addr).Value
     if isinstance(val, int) and val < 0:
@@ -358,6 +447,37 @@ class ExcelCalcEngine:
             rows = _table_rows(getattr(payload, attr))
             if rows:
                 _write_block(self.wb.Worksheets(SHEET_FORM), col, 2, rows)
+
+        # M26-M28: rates хозяев из home таблицы (M = col 13 on Расчеты)
+        # 1PR: Анализ!H24=Расчеты!M26, J24=M28, K24=M27
+        # M30-M32: rates гостей из away таблицы (M = col 13 on Расчеты)
+        # 5Match: Анализ!H26=Расчеты!M30, J26=M31, K26=M32
+        home_rows = _table_rows(payload.table_home)
+        away_rows = _table_rows(payload.table_away)
+        overall_rows = _table_rows(payload.table_overall)
+
+        ws_calc = self.wb.Worksheets(SHEET_CALC)
+        if home_rows:
+            home_team_row = _find_team_in_table(home_rows, match.home)
+            if home_team_row:
+                rates = _team_rates(home_team_row)
+                if rates:
+                    for row_num, rate in zip((26, 27, 28), rates):
+                        ws_calc.Range(f"M{row_num}").Value = rate
+
+        if away_rows:
+            away_team_row = _find_team_in_table(away_rows, match.away)
+            if away_team_row:
+                rates = _team_rates(away_team_row)
+                if rates:
+                    for row_num, rate in zip((30, 31, 32), rates):
+                        ws_calc.Range(f"M{row_num}").Value = rate
+
+        # Incognito DATA!B2-D11: заполняем из Python (минуя VLOOKUP)
+        _populate_incognito_data_excel(
+            self.wb, match.home, match.away,
+            overall_rows, home_rows, away_rows,
+        )
 
         self.wb.Worksheets(SHEET_CALC).Range("A1").Value = match.match_id
 

@@ -82,9 +82,29 @@ def handle_total(forecast: str, total_type: str, total_home: int, total_away: in
 
 
 def calc_forecast_result(forecast: str, result: str, total_home: int, total_away: int, coeff: float) -> Tuple[str, float]:
-    clean = (forecast or "").strip().upper()
+    # Excel/данные иногда отдают кириллическую «Х» в «1Х»/«Х2»/«Х» — приводим к латинице,
+    # иначе прогноз не распознаётся (идентичный «1X» считается, «1Х» — нет).
+    clean = (forecast or "").strip().upper().replace("Х", "X").replace("Ё", "Е")
     if clean in ("", "-"):
         return "Нет прогноза", 0
+    # Комбинированный прогноз «1X + ТБ 2,5»: выигрывает, только если верны обе части.
+    if "+" in clean:
+        parts = [p.strip() for p in clean.split("+") if p.strip()]
+        if len(parts) >= 2:
+            profits = []
+            labels = []
+            for part in parts:
+                label, profit = calc_forecast_result(
+                    part, result, total_home, total_away, coeff
+                )
+                labels.append(label)
+                profits.append(profit)
+            won = all(label == "Выигрыш" for label in labels)
+            if won:
+                return "Выигрыш", coeff - 1
+            if any(label == "Проигрыш" for label in labels):
+                return "Проигрыш", -1
+            return " / ".join(labels), 0
     if clean in ("1", "П1"):
         return ("Выигрыш", coeff - 1) if result in ("П1", "1") else ("Проигрыш", -1)
     if clean in ("2", "П2"):
@@ -105,8 +125,13 @@ def calc_forecast_result(forecast: str, result: str, total_home: int, total_away
         return handle_total(clean, "OVER", total_home, total_away, coeff)
     if "ТМ" in clean:
         return handle_total(clean, "UNDER", total_home, total_away, coeff)
-    if clean == "ОЗ":
+    if clean in ("ОЗ", "ОБЕ ЗАБЬЮТ (ОЗ)", "ОБЕ ЗАБЬЮТ", "BTTS"):
         return ("Выигрыш", coeff - 1) if total_home > 0 and total_away > 0 else ("Проигрыш", -1)
+    # «Х П2» (ничья/победа 2) — трактуем как X2; после нормализации «Х»→«X» это "X П2".
+    if clean.replace(" ", "") in ("XП2",):
+        return ("Выигрыш", coeff - 1) if result in ("П2", "X", "2") else ("Проигрыш", -1)
+    if clean.replace(" ", "") in ("XП1",):
+        return ("Выигрыш", coeff - 1) if result in ("П1", "X", "1") else ("Проигрыш", -1)
     cs = re.match(r"^(\d+)[:\-.](\d+)$", clean)
     if cs:
         ph, pa = int(cs.group(1)), int(cs.group(2))

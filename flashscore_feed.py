@@ -14,6 +14,20 @@ FLASHSCORE_BASE = f"https://{FLASHSCORE_HOST}/"
 FLASHSCORE_SOURCER = f"{FLASHSCORE_HOST}/"
 DEFAULT_FEED_SUFFIX = "_ru_1"
 
+# Машинные фиды доступны и с edge-хостов .ninja, когда сайт заблокирован
+# (TLS-хендшейк к flashscorekz.com не проходит). Путь после /x/feed/ один и
+# тот же, поэтому меняется только хост.
+FLASHSCORE_NINJA_HOST = "46.flashscore.ninja"
+_USE_NINJA_FEED = False  # ставится в True после первого успешного переключения
+# Пробуем основной хост всего один раз за процесс: если сайт заблокирован,
+# нет смысла ждать 4 таймаута на каждом запросе.
+_MAIN_HOST_DEAD = False
+
+
+def feed_host_state() -> str:
+    """Текущий хост фидов ('site' или 'ninja') — для логов."""
+    return "ninja" if _USE_NINJA_FEED else "site"
+
 # Без нормального UA flashscorekz иногда рвёт TLS (WinError 10054).
 API_HEADERS = {
     "X-Fsign": "SW9D1eZo",
@@ -83,31 +97,84 @@ def odds_list_feed_url(
 
 
 def _feed_fallback_urls(url: str) -> list[str]:
-    """Повторы только на том же хосте (flashscorekz.com)."""
-    return [url]
+    """Тот же URL, плюс запасной edge-хост .ninja (если сайт заблокирован).
+
+    На .ninja путь содержит номер проекта: /46/x/feed/... — иначе 404.
+    """
+    urls = [url]
+    if FLASHSCORE_HOST in url:
+        alt = url.replace(FLASHSCORE_HOST, FLASHSCORE_NINJA_HOST)
+        # /x/feed/ -> /46/x/feed/; двойной слэш схлопываем.
+        alt = re.sub(r"/+x/feed/", "/46/x/feed/", alt)
+        alt = re.sub(r"(?<!:)//+", "/", alt)
+        if alt not in urls:
+            urls.append(alt)
+    return urls
 
 
 def fetch_feed(url: str, *, retries: int = 4, timeout: int = 30) -> str:
-    """GET x/feed с retry на flashscorekz.com."""
+    """GET x/feed с retry; при блокировке сайта — на edge-хосте .ninja."""
+    global _USE_NINJA_FEED, _MAIN_HOST_DEAD
+
     last_err: Optional[BaseException] = None
-    for candidate in _feed_fallback_urls(url):
+    candidates = _feed_fallback_urls(url)
+    # Если .ninja уже подтвердил работоспособность — начинаем сразу с него,
+    # не тратя 4 таймаута на заблокированный хост.
+    if _USE_NINJA_FEED and len(candidates) > 1:
+        candidates = [candidates[1], candidates[0]]
+    # Сайт уже признан мёртвым — основной хост даже не пробуем.
+    elif _MAIN_HOST_DEAD and len(candidates) > 1:
+        candidates = [candidates[1]]
+
+    for index, candidate in enumerate(candidates):
         headers = dict(API_HEADERS)
         host = candidate.split("/")[2] if "://" in candidate else FLASHSCORE_HOST
         if host:
             headers["Referer"] = f"https://{host}/"
-        for attempt in range(max(1, retries)):
+        on_ninja = FLASHSCORE_NINJA_HOST in candidate
+        on_dead_main = _MAIN_HOST_DEAD and not on_ninja and len(candidates) > 1
+        # Основной хост проверяем коротко: пока он не подтверждён живым,
+        # хватит 2 попыток с урезанным таймаутом — иначе один заблокированный
+        # сайт съедает больше минуты на старте.
+        if on_ninja or on_dead_main:
+            attempts = 1
+            candidate_timeout = timeout
+        elif not _USE_NINJA_FEED:
+            attempts = min(2, max(1, retries))
+            candidate_timeout = min(timeout, 8)
+        else:
+            attempts = max(1, retries)
+            candidate_timeout = timeout
+        for attempt in range(attempts):
             try:
                 req = urllib.request.Request(candidate, headers=headers, method="GET")
-                with urllib.request.urlopen(req, timeout=timeout) as resp:
-                    return resp.read().decode("utf-8", errors="replace")
+                with urllib.request.urlopen(req, timeout=candidate_timeout) as resp:
+                    body = resp.read().decode("utf-8", errors="replace")
+                if on_ninja and not _USE_NINJA_FEED:
+                    print(f"[*] фиды: переключаюсь на {FLASHSCORE_NINJA_HOST}")
+                    _USE_NINJA_FEED = True
+                    _MAIN_HOST_DEAD = True
+                return body
             except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as exc:
                 last_err = exc
                 code = getattr(exc, "code", None)
                 if code in (404, 410, 403):
                     print(f"[!] feed {candidate}: HTTP {code}")
                     break
-                print(f"[!] feed retry {attempt + 1}/{retries} {candidate}: {exc}")
-                time.sleep(0.6 * (attempt + 1))
+                # Временный сбой DNS (getaddrinfo failed) — повторяем, но не
+                # помечаем хост мёртвым: он жив, проблема была в резолве.
+                dns_error = "getaddrinfo" in str(exc).lower()
+                if attempt + 1 < attempts:
+                    print(f"[!] feed retry {attempt + 1}/{retries} {candidate}: {exc}")
+                    time.sleep((0.6 if not dns_error else 1.2) * (attempt + 1))
+        # Основной хост не ответил — помечаем мёртвым, остальные запросы
+        # пойдут сразу на .ninja. Но не из-за разового сбоя DNS.
+        if (
+            not on_ninja
+            and len(_feed_fallback_urls(url)) > 1
+            and not (last_err and "getaddrinfo" in str(last_err).lower())
+        ):
+            _MAIN_HOST_DEAD = True
     raise RuntimeError(f"fetch_feed failed for {url}: {last_err}") from last_err
 
 

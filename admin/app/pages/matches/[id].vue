@@ -7,7 +7,7 @@ import type {
   WsLineupPlayer,
   WsMissingPlayer,
 } from '~/types/db'
-import { sportLabel } from '~/types/db'
+import { sportLabel, eloTier } from '~/types/db'
 
 const route = useRoute()
 const { dbQuery } = useAdminDb()
@@ -22,6 +22,85 @@ const m = computed(() => data.value?.match)
 const snap = computed(() => data.value?.snapshot || null)
 const weather = computed(() => data.value?.weather || null)
 const ws = computed(() => data.value?.whoscored || null)
+const matchStats = computed(() => data.value?.matchStats || null)
+
+// ELO delta for this match
+const { data: eloDelta, pending: eloPending } = await useFetch<{
+  elo_before: { home: number; away: number }
+  elo_after: { home: number; away: number }
+  delta: { home: number; away: number }
+  home_team: string
+  away_team: string
+  score_home: number | null
+  score_away: number | null
+}>(`/api/elo/${matchId.value}`, {
+  query: { ...dbQuery.value },
+  watch: [matchId, dbQuery],
+})
+
+// Glicko-2 рейтинги команд матча
+interface Glicko2Rating {
+  side: 'home' | 'away'
+  team_id: number
+  rating: number
+  rd: number
+  volatility: number
+  matches_played: number
+  wins: number
+  draws: number
+  losses: number
+  last_updated: string | null
+}
+const { data: glicko2Data, pending: glicko2Pending } = await useFetch<{
+  home_team: string
+  away_team: string
+  score_home: number | null
+  score_away: number | null
+  home: Glicko2Rating | null
+  away: Glicko2Rating | null
+}>(`/api/glicko2/${matchId.value}`, {
+  query: { ...dbQuery.value },
+  watch: [matchId, dbQuery],
+})
+
+// OpenSkill рейтинги команд матча
+interface OpenSkillRating {
+  side: 'home' | 'away'
+  team_id: number
+  mu: number
+  sigma: number
+  rating: number
+  matches_played: number
+  wins: number
+  draws: number
+  losses: number
+  last_updated: string | null
+}
+const { data: openskillData, pending: openskillPending } = await useFetch<{
+  home_team: string
+  away_team: string
+  score_home: number | null
+  score_away: number | null
+  home: OpenSkillRating | null
+  away: OpenSkillRating | null
+}>(`/api/openskill/${matchId.value}`, {
+  query: { ...dbQuery.value },
+  watch: [matchId, dbQuery],
+})
+
+// Форма команд (последние 5 матчей)
+const { data: formResponse } = await useFetch<{
+  home_team: string
+  away_team: string
+  home_form: Record<string, any> | null
+  away_form: Record<string, any> | null
+}>(`/api/matches/${matchId.value}/form`, {
+  query: { ...dbQuery.value },
+  watch: [matchId, dbQuery],
+})
+
+const homeForm = computed(() => formResponse.value?.home_form || null)
+const awayForm = computed(() => formResponse.value?.away_form || null)
 
 function fmtCount(v: unknown) {
   if (v == null || v === '') return '—'
@@ -113,7 +192,14 @@ const standingsRows = computed<SnapshotTableRow[]>(
 const formRows = computed<SnapshotTableRow[]>(() => snap.value?.form?.[formSide.value] || [])
 const h2hRows = computed<SnapshotHistoryMatch[]>(() => snap.value?.h2h?.all || [])
 const teamMatchRows = computed<SnapshotHistoryMatch[]>(
-  () => snap.value?.team_matches?.[matchesTeam.value]?.[matchesSide.value] || [],
+  () => {
+    if (!snap.value?.team_matches) return []
+    const teamData = snap.value.team_matches[matchesTeam.value]
+    if (!teamData) return []
+    // JSON uses 'all' key, UI uses 'overall'
+    const sideKey = matchesSide.value === 'overall' ? 'all' : matchesSide.value
+    return teamData[sideKey as keyof typeof teamData] || []
+  },
 )
 
 const hasSnapshotData = computed(() =>
@@ -198,6 +284,48 @@ const goalRows = computed(() => {
     away: g[`away_goals_${n}` as keyof typeof g],
   }))
 })
+
+// Словарь для перевода названий статистики
+const STAT_LABELS: Record<string, string> = {
+  'Главное_Удары': 'Удары',
+  'Главное_Удары в створ': 'Удары в створ',
+  'Главное_Владение мячом': 'Владение %',
+  'Главное_Угловые': 'Угловые',
+  'Главное_Офсайды': 'Офсайды',
+  'Главное_Желтые карточки': 'ЖК',
+  'Главное_Красные карточки': 'КК',
+  'Главное_Нанесенные удары': 'Всего ударов',
+  'Главное_Атаки': 'Атаки',
+  'Главное_Опасные атаки': 'Опасные атаки',
+}
+
+function getStatLabel(key: string): string {
+  return STAT_LABELS[key] || key
+}
+
+// Фильтруем только релевантные статистические показатели
+function getRelevantStats(averages: Record<string, number>): Record<string, number> {
+  const relevantKeys = [
+    'Главное_Удары в створ',
+    'Главное_Владение мячом',
+    'Главное_Угловые',
+    'Главное_Желтые карточки',
+    'Главное_Удары',
+    'Главное_Опасные атаки',
+  ]
+  const result: Record<string, number> = {}
+  for (const key of relevantKeys) {
+    if (averages[key] !== undefined) {
+      result[key] = averages[key]
+    }
+  }
+  return result
+}
+
+function hasMatchStats(matches: any[] | undefined): boolean {
+  if (!matches || matches.length === 0) return false
+  return matches.some((m: any) => m.stats && Object.keys(m.stats).length > 0)
+}
 </script>
 
 <template>
@@ -254,7 +382,187 @@ const goalRows = computed(() => {
           <v-col cols="12" md="3">
             <strong>Зрителей:</strong> {{ fmtCount(snap.attendance) }}
           </v-col>
+          <v-col cols="12" md="3">
+            <strong>Расстояние:</strong>
+            {{ snap.distance != null ? `${snap.distance} км` : '—' }}
+          </v-col>
         </v-row>
+
+        <!-- ELO Rating -->
+        <div v-if="eloDelta" class="mt-4">
+          <div class="text-subtitle-2 mb-2">ELO Рейтинг</div>
+          <v-row dense>
+            <v-col cols="12" md="4">
+              <v-card variant="tonal">
+                <v-card-text class="pa-3">
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="text-body-2 font-weight-medium">{{ eloDelta.home_team }}</span>
+                    <v-chip size="x-small" :color="eloTier(eloDelta.elo_before.home).color" variant="tonal">
+                      {{ eloTier(eloDelta.elo_before.home).label }}
+                    </v-chip>
+                  </div>
+                  <div class="d-flex align-center ga-2 mt-1">
+                    <span class="text-h6">{{ Math.round(eloDelta.elo_before.home) }}</span>
+                    <v-icon size="small" :color="eloDelta.delta.home >= 0 ? 'success' : 'error'">
+                      {{ eloDelta.delta.home >= 0 ? 'mdi-arrow-up-thin' : 'mdi-arrow-down-thin' }}
+                    </v-icon>
+                    <span class="text-body-2" :class="eloDelta.delta.home >= 0 ? 'text-success' : 'text-error'">
+                      {{ eloDelta.delta.home >= 0 ? '+' : '' }}{{ Math.round(eloDelta.delta.home) }}
+                    </span>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">→ {{ Math.round(eloDelta.elo_after.home) }}</div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card variant="tonal">
+                <v-card-text class="pa-3">
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="text-body-2 font-weight-medium">{{ eloDelta.away_team }}</span>
+                    <v-chip size="x-small" :color="eloTier(eloDelta.elo_before.away).color" variant="tonal">
+                      {{ eloTier(eloDelta.elo_before.away).label }}
+                    </v-chip>
+                  </div>
+                  <div class="d-flex align-center ga-2 mt-1">
+                    <span class="text-h6">{{ Math.round(eloDelta.elo_before.away) }}</span>
+                    <v-icon size="small" :color="eloDelta.delta.away >= 0 ? 'success' : 'error'">
+                      {{ eloDelta.delta.away >= 0 ? 'mdi-arrow-up-thin' : 'mdi-arrow-down-thin' }}
+                    </v-icon>
+                    <span class="text-body-2" :class="eloDelta.delta.away >= 0 ? 'text-success' : 'text-error'">
+                      {{ eloDelta.delta.away >= 0 ? '+' : '' }}{{ Math.round(eloDelta.delta.away) }}
+                    </span>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">→ {{ Math.round(eloDelta.elo_after.away) }}</div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card variant="tonal">
+                <v-card-text class="pa-3 text-center">
+                  <div class="text-caption text-medium-emphasis">Счёт</div>
+                  <div class="text-h5 font-weight-bold">{{ eloDelta.score_home ?? '—' }} : {{ eloDelta.score_away ?? '—' }}</div>
+                  <div class="text-caption text-medium-emphasis mt-1">ELO-дельта: {{ eloDelta.delta.home >= 0 ? '+' : '' }}{{ Math.round(eloDelta.delta.home) }} / {{ eloDelta.delta.away >= 0 ? '+' : '' }}{{ Math.round(eloDelta.delta.away) }}</div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+        <div v-else-if="!eloPending && m" class="mt-4">
+          <div class="text-subtitle-2 mb-2">ELO Рейтинг</div>
+          <div class="text-caption text-medium-emphasis">Нет данных ELO (матч ещё не обработан)</div>
+        </div>
+
+        <!-- Glicko-2 Rating -->
+        <div v-if="glicko2Data && (glicko2Data.home || glicko2Data.away)" class="mt-4">
+          <div class="d-flex align-center justify-space-between mb-2">
+            <div class="text-subtitle-2">Glicko-2 Рейтинг</div>
+            <v-chip v-if="glicko2Data.home" size="x-small" variant="tonal" color="info">
+              {{ glicko2Data.home.matches_played }} матчей
+            </v-chip>
+          </div>
+          <v-row dense>
+            <v-col cols="12" md="4">
+              <v-card variant="tonal">
+                <v-card-text class="pa-3">
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="text-body-2 font-weight-medium">{{ glicko2Data.home_team }}</span>
+                  </div>
+                  <div class="d-flex align-center ga-2 mt-1">
+                    <span class="text-h6">{{ glicko2Data.home ? glicko2Data.home.rating.toFixed(1) : '—' }}</span>
+                    <span class="text-caption text-medium-emphasis">
+                      RD {{ glicko2Data.home ? glicko2Data.home.rd.toFixed(1) : '—' }}
+                    </span>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ glicko2Data.home?.wins || 0 }}В / {{ glicko2Data.home?.draws || 0 }}Н / {{ glicko2Data.home?.losses || 0 }}П
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card variant="tonal">
+                <v-card-text class="pa-3">
+                  <div class="d-flex align-center justify-space-between">
+                    <span class="text-body-2 font-weight-medium">{{ glicko2Data.away_team }}</span>
+                  </div>
+                  <div class="d-flex align-center ga-2 mt-1">
+                    <span class="text-h6">{{ glicko2Data.away ? glicko2Data.away.rating.toFixed(1) : '—' }}</span>
+                    <span class="text-caption text-medium-emphasis">
+                      RD {{ glicko2Data.away ? glicko2Data.away.rd.toFixed(1) : '—' }}
+                    </span>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ glicko2Data.away?.wins || 0 }}В / {{ glicko2Data.away?.draws || 0 }}Н / {{ glicko2Data.away?.losses || 0 }}П
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card variant="tonal">
+                <v-card-text class="pa-3 text-center">
+                  <div class="text-caption text-medium-emphasis">Счёт</div>
+                  <div class="text-h5 font-weight-bold">{{ glicko2Data.score_home ?? '—' }} : {{ glicko2Data.score_away ?? '—' }}</div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+        <div v-else-if="!glicko2Pending && m" class="mt-4">
+          <div class="text-subtitle-2 mb-2">Glicko-2 Рейтинг</div>
+          <div class="text-caption text-medium-emphasis">Нет данных Glicko-2 (матч ещё не обработан)</div>
+        </div>
+
+        <!-- OpenSkill Rating -->
+        <div v-if="openskillData && (openskillData.home || openskillData.away)" class="mt-4">
+          <div class="d-flex align-center justify-space-between mb-2">
+            <div class="text-subtitle-2">OpenSkill Рейтинг</div>
+            <v-chip v-if="openskillData.home" size="x-small" variant="tonal" color="secondary">
+              {{ openskillData.home.matches_played }} матчей
+            </v-chip>
+          </div>
+          <v-row dense>
+            <v-col cols="12" md="4">
+              <v-card variant="tonal">
+                <v-card-text class="pa-3">
+                  <div class="text-body-2 font-weight-medium">{{ openskillData.home_team }}</div>
+                  <div class="d-flex align-center ga-2 mt-1">
+                    <span class="text-h6">{{ openskillData.home ? openskillData.home.rating.toFixed(1) : '—' }}</span>
+                    <span class="text-caption text-medium-emphasis">μ {{ openskillData.home ? openskillData.home.mu.toFixed(1) : '—' }}</span>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ openskillData.home?.wins || 0 }}В / {{ openskillData.home?.draws || 0 }}Н / {{ openskillData.home?.losses || 0 }}П
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card variant="tonal">
+                <v-card-text class="pa-3">
+                  <div class="text-body-2 font-weight-medium">{{ openskillData.away_team }}</div>
+                  <div class="d-flex align-center ga-2 mt-1">
+                    <span class="text-h6">{{ openskillData.away ? openskillData.away.rating.toFixed(1) : '—' }}</span>
+                    <span class="text-caption text-medium-emphasis">μ {{ openskillData.away ? openskillData.away.mu.toFixed(1) : '—' }}</span>
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ openskillData.away?.wins || 0 }}В / {{ openskillData.away?.draws || 0 }}Н / {{ openskillData.away?.losses || 0 }}П
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-card variant="tonal">
+                <v-card-text class="pa-3 text-center">
+                  <div class="text-caption text-medium-emphasis">Счёт</div>
+                  <div class="text-h5 font-weight-bold">{{ openskillData.score_home ?? '—' }} : {{ openskillData.score_away ?? '—' }}</div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+        </div>
+        <div v-else-if="!openskillPending && m" class="mt-4">
+          <div class="text-subtitle-2 mb-2">OpenSkill Рейтинг</div>
+          <div class="text-caption text-medium-emphasis">Нет данных OpenSkill (матч ещё не обработан)</div>
+        </div>
 
         <div v-if="weatherCards.length" class="text-subtitle-2 mt-4 mb-2">Погода</div>
         <v-row v-if="weatherCards.length" dense>
@@ -540,6 +848,185 @@ const goalRows = computed(() => {
         </v-row>
       </v-card-text>
     </v-card>
+
+    <v-card v-if="matchStats">
+      <v-card-title class="d-flex align-center justify-space-between flex-wrap ga-2">
+        <span>Статистика матча</span>
+        <v-chip size="small" color="info" variant="tonal">
+          {{ matchStats.fetched_at || '' }}
+        </v-chip>
+      </v-card-title>
+      <v-divider />
+      <v-card-text>
+        <v-table density="compact">
+          <thead>
+            <tr>
+              <th>Показатель</th>
+              <th class="text-center">{{ m?.home_team || 'Дома' }}</th>
+              <th class="text-center">{{ m?.away_team || 'Гости' }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="(stat, key) in matchStats" :key="key">
+              <tr v-if="key !== 'fetched_at'">
+                <td>{{ key }}</td>
+                <td class="text-center font-weight-medium">{{ stat.home }}</td>
+                <td class="text-center font-weight-medium">{{ stat.away }}</td>
+              </tr>
+            </template>
+          </tbody>
+        </v-table>
+      </v-card-text>
+    </v-card>
+
+    <v-card v-else>
+      <v-card-title>Статистика матча</v-card-title>
+      <v-divider />
+      <v-card-text class="text-medium-emphasis">Нет данных</v-card-text>
+    </v-card>
+
+    <!-- Форма команд (последние 5 матчей) -->
+    <v-row dense>
+      <v-col cols="12" md="6">
+        <v-card v-if="homeForm">
+          <v-card-title class="d-flex align-center justify-space-between">
+            <span>Форма {{ m?.home_team || 'Хозяева' }}</span>
+            <v-chip size="small" color="success" variant="tonal">
+              {{ homeForm.results?.wins || 0 }}W / {{ homeForm.results?.draws || 0 }}D / {{ homeForm.results?.losses || 0 }}L
+            </v-chip>
+          </v-card-title>
+          <v-divider />
+          <v-card-text>
+            <v-row dense class="mb-3">
+              <v-col cols="4">
+                <div class="text-caption text-medium-emphasis">Голы забито</div>
+                <div class="text-h6">{{ homeForm.goals?.scored?.toFixed(1) || '—' }}</div>
+              </v-col>
+              <v-col cols="4">
+                <div class="text-caption text-medium-emphasis">Голы пропущено</div>
+                <div class="text-h6">{{ homeForm.goals?.conceded?.toFixed(1) || '—' }}</div>
+              </v-col>
+              <v-col cols="4">
+                <div class="text-caption text-medium-emphasis">Винрейт</div>
+                <div class="text-h6">{{ ((homeForm.results?.win_rate || 0) * 100).toFixed(0) }}%</div>
+              </v-col>
+            </v-row>
+
+            <!-- Статистические показатели -->
+            <div v-if="homeForm.averages && Object.keys(homeForm.averages).length > 0" class="mb-3">
+              <div class="text-subtitle-2 mb-2">Средняя статистика</div>
+              <v-row dense>
+                <v-col cols="4" v-for="(stat, key) in getRelevantStats(homeForm.averages)" :key="key">
+                  <div class="text-caption text-medium-emphasis">{{ getStatLabel(key) }}</div>
+                  <div class="text-h6">{{ stat.toFixed(1) }}</div>
+                </v-col>
+              </v-row>
+            </div>
+            <div class="text-subtitle-2 mb-2">Последние матчи</div>
+            <v-table density="compact">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Турнир</th>
+                  <th>Соперник</th>
+                  <th>Счёт</th>
+                  <th v-if="hasMatchStats(homeForm?.matches)">Статистика</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(match, i) in (homeForm.matches || []).slice(0, 5)" :key="i">
+                  <td class="text-caption">{{ match.date }}</td>
+                  <td class="text-caption">{{ match.tournament }}</td>
+                  <td>{{ match.opponent }} ({{ match.venue }})</td>
+                  <td class="text-center font-weight-medium">{{ match.score }}</td>
+                  <td v-if="match.stats && Object.keys(match.stats).length > 0" class="text-caption">
+                    <div v-for="(val, key) in getRelevantStats(match.stats)" :key="key">
+                      {{ getStatLabel(key) }}: {{ val.toFixed(0) }}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+            <div v-if="!homeForm.matches?.length" class="text-medium-emphasis text-caption">Нет данных</div>
+          </v-card-text>
+        </v-card>
+        <v-card v-else>
+          <v-card-title>Форма {{ m?.home_team || 'Хозяева' }}</v-card-title>
+          <v-divider />
+          <v-card-text class="text-medium-emphasis">Нет данных</v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="6">
+        <v-card v-if="awayForm">
+          <v-card-title class="d-flex align-center justify-space-between">
+            <span>Форма {{ m?.away_team || 'Гости' }}</span>
+            <v-chip size="small" color="success" variant="tonal">
+              {{ awayForm.results?.wins || 0 }}W / {{ awayForm.results?.draws || 0 }}D / {{ awayForm.results?.losses || 0 }}L
+            </v-chip>
+          </v-card-title>
+          <v-divider />
+          <v-card-text>
+            <v-row dense class="mb-3">
+              <v-col cols="4">
+                <div class="text-caption text-medium-emphasis">Голы забито</div>
+                <div class="text-h6">{{ awayForm.goals?.scored?.toFixed(1) || '—' }}</div>
+              </v-col>
+              <v-col cols="4">
+                <div class="text-caption text-medium-emphasis">Голы пропущено</div>
+                <div class="text-h6">{{ awayForm.goals?.conceded?.toFixed(1) || '—' }}</div>
+              </v-col>
+              <v-col cols="4">
+                <div class="text-caption text-medium-emphasis">Винрейт</div>
+                <div class="text-h6">{{ ((awayForm.results?.win_rate || 0) * 100).toFixed(0) }}%</div>
+              </v-col>
+            </v-row>
+
+            <!-- Статистические показатели -->
+            <div v-if="awayForm.averages && Object.keys(awayForm.averages).length > 0" class="mb-3">
+              <div class="text-subtitle-2 mb-2">Средняя статистика</div>
+              <v-row dense>
+                <v-col cols="4" v-for="(stat, key) in getRelevantStats(awayForm.averages)" :key="key">
+                  <div class="text-caption text-medium-emphasis">{{ getStatLabel(key) }}</div>
+                  <div class="text-h6">{{ stat.toFixed(1) }}</div>
+                </v-col>
+              </v-row>
+            </div>
+            <div class="text-subtitle-2 mb-2">Последние матчи</div>
+            <v-table density="compact">
+              <thead>
+                <tr>
+                  <th>Дата</th>
+                  <th>Турнир</th>
+                  <th>Соперник</th>
+                  <th>Счёт</th>
+                  <th v-if="hasMatchStats(awayForm?.matches)">Статистика</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(match, i) in (awayForm.matches || []).slice(0, 5)" :key="i">
+                  <td class="text-caption">{{ match.date }}</td>
+                  <td class="text-caption">{{ match.tournament }}</td>
+                  <td>{{ match.opponent }} ({{ match.venue }})</td>
+                  <td class="text-center font-weight-medium">{{ match.score }}</td>
+                  <td v-if="match.stats && Object.keys(match.stats).length > 0" class="text-caption">
+                    <div v-for="(val, key) in getRelevantStats(match.stats)" :key="key">
+                      {{ getStatLabel(key) }}: {{ val.toFixed(0) }}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+            <div v-if="!awayForm.matches?.length" class="text-medium-emphasis text-caption">Нет данных</div>
+          </v-card-text>
+        </v-card>
+        <v-card v-else>
+          <v-card-title>Форма {{ m?.away_team || 'Гости' }}</v-card-title>
+          <v-divider />
+          <v-card-text class="text-medium-emphasis">Нет данных</v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <v-card>
       <v-card-title>Прогнозы стратегий</v-card-title>

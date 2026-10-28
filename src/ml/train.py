@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Iterable, List
 
+import pandas as pd
 import joblib
 import mlflow
 import numpy as np
@@ -85,16 +86,18 @@ def _train_loaded(
     )
     if limit > 0:
         dataset.frame = dataset.frame.sort_values("kickoff_ts").tail(limit).copy()
+    
+    # Получаем список видов спорта из данных
+    sports_raw = dataset.frame["sport"].unique().tolist()
+    # Конвертируем в int (может быть строка '1', '4', '6')
+    sports = sorted([int(str(s).strip()) for s in sports_raw])
+    print(f"[ML] Found sports: {sports} (raw: {sports_raw})")
+    
     split_config = config.get("split") or {}
-    split = temporal_split(
-        dataset,
-        train_ratio=float(split_config.get("train", 0.7)),
-        validation_ratio=float(split_config.get("validation", 0.15)),
-    )
+    
     print(
         "[ML] dataset: "
-        f"rows={len(dataset.frame)}, features={len(dataset.feature_columns)}, "
-        f"train={len(split.train)}, validation={len(split.validation)}, test={len(split.test)}"
+        f"rows={len(dataset.frame)}, features={len(dataset.feature_columns)}, sports={len(sports)}"
     )
     selected_models = list(models or config.get("models") or ["xgboost", "catboost"])
     selected_targets = list(targets or config.get("targets") or TARGET_COLUMNS)
@@ -115,94 +118,128 @@ def _train_loaded(
 
     schema_hash = catalog.schema_hash()
     results: List[Dict[str, Any]] = []
-    for model_type in selected_models:
-        for target in selected_targets:
-            if target not in TARGET_COLUMNS:
-                raise ValueError(f"Unknown target: {target}")
-            labels = set(int(value) for value in split.train[TARGET_COLUMNS[target]].dropna())
-            expected = {0, 1, 2} if target == "1x2" else {0, 1}
-            if labels != expected:
-                raise ValueError(f"{model_type}/{target}: train labels {labels}, expected {expected}")
-            with mlflow.start_run(experiment_id=experiment_id) as run:
-                run_id = run.info.run_id
-                bundle = _fit(
-                    model_type,
-                    target,
-                    dataset,
-                    split.train,
-                    config.get(model_type) or {},
-                )
-                metrics: Dict[str, float] = {}
-                for prefix, frame in (("validation", split.validation), ("test", split.test)):
-                    probabilities = bundle.predict_proba(frame)
-                    metrics.update(
-                        _metrics(
-                            frame[TARGET_COLUMNS[target]].astype(int).to_numpy(),
-                            probabilities,
-                            bundle.classes,
-                            prefix,
-                        )
+    
+    # Конвертируем sport в int в фрейме
+    dataset.frame["sport"] = pd.to_numeric(dataset.frame["sport"], errors="coerce").fillna(1).astype(int)
+    print(f"[ML] Sport dtype after conversion: {dataset.frame['sport'].dtype}")
+    
+    # Обучаем модели для каждого вида спорта отдельно
+    for sport in sports:
+        # Фильтруем данные для вида спорта
+        sport_frame = dataset.frame[dataset.frame["sport"] == sport].copy()
+        if sport_frame.empty:
+            print(f"[ML] No data for sport {sport}, skipping")
+            continue
+        
+        print(f"\n[ML] Training for sport {sport} ({len(sport_frame)} rows)...")
+        
+        # Разделяем данные для вида спорта
+        split = temporal_split(
+            FeatureDataset(sport_frame, dataset.feature_columns, dataset.categorical_columns),
+            train_ratio=float(split_config.get("train", 0.7)),
+            validation_ratio=float(split_config.get("validation", 0.15)),
+        )
+        print(
+            f"  train={len(split.train)}, validation={len(split.validation)}, test={len(split.test)}"
+        )
+        
+        for model_type in selected_models:
+            for target in selected_targets:
+                if target not in TARGET_COLUMNS:
+                    raise ValueError(f"Unknown target: {target}")
+                labels = set(int(value) for value in split.train[TARGET_COLUMNS[target]].dropna())
+                expected = {0, 1, 2} if target == "1x2" else {0, 1}
+                if labels != expected:
+                    print(f"  [!] {model_type}/{target}: labels {labels}, expected {expected}, skipping")
+                    continue
+                    
+                with mlflow.start_run(experiment_id=experiment_id) as run:
+                    run_id = run.info.run_id
+                    bundle = _fit(
+                        model_type,
+                        target,
+                        FeatureDataset(sport_frame, dataset.feature_columns, dataset.categorical_columns),
+                        split.train,
+                        config.get(model_type) or {},
                     )
-                model_path = model_dir / f"{run_id}.joblib"
-                joblib.dump(bundle, model_path)
+                    metrics: Dict[str, float] = {}
+                    for prefix, frame in (("validation", split.validation), ("test", split.test)):
+                        probabilities = bundle.predict_proba(frame)
+                        metrics.update(
+                            _metrics(
+                                frame[TARGET_COLUMNS[target]].astype(int).to_numpy(),
+                                probabilities,
+                                bundle.classes,
+                                prefix,
+                            )
+                        )
+                    model_path = model_dir / f"{run_id}.joblib"
+                    joblib.dump(bundle, model_path)
 
-                mlflow.set_tags({"model_type": model_type, "target": target, "schema_hash": schema_hash})
-                mlflow.log_params(
-                    {
+                    mlflow.set_tags({
+                        "model_type": model_type, 
+                        "target": target, 
+                        "schema_hash": schema_hash,
+                        "sport": sport,
+                    })
+                    mlflow.log_params(
+                        {
+                            "model_type": model_type,
+                            "target": target,
+                            "sport": sport,
+                            "features": len(dataset.feature_columns),
+                            "train_rows": len(split.train),
+                            "validation_rows": len(split.validation),
+                            "test_rows": len(split.test),
+                            "train_from": str(split.train["match_date"].iloc[0]),
+                            "train_to": str(split.train["match_date"].iloc[-1]),
+                            "test_from": str(split.test["match_date"].iloc[0]),
+                            "test_to": str(split.test["match_date"].iloc[-1]),
+                            "include_stacking": bool(config.get("include_stacking")),
+                        }
+                    )
+                    mlflow.log_metrics(metrics)
+                    mlflow.log_dict(config, "config.json")
+                    mlflow.log_dict(catalog.manifest(), "database_schema.json")
+                    mlflow.log_dict(
+                        {
+                            "labels": bundle.classes,
+                            "validation": confusion_matrix(
+                                split.validation[TARGET_COLUMNS[target]].astype(int),
+                                bundle.predict(split.validation),
+                                labels=bundle.classes,
+                            ).tolist(),
+                            "test": confusion_matrix(
+                                split.test[TARGET_COLUMNS[target]].astype(int),
+                                bundle.predict(split.test),
+                                labels=bundle.classes,
+                            ).tolist(),
+                        },
+                        "confusion_matrix.json",
+                    )
+                    mlflow.log_dict(
+                        {
+                            "feature_columns": dataset.feature_columns,
+                            "categorical_columns": dataset.categorical_columns,
+                        },
+                        "feature_schema.json",
+                    )
+                    mlflow.log_artifact(str(model_path), artifact_path="models")
+
+                    record = {
+                        "run_id": run_id,
+                        "experiment": experiment_name,
                         "model_type": model_type,
                         "target": target,
-                        "features": len(dataset.feature_columns),
-                        "train_rows": len(split.train),
-                        "validation_rows": len(split.validation),
-                        "test_rows": len(split.test),
-                        "train_from": str(split.train["match_date"].iloc[0]),
-                        "train_to": str(split.train["match_date"].iloc[-1]),
-                        "test_from": str(split.test["match_date"].iloc[0]),
-                        "test_to": str(split.test["match_date"].iloc[-1]),
-                        "include_stacking": bool(config.get("include_stacking")),
+                        "sport": sport,
+                        "schema_hash": schema_hash,
+                        "config_json": json.dumps(config, ensure_ascii=False),
+                        "metrics_json": json.dumps(metrics, ensure_ascii=False),
+                        "artifact_path": str(model_path),
+                        "metrics": metrics,
                     }
-                )
-                mlflow.log_metrics(metrics)
-                mlflow.log_dict(config, "config.json")
-                mlflow.log_dict(catalog.manifest(), "database_schema.json")
-                mlflow.log_dict(
-                    {
-                        "labels": bundle.classes,
-                        "validation": confusion_matrix(
-                            split.validation[TARGET_COLUMNS[target]].astype(int),
-                            bundle.predict(split.validation),
-                            labels=bundle.classes,
-                        ).tolist(),
-                        "test": confusion_matrix(
-                            split.test[TARGET_COLUMNS[target]].astype(int),
-                            bundle.predict(split.test),
-                            labels=bundle.classes,
-                        ).tolist(),
-                    },
-                    "confusion_matrix.json",
-                )
-                mlflow.log_dict(
-                    {
-                        "feature_columns": dataset.feature_columns,
-                        "categorical_columns": dataset.categorical_columns,
-                    },
-                    "feature_schema.json",
-                )
-                mlflow.log_artifact(str(model_path), artifact_path="models")
-
-                record = {
-                    "run_id": run_id,
-                    "experiment": experiment_name,
-                    "model_type": model_type,
-                    "target": target,
-                    "schema_hash": schema_hash,
-                    "config_json": json.dumps(config, ensure_ascii=False),
-                    "metrics_json": json.dumps(metrics, ensure_ascii=False),
-                    "artifact_path": str(model_path),
-                    "metrics": metrics,
-                }
-                upsert_ml_run(record)
-                results.append(record)
-                print(f"[+] {model_type}/{target}: run={run_id} test={metrics}")
+                    upsert_ml_run(record)
+                    results.append(record)
+                    print(f"  [+] {model_type}/{target}/sport={sport}: run={run_id}")
     return results
 

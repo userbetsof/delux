@@ -1,0 +1,21 @@
+{
+  "name": "my-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev --https --ssl-cert cert.pem --ssl-key private.key",
+    "dev:http": "nuxt dev",
+    "build": "node --max-old-space-size=4096 node_modules/nuxt/bin/nuxt.mjs build",
+    "lint": "eslint . -c .eslintrc.cjs --fix --ext .ts,.js,.cjs,.vue,.tsx,.jsx",
+    "build:icons": "tsx plugins/iconify/build-icons.js",
+    "postinstall": "nuxt prepare && npm run build:icons",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "nuxt": "^4.2.2",
+    "vue": "^3.5.26",
+    "vue-router": "^4.6.4",
+    "vuetify": "^3.11.4",
+    "vuetify-nuxt-module": "^0.19.1"
+  }
+}

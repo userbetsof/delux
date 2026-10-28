@@ -13,7 +13,7 @@ from flashscore_feed import (
     parse_fields,
 )
 from analysis_data import build_settings
-from match_store import _league_allowed, filter_matches_for_queue, upsert_matches
+from match_store import _league_allowed, filter_matches_for_queue, upsert_matches, _fetch_match_score_from_dc
 from settings import DeluxSettings, normalize_sport_id
 
 
@@ -75,13 +75,23 @@ def parse_matches_feed(feed_text: str, timezone: int, time_offset: int) -> List[
         away_first = int(float(data.get("AU", "0") or 0))
         home_second = int(float(data.get("BC", "0") or 0))
         away_second = int(float(data.get("BD", "0") or 0))
-        home_first, away_first = adjust_half_scores(home_first, away_first, home_second, away_second)
-
+        
+        # Проверяем: если AT/AU уже полные таймы (больше BC/BD), используем их напрямую
         status_game = str(data.get("AB", ""))
         status_game_code = str(data.get("AC", ""))
+        is_finished = status_game == "3" and status_game_code in ("3", "10", "11")
         score_home = None
         score_away = None
-        if status_game == "3" and status_game_code in ("3", "10", "11"):
+        if is_finished:
+            # Для прошедших матчей счёт будет подтянут из dc_ feed
+            # (в tr_ feed счёт может быть неполным — только первый тайм)
+            pass
+        elif home_first > home_second and away_first > away_second:
+            # AT/AU — полные таймы, BC/BD — второй тайм
+            score_home = home_first
+            score_away = away_first
+        else:
+            # AT/AU — первый тайм, BC/BD — второй тайм
             score_home = home_first + home_second
             score_away = away_first + away_second
 
@@ -96,6 +106,7 @@ def parse_matches_feed(feed_text: str, timezone: int, time_offset: int) -> List[
                 "country_id": country_id,
                 "score_home": score_home,
                 "score_away": score_away,
+                "is_finished": is_finished,
             }
         )
     return matches
@@ -226,6 +237,31 @@ def sort_range(ws_list, start_row: int, end_row: int) -> None:
     )
 
 
+def _enrich_scores_from_dc(matches: List[Dict], sport_id: int) -> None:
+    """Подтянуть полный счёт из dc_ feed для прошедших матчей.
+    
+    Для прошедших матчей (is_finished=True) счёт из tr_ feed может быть
+    неполным (только первый тайм). Берём полный счёт из dc_ feed (DE/DF).
+    """
+    for match in matches:
+        match_id = match.get("match_id", "")
+        # Для прошедших матчей — всегда подтягиваем из dc_ feed
+        if match.get("is_finished"):
+            sh, sa = _fetch_match_score_from_dc(match_id, sport_id)
+            if sh is not None and sa is not None:
+                match["score_home"] = sh
+                match["score_away"] = sa
+        else:
+            # Для предстоящих/live — подтягиваем только если нет счёта
+            score_home = match.get("score_home")
+            score_away = match.get("score_away")
+            if score_home is None and score_away is None:
+                sh, sa = _fetch_match_score_from_dc(match_id, sport_id)
+                if sh is not None and sa is not None:
+                    match["score_home"] = sh
+                    match["score_away"] = sa
+
+
 def _enrich_with_odds(
     matches: List[Dict],
     sport_id: int,
@@ -262,6 +298,7 @@ def _fetch_sport_matches(
 ) -> List[Dict]:
     feed_url = match_list_feed_url(sport_id, dayzone, timezone, sourcer=sourcer, suffix=suffix)
     matches = parse_matches_feed(fetch_feed(feed_url), timezone, time_offset)
+    _enrich_scores_from_dc(matches, sport_id)
     _enrich_with_odds(matches, sport_id, dayzone, timezone, sourcer, suffix)
     return matches
 

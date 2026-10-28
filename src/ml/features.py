@@ -262,6 +262,7 @@ def _add_snapshots(catalog: DatabaseCatalog, data: Dict[str, Dict[str, Any]]) ->
             "h2h_json",
             "team_matches_json",
             "weather_json",
+            "distance",
             "fetched_at",
         )
         if name in columns
@@ -275,6 +276,8 @@ def _add_snapshots(catalog: DatabaseCatalog, data: Dict[str, Dict[str, Any]]) ->
         for name in ("referee_country", "venue", "town"):
             target[name] = row.get(name) or ""
         target["capacity"] = _number(row.get("capacity"))
+        # Добавляем расстояние между стадионами
+        target["distance_km"] = _number(row.get("distance"))
         target.update(_table_features(row.get("standings_json"), target["home_name"], target["away_name"]))
         target.update({f"form_{k[6:]}": v for k, v in _table_features(row.get("form_json"), target["home_name"], target["away_name"]).items()})
         target.update(_h2h_features(row.get("h2h_json")))

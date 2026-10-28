@@ -343,6 +343,7 @@ def create_database(path: str | None = None):
                     score_home INTEGER DEFAULT 0,
                     score_away INTEGER DEFAULT 0,
                     sport INTEGER DEFAULT 1 CHECK (sport BETWEEN 1 AND 99),
+                    is_archived INTEGER NOT NULL DEFAULT 0,
                     FOREIGN KEY (league_id) REFERENCES leagues(id),
                     FOREIGN KEY (home_team_id) REFERENCES teams(id),
                     FOREIGN KEY (away_team_id) REFERENCES teams(id)
@@ -365,6 +366,31 @@ def create_database(path: str | None = None):
                 """
             )
             _migrate_odds_schema(cursor)
+            # История движения коэффициентов (Oddsportal)
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS odds_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    match_id VARCHAR(8) NOT NULL,
+                    bookmaker VARCHAR(50) NOT NULL,
+                    market VARCHAR(50) NOT NULL,
+                    outcome VARCHAR(20),
+                    odds_value DECIMAL(10,2),
+                    odds_timestamp TEXT NOT NULL,
+                    odds_source VARCHAR(20) DEFAULT 'scraped',
+                    FOREIGN KEY (match_id) REFERENCES matches(match_id)
+                )
+                """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_odds_history_match ON odds_history(match_id)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_odds_history_bookmaker ON odds_history(bookmaker)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_odds_history_timestamp ON odds_history(odds_timestamp)"
+            )
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS goal_probabilities (
@@ -520,6 +546,26 @@ def create_database(path: str | None = None):
             )
             cursor.execute(
                 """
+                CREATE TABLE IF NOT EXISTS venue_distances (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    home_venue TEXT NOT NULL,
+                    home_town TEXT NOT NULL,
+                    away_venue TEXT NOT NULL,
+                    away_town TEXT NOT NULL,
+                    distance_km REAL NOT NULL,
+                    calculated_at TEXT DEFAULT (datetime('now')),
+                    UNIQUE(home_venue, home_town, away_venue, away_town)
+                )
+                """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_venue_distances_home ON venue_distances(home_venue, home_town)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_venue_distances_away ON venue_distances(away_venue, away_town)"
+            )
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS match_weather (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     match_id VARCHAR(8) NOT NULL,
@@ -545,6 +591,79 @@ def create_database(path: str | None = None):
                     UNIQUE(match_id, kind, fetched_at)
                 )
                 """
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS match_stats (
+                    match_id VARCHAR(8) PRIMARY KEY,
+                    stats_json TEXT NOT NULL,
+                    fetched_at TEXT DEFAULT (datetime('now')),
+                    FOREIGN KEY (match_id) REFERENCES matches(match_id)
+                )
+                """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_match_stats_fetched ON match_stats(fetched_at)"
+            )
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS team_form_stats (
+                    team_name VARCHAR(100) PRIMARY KEY,
+                    stats_json TEXT NOT NULL,
+                    fetched_at TEXT DEFAULT (datetime('now'))
+                )
+                """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_team_form_stats_fetched ON team_form_stats(fetched_at)"
+            )
+            # ELO ratings per team per sport
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS team_elo_ratings (
+                    team_id        INTEGER NOT NULL,
+                    sport          INTEGER NOT NULL,
+                    rating         REAL    NOT NULL DEFAULT 1500,
+                    matches_played INTEGER NOT NULL DEFAULT 0,
+                    wins           INTEGER NOT NULL DEFAULT 0,
+                    losses         INTEGER NOT NULL DEFAULT 0,
+                    draws          INTEGER NOT NULL DEFAULT 0,
+                    last_updated   TEXT    DEFAULT (datetime('now')),
+                    PRIMARY KEY (team_id, sport),
+                    FOREIGN KEY (team_id) REFERENCES teams(id)
+                )
+                """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_elo_ratings_sport ON team_elo_ratings(sport)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_elo_ratings_rating ON team_elo_ratings(rating DESC)"
+            )
+            # Full history of ELO changes per match
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS elo_rating_history (
+                    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+                    match_id       VARCHAR(8) NOT NULL,
+                    team_id        INTEGER NOT NULL,
+                    sport          INTEGER NOT NULL,
+                    rating_before  REAL NOT NULL,
+                    rating_after   REAL NOT NULL,
+                    rating_delta   REAL NOT NULL,
+                    expected       REAL NOT NULL,
+                    actual         REAL NOT NULL,
+                    created_at     TEXT DEFAULT (datetime('now')),
+                    FOREIGN KEY (match_id) REFERENCES matches(match_id),
+                    FOREIGN KEY (team_id) REFERENCES teams(id)
+                )
+                """
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_elo_history_match ON elo_rating_history(match_id)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_elo_history_team ON elo_rating_history(team_id, sport)"
             )
             cursor.execute(
                 """
@@ -616,8 +735,22 @@ def create_database(path: str | None = None):
                 "CREATE INDEX IF NOT EXISTS idx_match_weather_valid ON match_weather(valid_at)",
                 "CREATE INDEX IF NOT EXISTS idx_venues_town ON venues(town)",
                 "CREATE INDEX IF NOT EXISTS idx_ml_predictions_match ON ml_predictions(match_id)",
+                "CREATE INDEX IF NOT EXISTS idx_elo_history_created ON elo_rating_history(created_at)",
             ):
                 cursor.execute(idx)
+            
+            # Glicko-2 таблицы
+            from ratings import add_glicko2_tables
+            add_glicko2_tables(cursor)
+
+            # OpenSkill таблицы
+            from ratings import add_openskill_tables
+            add_openskill_tables(cursor)
+
+            # Кэш предыдущих матчей команды (feed pr_) — НЕ в таблице matches
+            from ratings import add_team_matches_cache_tables
+            add_team_matches_cache_tables(cursor)
+            
             _ensure_main_strategies(cursor)
             conn.commit()
 
@@ -641,6 +774,8 @@ def _migrate_matches_columns(cursor) -> None:
     existing = {row[1] for row in rows}
     if existing and "start_ts" not in existing:
         cursor.execute("ALTER TABLE matches ADD COLUMN start_ts INTEGER")
+    if existing and "is_archived" not in existing:
+        cursor.execute("ALTER TABLE matches ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0")
 
 
 def _migrate_match_snapshot_columns(cursor) -> None:
@@ -655,6 +790,11 @@ def _migrate_match_snapshot_columns(cursor) -> None:
         ("h2h_json", "TEXT"),
         ("team_matches_json", "TEXT"),
         ("weather_json", "TEXT"),
+        ("distance", "REAL"),
+        ("home_venue", "TEXT"),
+        ("home_town", "TEXT"),
+        ("away_venue", "TEXT"),
+        ("away_town", "TEXT"),
     ):
         if name not in existing:
             cursor.execute(f"ALTER TABLE match_snapshot ADD COLUMN {name} {col_type}")
@@ -762,11 +902,16 @@ def _migrate_teams_columns(cursor) -> None:
         cursor.execute("ALTER TABLE teams ADD COLUMN name_arbworld TEXT")
     if "name_whoscored" not in existing:
         cursor.execute("ALTER TABLE teams ADD COLUMN name_whoscored TEXT")
+    if "venue_id" not in existing:
+        cursor.execute("ALTER TABLE teams ADD COLUMN venue_id INTEGER")
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_teams_name_arbworld ON teams(name_arbworld)"
     )
     cursor.execute(
         "CREATE INDEX IF NOT EXISTS idx_teams_name_whoscored ON teams(name_whoscored)"
+    )
+    cursor.execute(
+        "CREATE INDEX IF NOT EXISTS idx_teams_venue_id ON teams(venue_id)"
     )
 
 
@@ -782,6 +927,7 @@ def _ensure_main_strategies(cursor) -> None:
         (7, "Moneyway", "Arbworld moneyway: max odds = max volume, vol > 1000"),
         (8, "1pr", "Исход с макс. вероятностью подстратегии «1 пр»"),
         (9, "WhoScored", "Точный счёт WhoScored + фора (2 прогноза в 1 строке)"),
+        (10, "XGBoost", "XGBoost 1x2 — вероятность 0.55-0.70"),
     )
     for sid, name, desc in defaults:
         row = cursor.execute("SELECT id FROM strategies WHERE name = ?", (name,)).fetchone()
@@ -812,6 +958,7 @@ STAVKA_TV_STRATEGY_ID = 6
 DOGS_STRATEGY_ID = 7
 ONEPR_STRATEGY_ID = 8
 WHOSCORED_STRATEGY_ID = 9
+XGBOOST_STRATEGY_ID = 10
 
 
 def upsert_strategy_prediction(
@@ -917,6 +1064,11 @@ MATCH_SNAPSHOT_COLUMNS = (
     "team_matches_json",
     "weather_json",
     "raw_json",
+    "distance",
+    "home_venue",
+    "home_town",
+    "away_venue",
+    "away_town",
 )
 
 
@@ -981,6 +1133,135 @@ def upsert_venue(venue: str, town: str, data: dict) -> None:
         conn.commit()
 
 
+def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Расстояние между двумя точками на сфере (формула гаверсинусов)."""
+    import math
+    
+    R = 6371  # Радиус Земли в км
+    lat1_rad = math.radians(lat1)
+    lat2_rad = math.radians(lat2)
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    
+    a = math.sin(dlat / 2) ** 2 + \
+        math.cos(lat1_rad) * math.cos(lat2_rad) * \
+        math.sin(dlon / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    
+    return round(R * c, 1)
+
+
+def get_venue_distance(home_venue: str, home_town: str, away_venue: str, away_town: str) -> float | None:
+    """Получить расстояние между стадионами (или None если нет данных)."""
+    with get_db_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT distance_km FROM venue_distances
+            WHERE home_venue = ? COLLATE NOCASE AND home_town = ? COLLATE NOCASE
+            AND away_venue = ? COLLATE NOCASE AND away_town = ? COLLATE NOCASE
+            """,
+            ((home_venue or "").strip(), (home_town or "").strip(),
+             (away_venue or "").strip(), (away_town or "").strip()),
+        ).fetchone()
+        return row[0] if row else None
+
+
+def upsert_venue_distance(home_venue: str, home_town: str, away_venue: str, away_town: str, distance_km: float) -> None:
+    """Сохранить расстояние между стадионами."""
+    with get_db_connection() as conn:
+        conn.execute(
+            """
+            INSERT INTO venue_distances (home_venue, home_town, away_venue, away_town, distance_km)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(home_venue, home_town, away_venue, away_town) DO UPDATE SET
+                distance_km = excluded.distance_km,
+                calculated_at = datetime('now')
+            """,
+            ((home_venue or "").strip(), (home_town or "").strip(),
+             (away_venue or "").strip(), (away_town or "").strip(),
+             distance_km),
+        )
+        conn.commit()
+
+
+def calculate_and_save_venue_distance(home_venue: str, home_town: str, away_venue: str, away_town: str) -> float | None:
+    """Рассчитать и сохранить расстояние между стадионами. Возвращает расстояние или None."""
+    # Проверяем кэш
+    cached = get_venue_distance(home_venue, home_town, away_venue, away_town)
+    if cached is not None:
+        return cached
+    
+    # Получаем координаты домашнего стадиона
+    home_venue_data = get_cached_venue(home_venue, home_town)
+    if not home_venue_data:
+        return None
+    
+    # Получаем координаты гостевого стадиона
+    away_venue_data = get_cached_venue(away_venue, away_town)
+    if not away_venue_data:
+        return None
+    
+    # Рассчитываем расстояние
+    distance = haversine_distance(
+        home_venue_data['latitude'], home_venue_data['longitude'],
+        away_venue_data['latitude'], away_venue_data['longitude']
+    )
+    
+    # Сохраняем
+    upsert_venue_distance(home_venue, home_town, away_venue, away_town, distance)
+    return distance
+
+
+def get_team_venue_id(team_name: str) -> tuple[str, str] | None:
+    """Получить (venue, town) для команды по venue_id."""
+    with get_db_connection() as conn:
+        row = conn.execute(
+            """
+            SELECT v.venue, v.town
+            FROM teams t
+            JOIN venues v ON v.id = t.venue_id
+            WHERE t.name = ?
+            """,
+            ((team_name or "").strip(),),
+        ).fetchone()
+        return (row['venue'], row['town']) if row else None
+
+
+def calculate_team_home_stadium(team_name: str) -> tuple[str, str] | None:
+    """Автоопределение домашнего стадиона команды из истории матчей."""
+    with get_db_connection() as conn:
+        # Берём все матчи где команда играет дома
+        rows = conn.execute(
+            """
+            SELECT ms.venue, ms.town, COUNT(*) as cnt
+            FROM matches m
+            JOIN match_snapshot ms ON ms.match_id = m.match_id
+            WHERE m.home_team_id = (
+                SELECT id FROM teams WHERE name = ? COLLATE NOCASE
+            )
+            AND ms.venue IS NOT NULL AND ms.town IS NOT NULL
+            GROUP BY ms.venue, ms.town
+            ORDER BY cnt DESC
+            LIMIT 1
+            """,
+            ((team_name or "").strip(),),
+        ).fetchone()
+        
+        if rows:
+            return (rows['venue'], rows['town'])
+        return None
+
+
+def assign_team_venue(team_name: str, venue_id: int) -> None:
+    """Назначить домашний стадион команде."""
+    with get_db_connection() as conn:
+        conn.execute(
+            "UPDATE teams SET venue_id = ? WHERE name = ?",
+            (venue_id, (team_name or "").strip()),
+        )
+        conn.commit()
+
+
 def insert_match_weather(match_id: str, data: dict) -> int:
     columns = (
         "kind",
@@ -1020,18 +1301,20 @@ def upsert_ml_run(data: dict) -> None:
         conn.execute(
             """
             INSERT INTO ml_runs (
-                run_id, experiment, model_type, target, schema_hash,
+                run_id, experiment, model_type, target, sport, schema_hash,
                 config_json, metrics_json, artifact_path, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
             ON CONFLICT(run_id) DO UPDATE SET
                 metrics_json=excluded.metrics_json,
-                artifact_path=excluded.artifact_path
+                artifact_path=excluded.artifact_path,
+                sport=excluded.sport
             """,
             (
                 data["run_id"],
                 data["experiment"],
                 data["model_type"],
                 data["target"],
+                data.get("sport", 1),
                 data.get("schema_hash"),
                 data.get("config_json"),
                 data.get("metrics_json"),
@@ -1193,6 +1476,66 @@ def resolve_service_team_name(flashscore_name: str, service: str = "arbworld") -
     mapping = load_team_name_map(service)
     key = (flashscore_name or "").strip().casefold()
     return mapping.get(key) or (flashscore_name or "").strip()
+
+
+def set_service_team_name(flashscore_name: str, service: str, alias: str) -> bool:
+    """Записать alias (имя во внешнем сервисе) для Flashscore-команды.
+
+    service: 'arbworld' | 'whoscored'. Возвращает True при успехе.
+    """
+    col = {
+        "arbworld": "name_arbworld",
+        "whoscored": "name_whoscored",
+    }.get(service)
+    if not col:
+        return False
+    name = (flashscore_name or "").strip()
+    alias = (alias or "").strip()
+    if not name or not alias:
+        return False
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            f"UPDATE teams SET {col} = ? WHERE name = ?",
+            (alias, name),
+        )
+        if cursor.rowcount == 0:
+            # команда ещё не в teams — создать с alias
+            cursor.execute(
+                "INSERT INTO teams (name, {0}) VALUES (?, ?)".format(col),
+                (name, alias),
+            )
+        conn.commit()
+    invalidate_cache()
+    # Сбросить кеши alias-карт в стратегиях: иначе имя, введённое во время
+    # анализа, не применится до перезапуска процесса.
+    try:
+        if service == "arbworld":
+            from src.strategies.dogs import clear_arbworld_alias_cache
+
+            clear_arbworld_alias_cache()
+    except Exception:  # noqa: BLE001
+        pass
+    return True
+
+
+def get_service_team_name(flashscore_name: str, service: str) -> str:
+    """Alias команды для сервиса; пустая строка, если его нет."""
+    col = {
+        "arbworld": "name_arbworld",
+        "whoscored": "name_whoscored",
+    }.get(service)
+    if not col:
+        return ""
+    name = (flashscore_name or "").strip()
+    if not name:
+        return ""
+    with get_db_connection() as conn:
+        row = conn.execute(
+            f"SELECT {col} FROM teams WHERE name = ?",
+            (name,),
+        ).fetchone()
+    return (row[0] if row and row[0] else "") if row else ""
 
 
 # ============================================================================

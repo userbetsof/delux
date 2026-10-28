@@ -14,6 +14,7 @@ const SPECS: Record<string, TableSpec> = {
     join: 'leagues l LEFT JOIN countries c ON c.id = l.country_id',
   },
   teams: { table: 'teams', orderBy: 'name', select: 'id, name, name_arbworld, name_whoscored' },
+  venues: { table: 'venues', orderBy: 'venue', select: 'id, venue, town' },
   strategies: { table: 'strategies', orderBy: 'id', select: 'id, name, description' },
   'sub-strategies': {
     table: 'sub_strategies',

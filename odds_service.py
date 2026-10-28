@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import urllib.error
 import urllib.parse
 import urllib.request
 from collections import defaultdict
@@ -25,6 +26,12 @@ ODDS_SUBHEADER_ROW = 2
 ODDS_DATA_START_ROW = 3
 ODDS_FIRST_BK_COL = 3
 STATIC_MARKETS = ["1X2_1", "1X2_X", "1X2_2", "BTTS_YES", "BTTS_NO", "DC_1X", "DC_12", "DC_X2"]
+
+# Конторы для дополнительного запроса через _hash=ope2. _hash=oce отдаёт
+# обычно 2-3 конторы и неполный набор азиатских фор (без нулевой линии),
+# поэтому полный список линий добираем по этим id.
+# 16 — Bet365: подтверждённо отдаёт весь ряд, включая фору 0.0.
+_EXTRA_BOOKMAKERS = (16, 5, 4, 13, 122, 8, 3, 2)
 
 
 @dataclass
@@ -99,9 +106,80 @@ def api_request(
     return json.loads(body)
 
 
+def bookmaker_odds_request(
+    event_id: str,
+    bookmaker_id: int,
+    bet_type: str,
+    bet_scope: str = "FULL_TIME",
+) -> dict:
+    """Линия одной конторы через _hash=ope2.
+
+    Возвращает findPrematchOddsForBookmaker: список opportunities, где
+    home/away лежат парой в одной записи и есть handicap.value. Этот эндпоинт
+    отдаёт полный набор линий (включая фору 0.0), тогда как _hash=oce —
+    только то, что попало в общий список.
+    """
+    params = {
+        "_hash": "ope2",
+        "eventId": event_id,
+        "bookmakerId": str(bookmaker_id),
+        "betType": bet_type,
+        "betScope": bet_scope,
+    }
+    url = f"{API_BASE}?{urllib.parse.urlencode(params)}"
+    req = urllib.request.Request(url, headers=API_HEADERS, method="GET")
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        body = resp.read().decode("utf-8", errors="replace")
+    return json.loads(body)
+
+
+def parse_bookmaker_handicaps(payload: dict) -> List[dict]:
+    """findPrematchOddsForBookmaker → плоский список записей odds.
+
+    Формат ответа: opportunities[{home:{value,eventParticipantId,...},
+    away:{...}, handicap:{value,type}}]. Превращаем в плоские записи,
+    совместимые с parse_groups_for_bookmaker.
+    """
+    out: List[dict] = []
+    node = (payload or {}).get("data", {}).get("findPrematchOddsForBookmaker") or {}
+    for opp in node.get("opportunities") or []:
+        if not isinstance(opp, dict):
+            continue
+        handicap = opp.get("handicap") or {}
+        line_value = handicap.get("value")
+        for side in ("home", "away"):
+            item = opp.get(side)
+            if not isinstance(item, dict):
+                continue
+            out.append(
+                {
+                    "eventParticipantId": item.get("eventParticipantId"),
+                    "value": item.get("value"),
+                    "opening": item.get("opening"),
+                    "active": item.get("active"),
+                    "result": item.get("result"),
+                    "handicap": handicap,
+                    "line_value": line_value,
+                }
+            )
+    return out
+
+
 def fetch_odds_data(event_id: str, source_value) -> Tuple[Optional[dict], List[dict]]:
     for project_id, geo_code, geo_sub in map_odds_params(source_value):
-        data = api_request(event_id, project_id, geo_code, geo_sub)
+        try:
+            data = api_request(event_id, project_id, geo_code, geo_sub)
+        except (
+            urllib.error.HTTPError,
+            urllib.error.URLError,
+            json.JSONDecodeError,
+            TimeoutError,
+            OSError,
+        ) as exc:
+            # API линии БК отвечает 500/таймаутом на часть матчей — это не фатально:
+            # анализ продолжается без коэффициентов БК (build_fallback_odds).
+            print(f"[!] odds API {exc.__class__.__name__} для {event_id}: {exc}")
+            continue
         odds_groups = data.get("data", {}).get("findOddsByEventId", {}).get("odds", [])
         if odds_groups:
             return data, odds_groups
@@ -114,6 +192,25 @@ def has_participant(odd: dict) -> bool:
 
 def participant_match(odd: dict, participant_id: str) -> bool:
     return str(odd.get("eventParticipantId", "")) == str(participant_id)
+
+
+def _handicap_side(odd: dict, home_id: str, away_id: str) -> Optional[str]:
+    """Определить сторону форы: 'HOME' | 'AWAY' | None.
+
+    Основной признак — eventParticipantId. Если он пуст, пробуем
+    handicap.type (HOME/AWAY). Тип UNKNOWN (частый случай для форы 0)
+    сторону не задаёт — тогда None.
+    """
+    pid = str(odd.get("eventParticipantId") or "")
+    if pid:
+        if pid == str(home_id):
+            return "HOME"
+        if pid == str(away_id):
+            return "AWAY"
+    htype = str((odd.get("handicap") or {}).get("type") or "").strip().upper()
+    if htype in ("HOME", "AWAY"):
+        return htype
+    return None
 
 
 def is_active(odd: dict) -> bool:
@@ -285,23 +382,28 @@ def parse_groups_for_bookmaker(
 
         elif betting_type == "ASIAN_HANDICAP" and scope == "FULL_TIME":
             for odd in odds:
+                # Закрытые/снятые линии не берём, но у завершённых матчей
+                # active бывает false при валидном значении — смотрим на value.
+                if not odd.get("value"):
+                    continue
                 handicap = str((odd.get("handicap") or {}).get("value", "")).strip()
                 if not handicap:
                     continue
-                if participant_match(odd, home_id):
-                    builder.write_market(
-                        bookmaker_id,
-                        f"HANDICAP HOME {handicap}",
-                        odd.get("opening"),
-                        odd.get("value"),
-                    )
-                elif participant_match(odd, away_id):
-                    builder.write_market(
-                        bookmaker_id,
-                        f"HANDICAP AWAY {handicap}",
-                        odd.get("opening"),
-                        odd.get("value"),
-                    )
+                # Нормализуем 0/-0/0.0 → "0.0", чтобы фора 0 не терялась.
+                try:
+                    hf = float(handicap.replace(",", "."))
+                    handicap = f"{hf:g}"
+                except (TypeError, ValueError):
+                    pass
+                side = _handicap_side(odd, home_id, away_id)
+                if side is None:
+                    continue
+                builder.write_market(
+                    bookmaker_id,
+                    f"HANDICAP {side} {handicap}",
+                    odd.get("opening"),
+                    odd.get("value"),
+                )
 
         elif betting_type == "CORRECT_SCORE" and scope == "FULL_TIME":
             for odd in odds:
@@ -318,11 +420,19 @@ def parse_groups_for_bookmaker(
                 )
 
 
-def build_fallback_odds(event_id: str) -> Optional[OddsSheetData]:
+def build_fallback_odds(
+    event_id: str,
+    *,
+    sport: int = 1,
+    country: Optional[int] = None,
+    team_key: str = "",
+) -> Optional[OddsSheetData]:
     """Минимальные данные для расчёта, если pq_graphql не вернул линию БК."""
     from analysis_data import fetch_match_page_ids
 
-    home_id, away_id, _, _ = fetch_match_page_ids(event_id)
+    home_id, away_id, _, _, _ = fetch_match_page_ids(
+        event_id, sport=sport, country=country, team_key=team_key
+    )
     if not home_id or not away_id:
         return None
     return OddsSheetData(home_id=home_id, away_id=away_id, bookmakers=[])
@@ -350,6 +460,32 @@ def load_odds(event_id: str, source_value) -> Tuple[int, Optional[OddsSheetData]
     for bk in bookmaker_ids:
         groups = [g for g in odds_groups if g.get("bookmakerId") == bk]
         parse_groups_for_bookmaker(groups, builder, bk, home_id, away_id)
+
+    # _hash=oce отдаёт лишь несколько контор и неполный набор азиатских фор
+    # (часто без нулевой линии). _hash=ope2 по конкретной конторе отдаёт
+    # полный список линий. Добираем те конторы, которых в oce не было.
+    for bk in _EXTRA_BOOKMAKERS:
+        if bk in seen:
+            continue
+        try:
+            payload = bookmaker_odds_request(event_id, bk, "ASIAN_HANDICAP")
+            extra = parse_bookmaker_handicaps(payload)
+            if not extra:
+                continue
+            parse_groups_for_bookmaker(
+                [{
+                    "bookmakerId": bk,
+                    "bettingType": "ASIAN_HANDICAP",
+                    "bettingScope": "FULL_TIME",
+                    "odds": extra,
+                }],
+                builder,
+                bk,
+                home_id,
+                away_id,
+            )
+        except Exception:  # noqa: BLE001
+            continue
 
     return 0, builder.build()
 

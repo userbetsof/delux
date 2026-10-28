@@ -6,6 +6,15 @@ type TeamRow = {
   name: string
   name_arbworld?: string | null
   name_whoscored?: string | null
+  venue_id?: number | null
+  venue_name?: string | null
+  venue_town?: string | null
+}
+
+type VenueOption = {
+  id: number
+  venue: string
+  town: string
 }
 
 const { db, dbQuery } = useAdminDb()
@@ -16,9 +25,11 @@ const { limit, offset, nextPage, prevPage, resetOffset, setLimit } = useTablePag
 
 const draftsArb = ref<Record<number, string>>({})
 const draftsWs = ref<Record<number, string>>({})
+const draftsVenue = ref<Record<number, number | null>>({})
 const savingId = ref<number | null>(null)
 const saveError = ref('')
 const saveOk = ref('')
+const venues = ref<VenueOption[]>([])
 
 const query = computed(() => ({
   ...dbQuery.value,
@@ -36,17 +47,26 @@ const { data, pending, error, refresh } = await useFetch<
   watch: [query],
 })
 
+// Загрузка списка стадионов
+const { data: venuesData } = await useFetch<{ items: VenueOption[] }>('/api/table/venues', {
+  query: { db: db.value },
+})
+venues.value = venuesData.value?.items || []
+
 watch(
   () => data.value?.items,
   (items) => {
     const nextArb: Record<number, string> = { ...draftsArb.value }
     const nextWs: Record<number, string> = { ...draftsWs.value }
+    const nextVenue: Record<number, number | null> = { ...draftsVenue.value }
     for (const t of items || []) {
       if (!(t.id in nextArb)) nextArb[t.id] = t.name_arbworld || ''
       if (!(t.id in nextWs)) nextWs[t.id] = t.name_whoscored || ''
+      if (!(t.id in nextVenue)) nextVenue[t.id] = t.venue_id || null
     }
     draftsArb.value = nextArb
     draftsWs.value = nextWs
+    draftsVenue.value = nextVenue
   },
   { immediate: true },
 )
@@ -54,8 +74,9 @@ watch(
 watch([search, unmappedOnly, unmappedWsOnly, limit], resetOffset)
 
 const headers = [
-  { title: 'ID', key: 'id', width: '80px' },
-  { title: 'Flashscore', key: 'name' },
+  { title: 'ID', key: 'id', width: '60px' },
+  { title: 'Flashscore', key: 'name', width: '200px' },
+  { title: 'Дом. стадион', key: 'venue', width: '250px' },
   { title: 'Arbworld', key: 'name_arbworld' },
   { title: 'WhoScored', key: 'name_whoscored' },
   { title: '', key: 'actions', sortable: false, width: '120px' },
@@ -69,8 +90,12 @@ function dirtyWs(item: TeamRow) {
   return (draftsWs.value[item.id] ?? '').trim() !== (item.name_whoscored || '').trim()
 }
 
+function dirtyVenue(item: TeamRow) {
+  return (draftsVenue.value[item.id] ?? null) !== (item.venue_id ?? null)
+}
+
 function dirty(item: TeamRow) {
-  return dirtyArb(item) || dirtyWs(item)
+  return dirtyArb(item) || dirtyWs(item) || dirtyVenue(item)
 }
 
 async function saveTeam(item: TeamRow) {
@@ -80,15 +105,17 @@ async function saveTeam(item: TeamRow) {
   try {
     const name_arbworld = (draftsArb.value[item.id] ?? '').trim() || null
     const name_whoscored = (draftsWs.value[item.id] ?? '').trim() || null
+    const venue_id = draftsVenue.value[item.id] ?? null
     await $fetch(`/api/teams/${item.id}`, {
       method: 'PATCH',
       query: { db: db.value },
-      body: { name_arbworld, name_whoscored },
+      body: { name_arbworld, name_whoscored, venue_id },
     })
     saveOk.value = `Сохранено: ${item.name}`
     await refresh()
     draftsArb.value[item.id] = name_arbworld || ''
     draftsWs.value[item.id] = name_whoscored || ''
+    draftsVenue.value[item.id] = venue_id
   } catch (e: unknown) {
     const err = e as { data?: { statusMessage?: string }; message?: string }
     saveError.value = err?.data?.statusMessage || err?.message || String(e)
@@ -164,6 +191,22 @@ function copyFsWs(item: TeamRow) {
       >
         <template #item.name="{ item }">
           <div class="font-weight-medium">{{ item.name }}</div>
+        </template>
+        <template #item.venue="{ item }">
+          <v-select
+            v-model="draftsVenue[item.id]"
+            :items="venues"
+            item-title="venue"
+            item-value="id"
+            :item-text="(item: VenueOption) => `${item.venue} (${item.town})`"
+            density="compact"
+            hide-details
+            variant="outlined"
+            clearable
+            placeholder="выбрать стадион"
+            style="min-width: 250px"
+            :class="{ 'bg-amber-lighten-5': dirtyVenue(item) }"
+          />
         </template>
         <template #item.name_arbworld="{ item }">
           <div class="d-flex align-center ga-1">

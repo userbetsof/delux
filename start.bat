@@ -26,6 +26,9 @@ echo  10^) StavkaTV — прогнозы stavka.tv ^(стратегия #6^)
 echo  11^) Moneyway — dogs/Arbworld ^(стратегия #7^)
 echo  12^) 1pr — макс. вероятность «1 пр» ^(стратегия #8^)
 echo  13^) WhoScored — точный счёт + фора ^(стратегия #9^)
+echo  14^) Загрузить матч по ID
+echo  15^) Анализ по выбору ^(все / сезон / матч / сезон заново + стратегия^)
+echo  16^) Обнулить рейтинги ^(ELO / Glicko-2 / OpenSkill к исходным^)
 echo   0^) Выход
 echo ========================================
 set /p "CHOICE=Выбор: "
@@ -43,6 +46,9 @@ if "%CHOICE%"=="10" goto :stavka_tv
 if "%CHOICE%"=="11" goto :dogs
 if "%CHOICE%"=="12" goto :onepr
 if "%CHOICE%"=="13" goto :whoscored
+if "%CHOICE%"=="14" goto :single_match
+if "%CHOICE%"=="15" goto :season_url
+if "%CHOICE%"=="16" goto :reset_ratings
 if "%CHOICE%"=="0" exit /b 0
 echo Неверный выбор.
 goto :menu
@@ -129,6 +135,36 @@ goto :done
 echo.
 echo [*] WhoScored — точный счёт + фора (стратегия #9)...
 %PY% scripts\run_whoscored_strategy.py --new
+goto :done
+
+:single_match
+echo.
+echo [*] Загрузка матча по ID...
+set /p "MATCH_ID=Введите ID матча: "
+if "%MATCH_ID%"=="" (
+    echo [-] ID матча не введён
+    goto :done
+)
+echo [*] Загрузка матча %MATCH_ID%...
+%PY% delux.py analyze --match-id "%MATCH_ID%"
+goto :done
+
+:season_url
+echo.
+echo [*] Анализ по выбору (меню: режим + стратегии)...
+%PY% analyze_match.py --interactive
+goto :done
+
+:reset_ratings
+echo.
+echo [*] Обнуление рейтингов: ELO, Glicko-2, OpenSkill.
+echo     Рейтинги вернутся к стартовым значениям, история будет очищена.
+set /p "CONFIRM=Продолжить? [y/N]: "
+if /i not "%CONFIRM%"=="y" (
+    echo [-] Отменено
+    goto :done
+)
+%PY% scripts\reset_ratings.py
 goto :done
 
 :done

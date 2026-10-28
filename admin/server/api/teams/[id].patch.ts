@@ -10,13 +10,15 @@ export default defineEventHandler(async (event) => {
   const body = await readBody<{
     name_arbworld?: string | null
     name_whoscored?: string | null
+    venue_id?: number | null
   }>(event)
   const hasArbBody = Boolean(body && 'name_arbworld' in body)
   const hasWsBody = Boolean(body && 'name_whoscored' in body)
-  if (!hasArbBody && !hasWsBody) {
+  const hasVenueBody = Boolean(body && 'venue_id' in body)
+  if (!hasArbBody && !hasWsBody && !hasVenueBody) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'name_arbworld or name_whoscored required',
+      statusMessage: 'name_arbworld, name_whoscored or venue_id required',
     })
   }
 
@@ -52,15 +54,20 @@ export default defineEventHandler(async (event) => {
         body.name_whoscored == null ? null : String(body.name_whoscored).trim() || null
       db.prepare('UPDATE teams SET name_whoscored = ? WHERE id = ?').run(alias, id)
     }
+    if (hasVenueBody) {
+      const venueId = body.venue_id != null ? Number(body.venue_id) : null
+      db.prepare('UPDATE teams SET venue_id = ? WHERE id = ?').run(venueId, id)
+    }
 
     const updated = row<{
       id: number
       name: string
       name_arbworld: string | null
       name_whoscored: string | null
+      venue_id: number | null
     }>(
       db,
-      'SELECT id, name, name_arbworld, name_whoscored FROM teams WHERE id = ?',
+      'SELECT id, name, name_arbworld, name_whoscored, venue_id FROM teams WHERE id = ?',
       [id],
     )
     return { ok: true, item: updated }

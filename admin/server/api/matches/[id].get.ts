@@ -129,7 +129,17 @@ export default defineEventHandler((event) => {
         }
       : null
 
-    return { match, odds, predictions, outcomes, goals, snapshot, weather, whoscored }
+    const statsRow = tableExists(db, 'match_stats')
+      ? row(db, `SELECT stats_json, fetched_at FROM match_stats WHERE match_id = ?`, [matchId])
+      : null
+    const matchStats = statsRow
+      ? {
+          ...parseJson(statsRow.stats_json, {}),
+          fetched_at: statsRow.fetched_at,
+        }
+      : null
+
+    return { match, odds, predictions, outcomes, goals, snapshot, weather, whoscored, matchStats }
   } finally {
     db.close()
   }

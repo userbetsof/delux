@@ -18,43 +18,38 @@ from formula_port.team_stats import (
     apply_queued_odds,
     apply_settings_to_store,
 )
-from formula_port.incodata_mc import apply_incodata_goal_probs
+from formula_port.incodata_mc import apply_incodata_goal_probs, strip_goal_hist_formulas
 from formula_port.workbook_loader import load_sheet_constants, load_sheet_formulas
 from odds_service import OddsSheetData
 from sheets_config import DYNAMIC_SHEETS, SHEET_CALC
 
 
-def evaluate_dynamic_sheets(store: CellStore, sheets: Optional[List[str]] = None) -> None:
-    from sheets_config import SHEET_ANALYSIS
+def _clear_formula_values(store: CellStore, sheets: List[str]) -> None:
+    """Сбросить кэш значений у формул, чтобы eval не брал lookups.db / snapshot."""
+    wanted = set(sheets)
+    for key in store._formulas:
+        sheet = key.split("!", 1)[0]
+        if sheet in wanted:
+            store._values.pop(key, None)
 
-    sheet_list = list(sheets or DYNAMIC_SHEETS)
-    ev = Evaluator(store, SHEET_CALC)
-    order = topological_sort(store, sheet_list)
-    for sheet, addr in order:
+
+def _eval_sheet_formulas(store: CellStore, sheets: List[str], ev: Evaluator) -> None:
+    for sheet, addr in topological_sort(store, sheets):
         ev.eval_cell(sheet, addr)
 
-    # После ДомаДома/ГостиГости!L/M — MC вместо 50k RAND на IncoData
+
+def evaluate_dynamic_sheets(store: CellStore, sheets: Optional[List[str]] = None) -> None:
+    sheet_list = list(sheets or DYNAMIC_SHEETS)
+    # Не считать COUNTIF по 50k RAND: MC подставит гистограмму после L/M.
+    strip_goal_hist_formulas(store)
+    _clear_formula_values(store, sheet_list)
+    ev = Evaluator(store, SHEET_CALC)
+    _eval_sheet_formulas(store, sheet_list, ev)
+
     apply_incodata_goal_probs(store)
-    for addr in (
-        "V10",
-        "W10",
-        "X10",
-        "Y10",
-        "Z10",
-        "AA10",
-        "AI10",
-        "AJ10",
-        "AK10",
-        "AL10",
-        "AM10",
-        "AN10",
-        "AE24",
-        "X24",
-    ):
-        key = store.key(SHEET_ANALYSIS, addr)
-        store._values.pop(key, None)
-        if store.get_formula(SHEET_ANALYSIS, addr):
-            ev.eval_cell(SHEET_ANALYSIS, addr)
+    # Poisson / Mill / 1pr и т.д. зависят от пересчитанных голов — второй проход.
+    _clear_formula_values(store, sheet_list)
+    _eval_sheet_formulas(store, sheet_list, ev)
 
 
 class PythonCalcEngine:
@@ -91,11 +86,32 @@ class PythonCalcEngine:
         list_odds: Optional[Tuple[float, float, float]] = None,
     ) -> CellStore:
         store = CellStore()
+        # В кэше формул встречаются и неформульные значения (константы листа),
+        # поэтому в формулы отдаём только строки, начинающиеся с "=".
         for sheet, mapping in self._load_formulas().items():
-            store.bulk_set_formulas(sheet, mapping)
+            store.bulk_set_formulas(
+                sheet,
+                {
+                    addr: val
+                    for addr, val in mapping.items()
+                    if isinstance(val, str) and val.startswith("=")
+                },
+            )
 
+        formula_keys = set(store._formulas)
+        # Неформульные значения из кэша формул (если попали туда) — как константы.
+        for sheet, mapping in self._load_formulas().items():
+            for addr, val in mapping.items():
+                key = store.key(sheet, addr)
+                if key in formula_keys:
+                    continue
+                store.set_value(sheet, addr, val)
         for sheet, mapping in self._load_constants().items():
-            store.bulk_set_values(sheet, mapping)
+            for addr, val in mapping.items():
+                key = store.key(sheet, addr)
+                if key in formula_keys:
+                    continue
+                store.set_value(sheet, addr, val)
 
         if self.static_cache.exists():
             for key, val in self.static_cache.load_all().items():

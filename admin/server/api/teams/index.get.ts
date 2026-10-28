@@ -18,42 +18,49 @@ export default defineEventHandler((event) => {
     const cols = rows<{ name: string }>(db, `PRAGMA table_info(teams)`)
     const hasArb = cols.some((c) => c.name === 'name_arbworld')
     const hasWs = cols.some((c) => c.name === 'name_whoscored')
-    const selectParts = ['id', 'name']
-    selectParts.push(hasArb ? 'name_arbworld' : 'NULL AS name_arbworld')
-    selectParts.push(hasWs ? 'name_whoscored' : 'NULL AS name_whoscored')
+    const hasVenue = cols.some((c) => c.name === 'venue_id')
+    const selectParts = ['t.id', 't.name']
+    selectParts.push(hasArb ? 't.name_arbworld' : 'NULL AS name_arbworld')
+    selectParts.push(hasWs ? 't.name_whoscored' : 'NULL AS name_whoscored')
+    if (hasVenue) {
+      selectParts.push('t.venue_id')
+      selectParts.push('v.venue AS venue_name')
+      selectParts.push('v.town AS venue_town')
+    }
     const select = selectParts.join(', ')
+    const fromClause = hasVenue ? 'teams t LEFT JOIN venues v ON v.id = t.venue_id' : 'teams t'
 
     const where: string[] = []
     const params: unknown[] = []
     if (search) {
-      const likeParts = ['name LIKE ?']
+      const likeParts = ['t.name LIKE ?']
       params.push(`%${search}%`)
       if (hasArb) {
-        likeParts.push("IFNULL(name_arbworld, '') LIKE ?")
+        likeParts.push("IFNULL(t.name_arbworld, '') LIKE ?")
         params.push(`%${search}%`)
       }
       if (hasWs) {
-        likeParts.push("IFNULL(name_whoscored, '') LIKE ?")
+        likeParts.push("IFNULL(t.name_whoscored, '') LIKE ?")
         params.push(`%${search}%`)
       }
       where.push(`(${likeParts.join(' OR ')})`)
     }
     if (unmapped && hasArb) {
-      where.push("(name_arbworld IS NULL OR TRIM(name_arbworld) = '')")
+      where.push("(t.name_arbworld IS NULL OR TRIM(t.name_arbworld) = '')")
     }
     if (unmappedWs && hasWs) {
-      where.push("(name_whoscored IS NULL OR TRIM(name_whoscored) = '')")
+      where.push("(t.name_whoscored IS NULL OR TRIM(t.name_whoscored) = '')")
     }
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : ''
 
     const items = rows(
       db,
-      `SELECT ${select} FROM teams ${whereSql} ORDER BY name COLLATE NOCASE LIMIT ? OFFSET ?`,
+      `SELECT ${select} FROM ${fromClause} ${whereSql} ORDER BY t.name COLLATE NOCASE LIMIT ? OFFSET ?`,
       [...params, limit, offset],
     )
     const totalRow = row<{ c: number }>(
       db,
-      `SELECT COUNT(*) AS c FROM teams ${whereSql}`,
+      `SELECT COUNT(*) AS c FROM teams t ${whereSql}`,
       params,
     )
     return {

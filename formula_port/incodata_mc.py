@@ -61,6 +61,14 @@ def _histogram(
     return hist
 
 
+def strip_goal_hist_formulas(store: CellStore) -> None:
+    """Убрать RAND/COUNTIF-формулы гистограммы, чтобы eval не затирал MC."""
+    for k in range(GOAL_BINS):
+        row = 21 + k
+        for col in ("AS", "AT", "AV", "AW"):
+            store._formulas.pop(store.key(SHEET_INCO, f"{col}{row}"), None)
+
+
 def apply_incodata_goal_probs(store: CellStore, *, n: int = 50_000, seed: int = 42) -> None:
     """
     Заполняет IncoData!AT21:AT{20+GOAL_BINS} и AW (и AS/AV) — вероятности 0..12 голов.
@@ -92,8 +100,4 @@ def apply_incodata_goal_probs(store: CellStore, *, n: int = 50_000, seed: int = 
         store.set_value(SHEET_INCO, f"AT{row}", hist_home[k] / float(n))
         store.set_value(SHEET_INCO, f"AV{row}", float(hist_away[k]))
         store.set_value(SHEET_INCO, f"AW{row}", hist_away[k] / float(n))
-        # убрать формулы, чтобы eval не затирал нулями
-        store._formulas.pop(store.key(SHEET_INCO, f"AS{row}"), None)
-        store._formulas.pop(store.key(SHEET_INCO, f"AT{row}"), None)
-        store._formulas.pop(store.key(SHEET_INCO, f"AV{row}"), None)
-        store._formulas.pop(store.key(SHEET_INCO, f"AW{row}"), None)
+    strip_goal_hist_formulas(store)

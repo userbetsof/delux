@@ -28,23 +28,31 @@ def serialize_probabilities(target: str, classes, probabilities) -> str:
     )
 
 
-def _runs(run_id: str = "", model_type: str = "") -> List[Dict[str, Any]]:
+def _runs(run_id: str = "", model_type: str = "", sport: int = 0) -> List[Dict[str, Any]]:
     with get_db_connection() as conn:
         if run_id:
             rows = conn.execute("SELECT * FROM ml_runs WHERE run_id = ?", (run_id,)).fetchall()
         else:
-            condition = "AND r.model_type = ?" if model_type else ""
-            params = (model_type,) if model_type else ()
+            condition = ""
+            params: list = []
+            
+            if model_type:
+                condition += " AND r.model_type = ?"
+                params.append(model_type)
+            if sport > 0:
+                condition += " AND r.sport = ?"
+                params.append(sport)
+            
             rows = conn.execute(
                 f"""
                 SELECT r.* FROM ml_runs r
                 WHERE r.rowid = (
                     SELECT MAX(x.rowid) FROM ml_runs x
-                    WHERE x.model_type=r.model_type AND x.target=r.target
+                    WHERE x.model_type=r.model_type AND x.target=r.target AND x.sport=r.sport
                 )
                 {condition}
                 """,
-                params,
+                tuple(params),
             ).fetchall()
     return [dict(row) for row in rows]
 

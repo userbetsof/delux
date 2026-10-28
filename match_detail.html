@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Матч — Admin Test DB</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f1419;
+            color: #e4e4e4;
+            min-height: 100vh;
+        }
+        .header {
+            background: #1a2332;
+            padding: 16px 24px;
+            border-bottom: 1px solid #2d3748;
+        }
+        .back {
+            display: inline-block;
+            color: #4299e1;
+            text-decoration: none;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        .back:hover { text-decoration: underline; }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #e4e4e4;
+        }
+        .match-meta {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #a0aec0;
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .score-big {
+            font-weight: 700;
+            color: #48bb78;
+            font-size: 18px;
+        }
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status.finished { background: #48bb7822; color: #48bb78; }
+        .status.live { background: #ed893622; color: #ed8936; }
+        .status.pending { background: #a0aec022; color: #a0aec0; }
+        .content {
+            padding: 24px;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #4299e1;
+            margin-bottom: 12px;
+        }
+        .section-title:not(:first-child) { margin-top: 32px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            background: #1a2332;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #a0aec0;
+            border-bottom: 2px solid #2d3748;
+            white-space: nowrap;
+        }
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #2d3748;
+        }
+        tr:hover td { background: #1a233288; }
+        .rank {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .rank.top { background: #48bb7833; color: #48bb78; }
+        .rank.mid { background: #4299e133; color: #4299e1; }
+        .rank.low { background: #ed893633; color: #ed8936; }
+        .empty, .loading {
+            text-align: center;
+            padding: 30px;
+            color: #718096;
+        }
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #fc8181;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/" class="back">← Все матчи</a>
+        <h1 id="match-title">Матч</h1>
+        <div class="match-meta" id="match-meta"></div>
+    </div>
+
+    <div class="content" id="tables-root"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8765';
+        const TABLE_TYPES = [
+            { type: 'overall', title: 'Общая таблица' },
+            { type: 'home', title: 'Домашние матчи' },
+            { type: 'away', title: 'Гостевые матчи' },
+        ];
+
+        const path = location.pathname.replace(/\/+$/, '');
+        const matchId = decodeURIComponent(path.split('/').pop());
+
+        function buildTables() {
+            const header = '<tr>' +
+                '<th>#</th><th>Команда</th><th>И</th><th>В</th><th>Н</th><th>П</th>' +
+                '<th>ЗМ</th><th>ПМ</th><th>РМ</th><th>Очки</th></tr>';
+            document.getElementById('tables-root').innerHTML = TABLE_TYPES.map(t =>
+                '<div class="section-title">' + t.title + '</div>' +
+                '<table><thead>' + header + '</thead>' +
+                '<tbody id="tb-' + t.type + '">' +
+                '<tr><td colspan="10" class="loading">Загрузка...</td></tr>' +
+                '</tbody></table>'
+            ).join('') +
+
+            // Glicko-2 рейтинги команд
+            '<div class="section-title">Glicko-2 рейтинги</div>' +
+            '<div id="glicko2-root">' +
+            '<div class="loading">Загрузка...</div>' +
+            '</div>';
+        }
+
+        function renderGlicko2(rows) {
+            const root = document.getElementById('glicko2-root');
+            if (!rows || !rows.length) {
+                root.innerHTML = '<div class="empty">Нет данных Glicko-2</div>';
+                return;
+            }
+            const sideLabel = { home: 'Хозяева', away: 'Гости' };
+            root.innerHTML = rows.map(r => {
+                const side = sideLabel[r.side] || r.side;
+                const winrate = (r.matches_played > 0)
+                    ? (100 * r.wins / r.matches_played).toFixed(0) + '%'
+                    : '—';
+                return '<table style="margin-bottom:16px;">' +
+                    '<thead><tr>' +
+                    '<th>' + side + '</th>' +
+                    '<th>Команда</th>' +
+                    '<th>Рейтинг</th>' +
+                    '<th>RD</th>' +
+                    '<th>Волатильность</th>' +
+                    '<th>И</th><th>В</th><th>Н</th><th>П</th>' +
+                    '<th>Побед %</th>' +
+                    '</tr></thead><tbody><tr>' +
+                    '<td style="font-weight:600;color:#a0aec0;">' + side + '</td>' +
+                    '<td style="font-weight:500;">' + r.team_name + '</td>' +
+                    '<td style="font-weight:700;color:#4299e1;">' + (r.rating != null ? Number(r.rating).toFixed(1) : '—') + '</td>' +
+                    '<td>' + (r.rd != null ? Number(r.rd).toFixed(1) : '—') + '</td>' +
+                    '<td>' + (r.volatility != null ? Number(r.volatility).toFixed(3) : '—') + '</td>' +
+                    '<td>' + r.matches_played + '</td>' +
+                    '<td>' + r.wins + '</td>' +
+                    '<td>' + r.draws + '</td>' +
+                    '<td>' + r.losses + '</td>' +
+                    '<td>' + winrate + '</td>' +
+                    '</tr></tbody></table>';
+            }).join('');
+        }
+
+        function renderStandings(type, standings) {
+            const tbody = document.getElementById('tb-' + type);
+            if (!standings.length) {
+                tbody.innerHTML = '<tr><td colspan="10" class="empty">Нет данных</td></tr>';
+                return;
+            }
+            tbody.innerHTML = standings.map((s, i) => {
+                const rankClass = i < 4 ? 'top' : i < 10 ? 'mid' : 'low';
+                const gd = (s.scored || 0) - (s.conceded || 0);
+                return '<tr>' +
+                    '<td><span class="rank ' + rankClass + '">' + s.rank + '</span></td>' +
+                    '<td style="font-weight:500;">' + s.team_name + '</td>' +
+                    '<td>' + s.played + '</td>' +
+                    '<td>' + s.wins + '</td>' +
+                    '<td>' + s.draws + '</td>' +
+                    '<td>' + s.losses + '</td>' +
+                    '<td>' + s.scored + '</td>' +
+                    '<td>' + s.conceded + '</td>' +
+                    '<td style="color:' + (gd > 0 ? '#48bb78' : gd < 0 ? '#fc8181' : '#a0aec0') + ';">' +
+                        (gd > 0 ? '+' : '') + gd + '</td>' +
+                    '<td style="font-weight:700;color:#4299e1;">' + s.points + '</td>' +
+                '</tr>';
+            }).join('');
+        }
+
+        async function load() {
+            buildTables();
+
+            // Информация о матче
+            try {
+                const res = await fetch(API_BASE + '/api/testdb/matches/' + encodeURIComponent(matchId));
+                if (!res.ok) throw new Error('not found');
+                const m = await res.json();
+                document.title = m.home_team + ' — ' + m.away_team + ' · Admin Test DB';
+                document.getElementById('match-title').textContent = m.home_team + ' vs ' + m.away_team;
+                const statusClass = m.match_status === 'Завершен' ? 'finished' :
+                                    m.match_status === 'Live' ? 'live' : 'pending';
+                const score = (m.score_home !== null && m.score_away !== null)
+                    ? '<span class="score-big">' + m.score_home + ' - ' + m.score_away + '</span>'
+                    : '<span style="color:#718096;">- : -</span>';
+                document.getElementById('match-meta').innerHTML =
+                    '<span>' + m.match_date + '</span>' + '<span>' + score + '</span>' +
+                    '<span><span class="status ' + statusClass + '">' + m.match_status + '</span></span>' +
+                    '<span style="color:#718096;">' + m.match_id + '</span>';
+            } catch (e) {
+                document.getElementById('match-title').textContent = 'Матч не найден';
+                document.getElementById('match-meta').innerHTML = '';
+                document.getElementById('tables-root').innerHTML =
+                    '<div class="error">Матч ' + matchId + ' не найден</div>';
+                return;
+            }
+
+            // Три таблицы
+            for (const t of TABLE_TYPES) {
+                try {
+                    const res = await fetch(API_BASE + '/api/testdb/standings?match_id=' +
+                        encodeURIComponent(matchId) + '&type=' + t.type);
+                    renderStandings(t.type, await res.json());
+                } catch (e) {
+                    renderStandings(t.type, []);
+                }
+            }
+
+            // Glicko-2 рейтинги команд
+            try {
+                const res = await fetch(API_BASE + '/api/testdb/glicko2?match_id=' +
+                    encodeURIComponent(matchId));
+                renderGlicko2(await res.json());
+            } catch (e) {
+                renderGlicko2([]);
+            }
+        }
+
+        load();
+    </script>
+</body>
+</html>

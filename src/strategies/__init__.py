@@ -12,6 +12,7 @@ from src.strategies.favorites import FavoritesStrategy
 from src.strategies.onepr import OneprStrategy
 from src.strategies.stavka_tv import StavkaTvStrategy
 from src.strategies.whoscored import WhoscoredStrategy
+from src.strategies.xgboost import XGBoostStrategy
 
 STRATEGY_CLASSES: List[Type[Strategy]] = [
     NtbStrategy,
@@ -23,6 +24,7 @@ STRATEGY_CLASSES: List[Type[Strategy]] = [
     MoneywayStrategy,
     OneprStrategy,
     WhoscoredStrategy,
+    XGBoostStrategy,
 ]
 
 

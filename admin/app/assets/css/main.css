@@ -1,0 +1,238 @@
+/* ===== Global Styles ===== */
+html, body, #__nuxt {
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: #F0EBE5;
+  color: #1A1A2E;
+}
+
+/* ===== Dark Theme Background ===== */
+.v-theme--dark .v-navigation-drawer {
+  background-color: #0D1117 !important;
+}
+
+/* ===== Custom Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* ===== Sidebar Styles ===== */
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #E87739 0%, #D35400 100%);
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.sidebar-logo .logo-icon {
+  width: 32px;
+  height: 32px;
+  background: white;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #E87739;
+  font-weight: 900;
+  font-size: 18px;
+}
+
+.sidebar-section {
+  padding: 16px 12px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6B7280;
+}
+
+/* ===== Card Styles ===== */
+.metric-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.metric-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.metric-card .metric-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.metric-card .metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  margin: 12px 0 4px;
+  color: #1A1A2E;
+}
+
+.metric-card .metric-title {
+  font-size: 13px;
+  color: #6B7280;
+  font-weight: 500;
+}
+
+/* ===== Content Card ===== */
+.content-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.content-card .card-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #E5E7EB;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1A1A2E;
+}
+
+/* ===== Table Styles ===== */
+.v-table {
+  font-size: 14px;
+}
+
+.v-table th {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #6B7280;
+  background: #F9FAFB;
+}
+
+/* ===== Page Header ===== */
+.page-header {
+  margin-bottom: 24px;
+}
+
+.page-header .page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1A1A2E;
+  letter-spacing: -0.5px;
+  margin-bottom: 4px;
+}
+
+.page-header .page-subtitle {
+  font-size: 14px;
+  color: #6B7280;
+}
+
+/* ===== Top Bar ===== */
+.topbar {
+  border-bottom: 1px solid #E5E7EB;
+  background: white;
+}
+
+/* ===== Filter Section ===== */
+.filter-section {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+/* ===== Dark Theme Adjustments ===== */
+.v-theme--dark .metric-card {
+  background: #1C1C2E;
+}
+
+.v-theme--dark .metric-card .metric-value {
+  color: #F0EBE5;
+}
+
+.v-theme--dark .metric-card .metric-title {
+  color: #9CA3AF;
+}
+
+.v-theme--dark .content-card {
+  background: #1C1C2E;
+}
+
+.v-theme--dark .content-card .card-header {
+  border-bottom-color: #374151;
+  color: #F0EBE5;
+}
+
+.v-theme--dark .page-header .page-title {
+  color: #F0EBE5;
+}
+
+.v-theme--dark .page-header .page-subtitle {
+  color: #9CA3AF;
+}
+
+.v-theme--dark .filter-section {
+  background: #1C1C2E;
+}
+
+/* ===== Vuetify Overrides ===== */
+.v-btn {
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.v-text-field .v-field__input {
+  font-size: 14px;
+}
+
+.v-select .v-field__input {
+  font-size: 14px;
+}
+
+/* ===== Sidebar Menu Colors ===== */
+.sidebar .v-list-item--active .v-list-item__title {
+  color: white !important;
+  font-weight: 600;
+}
+
+.sidebar .v-list-item:not(.v-list-item--active) .v-list-item__title {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.sidebar .v-list-item:not(.v-list-item--active) .v-list-item__prepend {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.sidebar .v-list-item:not(.v-list-item--active):hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}

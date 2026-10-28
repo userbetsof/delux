@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Test DB — Flashscore</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f1419;
+            color: #e4e4e4;
+            min-height: 100vh;
+        }
+        .header {
+            background: #1a2332;
+            padding: 16px 24px;
+            border-bottom: 1px solid #2d3748;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #4299e1;
+        }
+        .header .stats {
+            display: flex;
+            gap: 24px;
+            font-size: 13px;
+            color: #a0aec0;
+        }
+        .header .stats span {
+            color: #48bb78;
+            font-weight: 600;
+        }
+        .tabs {
+            display: flex;
+            background: #1a2332;
+            border-bottom: 1px solid #2d3748;
+            padding: 0 24px;
+        }
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: #a0aec0;
+        }
+        .tab:hover { color: #e4e4e4; background: #2d374833; }
+        .tab.active {
+            color: #4299e1;
+            border-bottom-color: #4299e1;
+        }
+        .content {
+            padding: 24px;
+            overflow-x: auto;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            background: #1a2332;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #a0aec0;
+            border-bottom: 2px solid #2d3748;
+            white-space: nowrap;
+        }
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #2d3748;
+        }
+        tr:hover td { background: #1a233288; }
+        .match-id {
+            font-family: 'Courier New', monospace;
+            color: #4299e1;
+            font-size: 12px;
+        }
+        .match-id a { color: inherit; text-decoration: none; }
+        .match-id a:hover { text-decoration: underline; }
+        .score {
+            font-weight: 700;
+            color: #48bb78;
+            font-size: 14px;
+        }
+        .status {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status.finished { background: #48bb7822; color: #48bb78; }
+        .status.live { background: #ed893622; color: #ed8936; }
+        .status.pending { background: #a0aec022; color: #a0aec0; }
+        .rank {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            font-weight: 700;
+            font-size: 12px;
+        }
+        .rank.top { background: #48bb7833; color: #48bb78; }
+        .rank.mid { background: #4299e133; color: #4299e1; }
+        .rank.low { background: #ed893633; color: #ed8936; }
+        .detail-panel {
+            background: #1a2332;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .detail-panel h3 {
+            color: #4299e1;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .detail-item .label {
+            font-size: 11px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .detail-item .value {
+            font-size: 14px;
+            color: #e4e4e4;
+        }
+        .teams-list {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 0;
+        }
+        .team-name {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .vs {
+            color: #718096;
+            font-size: 14px;
+        }
+        .search-box {
+            background: #1a2332;
+            border: 1px solid #2d3748;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #e4e4e4;
+            font-size: 13px;
+            width: 250px;
+            outline: none;
+        }
+        .search-box:focus { border-color: #4299e1; }
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #4299e122;
+            color: #4299e1;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #4299e1;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚽ Admin Test DB</h1>
+        <div class="stats">
+            <div>Матчей: <span id="match-count">—</span></div>
+            <div>Команд: <span id="team-count">—</span></div>
+            <div>Снимков: <span id="snapshot-count">—</span></div>
+        </div>
+    </div>
+    <div class="tabs">
+        <div class="tab active" data-tab="matches">Матчи</div>
+        <div class="tab" data-tab="teams">Команды</div>
+        <div class="tab" data-tab="standings">Таблица лиги</div>
+        <div class="tab" data-tab="feed">Feed данные</div>
+    </div>
+    <div class="content">
+        <!-- Матчи -->
+        <div class="tab-content active" id="tab-matches">
+            <input type="text" class="search-box" placeholder="Поиск по команде или ID..." id="match-search">
+            <div style="margin-top: 16px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Дата</th>
+                            <th>Команды</th>
+                            <th>Счёт</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody id="matches-tbody">
+                        <tr><td colspan="5" class="loading">Загрузка...</td></td>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Команды -->
+        <div class="tab-content" id="tab-teams">
+            <input type="text" class="search-box" placeholder="Поиск команды..." id="team-search">
+            <div style="margin-top: 16px;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Название</th>
+                            <th>Турнир</th>
+                        </tr>
+                    </thead>
+                    <tbody id="teams-tbody">
+                        <tr><td colspan="3" class="loading">Загрузка...</td></td>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!-- Таблица лиги -->
+        <div class="tab-content" id="tab-standings">
+            <div style="margin-bottom: 16px;">
+                <label style="color: #a0aec0; font-size: 13px; margin-right: 8px;">Матч:</label>
+                <select id="snapshot-select" style="background: #1a2332; border: 1px solid #2d3748; color: #e4e4e4; padding: 6px 12px; border-radius: 4px;">
+                    <option>Загрузка...</option>
+                </select>
+                <label style="color: #a0aec0; font-size: 13px; margin: 0 8px 0 20px;">Таблица:</label>
+                <select id="table-type-select" style="background: #1a2332; border: 1px solid #2d3748; color: #e4e4e4; padding: 6px 12px; border-radius: 4px;">
+                    <option value="overall">Общая</option>
+                    <option value="home">Домашние</option>
+                    <option value="away">Гостевые</option>
+                </select>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Команда</th>
+                        <th>И</th>
+                        <th>В</th>
+                        <th>Н</th>
+                        <th>П</th>
+                        <th>ЗМ</th>
+                        <th>ПМ</th>
+                        <th>РМ</th>
+                        <th>Очки</th>
+                    </tr>
+                </thead>
+                <tbody id="standings-tbody">
+                    <tr><td colspan="10" class="loading">Загрузка...</td></td>
+                </tbody>
+            </table>
+        </div>
+        <!-- Feed данные -->
+        <div class="tab-content" id="tab-feed">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Тип</th>
+                        <th>URL</th>
+                        <th>Дата загрузки</th>
+                    </tr>
+                </thead>
+                <tbody id="feed-tbody">
+                    <tr><td colspan="4" class="loading">Загрузка...</td></td>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8765';
+        let dbData = null;
+
+        // Tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+            });
+        });
+
+        // Search
+        document.getElementById('match-search').addEventListener('input', filterMatches);
+        document.getElementById('team-search').addEventListener('input', filterTeams);
+        document.getElementById('snapshot-select').addEventListener('change', loadStandings);
+        document.getElementById('table-type-select').addEventListener('change', loadStandings);
+
+        async function loadData() {
+            try {
+                const res = await fetch(API_BASE + '/api/testdb/data');
+                dbData = await res.json();
+                renderMatches(dbData.matches);
+                renderTeams(dbData.teams);
+                renderFeed(dbData.feed_snapshots);
+                populateSnapshots(dbData.matches);
+                loadStandings();
+                updateStats(dbData);
+            } catch (e) {
+                console.error('Load error:', e);
+                document.querySelectorAll('.loading').forEach(el => {
+                    el.textContent = 'Ошибка загрузки. Запустите Flask API.';
+                });
+            }
+        }
+
+        function updateStats(data) {
+            document.getElementById('match-count').textContent = data.matches.length;
+            document.getElementById('team-count').textContent = data.teams.length;
+            document.getElementById('snapshot-count').textContent = data.standings_snapshots.length;
+        }
+
+        function renderMatches(matches) {
+            const tbody = document.getElementById('matches-tbody');
+            if (!matches.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #718096;">Нет данных</td></tr>';
+                return;
+            }
+            tbody.innerHTML = matches.map(m => {
+                const statusClass = m.match_status === 'Завершен' ? 'finished' :
+                                   m.match_status === 'Live' ? 'live' : 'pending';
+                const score = m.score_home !== null && m.score_away !== null
+                    ? `<span class="score">${m.score_home} - ${m.score_away}</span>`
+                    : '<span style="color: #718096;">- : -</span>';
+                return `<tr>
+                    <td class="match-id"><a href="/match/${m.match_id}" title="Открыть страницу матча">${m.match_id}</a></td>
+                    <td>${m.match_date}</td>
+                    <td>
+                        <div class="teams-list">
+                            <span class="team-name">${m.home_team}</span>
+                            <span class="vs">vs</span>
+                            <span class="team-name">${m.away_team}</span>
+                        </div>
+                    </td>
+                    <td>${score}</td>
+                    <td><span class="status ${statusClass}">${m.match_status}</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderTeams(teams) {
+            const tbody = document.getElementById('teams-tbody');
+            if (!teams.length) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #718096;">Нет данных</td></tr>';
+                return;
+            }
+            tbody.innerHTML = teams.map(t => `<tr>
+                <td>${t.id}</td>
+                <td style="font-weight: 500;">${t.name}</td>
+                <td><span class="badge">${t.tournament_id || '-'}</span></td>
+            </tr>`).join('');
+        }
+
+        function renderFeed(feeds) {
+            const tbody = document.getElementById('feed-tbody');
+            if (!feeds.length) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #718096;">Нет данных</td></tr>';
+                return;
+            }
+            tbody.innerHTML = feeds.map(f => `<tr>
+                <td>${f.id}</td>
+                <td><span class="badge">${f.feed_type}</span></td>
+                <td style="font-family: monospace; font-size: 11px; color: #718096; max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${f.feed_url}</td>
+                <td>${f.parsed_at}</td>
+            </tr>`).join('');
+        }
+
+        function populateSnapshots(matches) {
+            const select = document.getElementById('snapshot-select');
+            if (!matches.length) return;
+            select.innerHTML = matches.map(m =>
+                `<option value="${m.match_id}">${m.match_date} · ${m.home_team} vs ${m.away_team}</option>`
+            ).join('');
+        }
+
+        async function loadStandings() {
+            const matchId = document.getElementById('snapshot-select').value;
+            if (!matchId || matchId === 'Загрузка...') return;
+
+            try {
+                const type = document.getElementById('table-type-select').value;
+                const res = await fetch(API_BASE + '/api/testdb/standings?match_id=' +
+                    encodeURIComponent(matchId) + '&type=' + type);
+                const standings = await res.json();
+                renderStandings(standings);
+            } catch (e) {
+                console.error('Standings error:', e);
+            }
+        }
+
+        function renderStandings(standings) {
+            const tbody = document.getElementById('standings-tbody');
+            if (!standings.length) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: #718096;">Нет данных</td></tr>';
+                return;
+            }
+            tbody.innerHTML = standings.map((s, i) => {
+                const rankClass = i < 4 ? 'top' : i < 10 ? 'mid' : 'low';
+                const gd = (s.scored || 0) - (s.conceded || 0);
+                return `<tr>
+                    <td><span class="rank ${rankClass}">${s.rank}</span></td>
+                    <td style="font-weight: 500;">${s.team_name}</td>
+                    <td>${s.played}</td>
+                    <td>${s.wins}</td>
+                    <td>${s.draws}</td>
+                    <td>${s.losses}</td>
+                    <td>${s.scored}</td>
+                    <td>${s.conceded}</td>
+                    <td style="color: ${gd > 0 ? '#48bb78' : gd < 0 ? '#fc8181' : '#a0aec0'};">${gd > 0 ? '+' : ''}${gd}</td>
+                    <td style="font-weight: 700; color: #4299e1;">${s.points}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function filterMatches() {
+            const query = document.getElementById('match-search').value.toLowerCase();
+            const filtered = dbData.matches.filter(m =>
+                m.home_team.toLowerCase().includes(query) ||
+                m.away_team.toLowerCase().includes(query) ||
+                m.match_id.toLowerCase().includes(query)
+            );
+            renderMatches(filtered);
+        }
+
+        function filterTeams() {
+            const query = document.getElementById('team-search').value.toLowerCase();
+            const filtered = dbData.teams.filter(t =>
+                t.name.toLowerCase().includes(query)
+            );
+            renderTeams(filtered);
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

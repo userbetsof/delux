@@ -653,14 +653,33 @@ def LARGE(array: Sequence, k: int) -> float:
     return nums[idx] if 0 <= idx < len(nums) else NA_ERROR
 
 
+def _text_arg(v: Value) -> str:
+    """Аргумент как текст (Excel: числа → General-строка, 0 → '0')."""
+    if v is None:
+        return ""
+    if isinstance(v, bool):
+        return "TRUE" if v else "FALSE"
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    return str(v)
+
+
 def SUBSTITUTE(text: Value, old: str, new: str, instance: Optional[int] = None) -> str:
-    s = str(text or "")
-    if instance is None:
-        return s.replace(old, new)
-    parts = s.split(old)
-    if len(parts) <= instance:
+    s = _text_arg(text)
+    old_s = _text_arg(old)
+    new_s = _text_arg(new)
+    if not old_s:
         return s
-    return old.join(parts[:instance]) + new + old.join(parts[instance:])
+    parts = s.split(old_s)
+    if instance is None:
+        return s.replace(old_s, new_s)
+    try:
+        k = int(_num(instance))
+    except Exception:
+        k = 0
+    if k <= 0 or len(parts) <= k:
+        return s
+    return old_s.join(parts[:k]) + new_s + old_s.join(parts[k:])
 
 
 def CONCATENATE(*args: Value) -> str:

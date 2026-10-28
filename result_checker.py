@@ -167,6 +167,17 @@ def run_db_check() -> int:
                 (status_text, total_home, total_away, minute_text or period_text or "90+", match_id),
             )
 
+            # Обновляем ELO для завершённого матча (независимо от прогнозов)
+            if finished:
+                try:
+                    from elo import update_elo_for_match
+                    elo_result = update_elo_for_match(match_id)
+                    if elo_result:
+                        print(f"    [ELO] {elo_result['home_team']} {elo_result['elo_before']['home']:.0f}→{elo_result['elo_after']['home']:.0f} ({elo_result['delta']['home']:+.1f}) | "
+                              f"{elo_result['away_team']} {elo_result['elo_before']['away']:.0f}→{elo_result['elo_after']['away']:.0f} ({elo_result['delta']['away']:+.1f})")
+                except Exception as exc:
+                    print(f"    [!] ELO update failed for {match_id}: {exc}")
+
             if row["sp_id"] and row["prediction"]:
                 if finished:
                     coeff = float(row["odds"] or 0) or 1.0

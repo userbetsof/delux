@@ -156,6 +156,85 @@ def split_canonical(market_name: str) -> Dict[str, Any]:
     return info
 
 
+DEFAULT_TOTAL_LINE = 2.5
+
+_SIMPLE_PREDICTIONS = {
+    "1": "1X2_1",
+    "П1": "1X2_1",
+    "HOME": "1X2_1",
+    "H": "1X2_1",
+    "2": "1X2_2",
+    "П2": "1X2_2",
+    "AWAY": "1X2_2",
+    "A": "1X2_2",
+    "X": "1X2_X",
+    "DRAW": "1X2_X",
+    "1X": "DC_1X",
+    "X1": "DC_1X",
+    "X2": "DC_X2",
+    "2X": "DC_X2",
+    "12": "DC_12",
+    "21": "DC_12",
+    "ОЗ": "BTTS_YES",
+    "BTTS": "BTTS_YES",
+    "ОБЕЗАБЬЮТ": "BTTS_YES",
+    "ОБЕЗАБЬЮТ(ОЗ)": "BTTS_YES",
+    "НЕОЗ": "BTTS_NO",
+    "BTTSNO": "BTTS_NO",
+}
+
+
+def prediction_market(prediction: Optional[str]) -> Optional[str]:
+    """Текст прогноза → каноническое имя рынка ('ТБ 1,5' → 'OVER 1.5').
+
+    Для комбинированных прогнозов ('1X + ТБ 2,5') единого рынка нет — None.
+    """
+    raw = (prediction or "").strip().upper().replace("Х", "X").replace("Ё", "Е")
+    if not raw:
+        return None
+    # WhoScored: '2:1 / Ф1(-0.5)' — точный счёт / ставка. Берём ставку.
+    m = re.match(r"^\d+:\d+\s*/\s*(.+)$", raw)
+    if m:
+        return prediction_market(m.group(1))
+    if "+" in raw:
+        return None
+    compact = re.sub(r"\s+", "", raw)
+
+    if compact in _SIMPLE_PREDICTIONS:
+        return _SIMPLE_PREDICTIONS[compact]
+
+    m = re.match(r"^(?:ТБ|ТБОЛЬШЕ|БОЛЬШЕ|OVER)([-+]?\d+(?:[.,]\d+)?)?$", compact)
+    if m:
+        line = to_float(m.group(1)) if m.group(1) else DEFAULT_TOTAL_LINE
+        return f"OVER {line:g}" if line is not None else None
+
+    m = re.match(r"^(?:ТМ|ТМЕНЬШЕ|МЕНЬШЕ|UNDER)([-+]?\d+(?:[.,]\d+)?)?$", compact)
+    if m:
+        line = to_float(m.group(1)) if m.group(1) else DEFAULT_TOTAL_LINE
+        return f"UNDER {line:g}" if line is not None else None
+
+    m = re.match(r"^Ф([12])\(?([-+]?\d+(?:[.,]\d+)?)\)?$", compact)
+    if m:
+        side = "HOME" if m.group(1) == "1" else "AWAY"
+        line = to_float(m.group(2))
+        return f"HANDICAP {side} {line:g}" if line is not None else None
+
+    return None
+
+
+def market_key(market_name: Optional[str]) -> Tuple[str, Optional[float]]:
+    """Ключ сравнения рынков: имя без числового хвоста + линия.
+
+    'HANDICAP HOME 0.0' и 'HANDICAP HOME 0' дают одинаковый ключ.
+    """
+    key = (market_name or "").strip().upper().replace(",", ".")
+    m = re.match(r"^(.*?)([-+]?\d+(?:\.\d+)?)$", key)
+    if m:
+        # +0.0 (чтобы -0.0 и 0 совпадали как один ключ).
+        return (m.group(1).strip(), round(float(m.group(2)), 4) + 0.0)
+    return (key, None)
+
+
 def expand_wide_1x2_row(row: Dict[str, Any]) -> list[Tuple[str, float]]:
     """Строка со старыми колонками home_win_odds/draw_odds/… → канонические пары."""
     out: list[Tuple[str, float]] = []
