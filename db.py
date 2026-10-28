@@ -750,6 +750,10 @@ def create_database(path: str | None = None):
             # Кэш предыдущих матчей команды (feed pr_) — НЕ в таблице matches
             from ratings import add_team_matches_cache_tables
             add_team_matches_cache_tables(cursor)
+
+            # Кэш таблиц на момент матча по сезону (для анализа лиги)
+            from season_standings_cache import add_season_standings_table
+            add_season_standings_table(cursor)
             
             _ensure_main_strategies(cursor)
             conn.commit()

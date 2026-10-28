@@ -924,10 +924,45 @@ def analyze_match(
                 if target:
                     kickoff_ts = target["kickoff_ts"]
 
-                    # 2) Восстанавливаем таблицу на момент матча
-                    standings = reconstruct_standings_before(
-                        all_matches, kickoff_ts
-                    )
+                    # 2) Таблица на момент матча: сначала из кэша сезона,
+                    # иначе восстанавливаем и сразу кладём в кэш. Так при
+                    # прерывании прогона уже посчитанные таблицы не теряются.
+                    standings = None
+                    try:
+                        from season_standings_cache import (
+                            get_cached_standings,
+                            save_cached_standings,
+                        )
+
+                        standings = get_cached_standings(
+                            match.match_id,
+                            sport=settings.sport,
+                            country=int(country_id),
+                            tournament_key=tournament_key,
+                            season_id=season_id,
+                        )
+                        if standings:
+                            print("    [cache] таблица на момент матча (из кэша сезона)")
+                    except Exception as exc:  # noqa: BLE001
+                        print(f"    [!] кэш таблиц: {exc}")
+
+                    if not standings:
+                        standings = reconstruct_standings_before(
+                            all_matches, kickoff_ts
+                        )
+                        try:
+                            save_cached_standings(
+                                match.match_id,
+                                standings,
+                                sport=settings.sport,
+                                country=int(country_id),
+                                tournament_key=tournament_key,
+                                season_id=season_id,
+                                kickoff_ts=kickoff_ts,
+                            )
+                        except Exception as exc:  # noqa: BLE001
+                            print(f"    [!] запись кэша таблиц: {exc}")
+
                     hist_payload.table_overall = [
                         type("TableRow", (), {
                             "rank": s["rank"], "team": s["team"],

@@ -89,9 +89,13 @@ def tr_feed_url(sport: int, country: int, tournament_key: str, season_id: str, p
 
 
 def fetch_tournament_matches(
-    sport: int, country: int, tournament_key: str, season_id: str, max_pages: int = 8
+    sport: int, country: int, tournament_key: str, season_id: str, max_pages: int = 40
 ) -> List[Dict[str, Any]]:
     """Все матчи турнира из tr_ feed (хронологически, без дублей).
+
+    max_pages=40: сезон из 380 матчей — это ~19 страниц по 20 игр; при
+    меньшем лимите часть сезона терялась и таблица на момент матча
+    получалась неполной.
 
     Устойчиво к сбоям сети: неудачные страницы пропускаются с предупреждением.
     """
@@ -142,6 +146,54 @@ def _add_game(stats: Dict[str, Dict[str, int]], team: str, gf: int, ga: int) -> 
     else:
         s["draws"] += 1
         s["points"] += 1
+
+
+def reconstruct_all_standings(
+    matches: List[Dict[str, Any]],
+) -> Dict[str, Dict[str, List[Dict[str, Any]]]]:
+    """Таблицы на момент КАЖДОГО матча за один линейный проход.
+
+    Возвращает {match_id: {overall, home, away}}.
+
+    В отличие от reconstruct_standings_before (пересчёт с нуля для каждого
+    kickoff, O(n²)), здесь состояние накапливается: матчи обходятся по
+    возрастанию времени, и перед каждым снимается текущая таблица.
+    Для сезона из 380 матчей это ~380 шагов вместо 380×380.
+    """
+    ordered = sorted(
+        (m for m in (matches or []) if m.get("kickoff_ts")),
+        key=lambda m: (m["kickoff_ts"], m.get("match_id", "")),
+    )
+    teams = {m["home_name"] for m in ordered} | {m["away_name"] for m in ordered}
+    stats = {tt: {n: _new_stats() for n in teams} for tt in ("overall", "home", "away")}
+
+    out: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
+    # Матчи с одинаковым kickoff_ts не должны влиять друг на друга —
+    # поэтому сначала снимаем таблицу для всей группы, затем применяем.
+    index = 0
+    while index < len(ordered):
+        ts = ordered[index]["kickoff_ts"]
+        group_end = index
+        while group_end < len(ordered) and ordered[group_end]["kickoff_ts"] == ts:
+            group_end += 1
+
+        snapshot = {tt: _rank(stats[tt]) for tt in ("overall", "home", "away")}
+        for m in ordered[index:group_end]:
+            mid = m.get("match_id")
+            if mid:
+                out[mid] = snapshot
+
+        for m in ordered[index:group_end]:
+            sh = m["home_score"] or 0
+            sa = m["away_score"] or 0
+            _add_game(stats["overall"], m["home_name"], sh, sa)
+            _add_game(stats["overall"], m["away_name"], sa, sh)
+            _add_game(stats["home"], m["home_name"], sh, sa)
+            _add_game(stats["away"], m["away_name"], sa, sh)
+
+        index = group_end
+
+    return out
 
 
 def reconstruct_standings_before(

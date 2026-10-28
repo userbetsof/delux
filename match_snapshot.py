@@ -100,13 +100,29 @@ def save_match_info(
 
 
 def _rows(items: Optional[Iterable[Any]]) -> List[Dict[str, Any]]:
-    """Список dataclass-строк (TableRow / HistoryMatch) → список словарей."""
+    """Строки (dataclass / dict / простой объект) → список словарей.
+
+    Важно: match_analysis создаёт строки через type("TableRow", (), {...}) —
+    это НЕ dataclass, и раньше они молча отбрасывались, из-за чего
+    standings_json оставался пустым.
+    """
     out: List[Dict[str, Any]] = []
     for item in items or []:
         if is_dataclass(item) and not isinstance(item, type):
             out.append(asdict(item))
         elif isinstance(item, dict):
             out.append(dict(item))
+        else:
+            # Обычный объект-строка: атрибуты могут лежать как в экземпляре,
+            # так и в классе (type("TableRow", (), {...})()).
+            data: Dict[str, Any] = {}
+            for source in (getattr(item, "__dict__", {}) or {}, vars(type(item))):
+                for key, value in source.items():
+                    if key.startswith("_"):
+                        continue
+                    data.setdefault(key, value)
+            if data:
+                out.append(data)
     return out
 
 
