@@ -164,6 +164,53 @@ def _season_alert(kind: str = "error", *, times: int = 1) -> None:
         pass
 
 
+# Дочерние таблицы, куда пишутся данные ДО сохранения основной строки в
+# matches. Если анализ падает на середине, эти строки остаются «сиротами»
+# (внешний ключ на несуществующий матч) и ломают foreign_key_check.
+_ORPHAN_PRONE_TABLES = (
+    "match_snapshot",
+    "match_stats",
+    "match_weather",
+    "match_missing_players",
+)
+
+
+def cleanup_orphaned_match_rows(match_id: Optional[str] = None) -> dict[str, int]:
+    """Удалить дочерние строки, у которых нет родителя в matches.
+
+    match_id — ограничить конкретным матчем; None — вычистить всех сирот.
+    Возвращает {таблица: удалено}.
+    """
+    removed: dict[str, int] = {}
+    if not match_id:
+        return removed
+    try:
+        with get_db_connection() as conn:
+            exists = conn.execute(
+                "SELECT 1 FROM matches WHERE match_id = ?", (match_id,)
+            ).fetchone()
+            if exists:
+                return removed
+            tables = {
+                r[0]
+                for r in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type = 'table'"
+                ).fetchall()
+            }
+            for table in _ORPHAN_PRONE_TABLES:
+                if table not in tables:
+                    continue
+                cur = conn.execute(
+                    f'DELETE FROM "{table}" WHERE match_id = ?', (match_id,)
+                )
+                if cur.rowcount:
+                    removed[table] = cur.rowcount
+            conn.commit()
+    except Exception:  # noqa: BLE001
+        pass
+    return removed
+
+
 def run_analyze_season(
     *,
     workbook: str = "",
@@ -315,6 +362,11 @@ def run_analyze_season(
                 if fail_fast:
                     print(f"[!] Прерывание на матче {mid} (прогресс сохранён). "
                           f"Повторный запуск продолжит с этого места.")
+                    # Матч не сохранён — чистим дочерние строки.
+                    removed = cleanup_orphaned_match_rows(mid)
+                    if removed:
+                        total = sum(removed.values())
+                        print(f"    [cleanup] удалено сирот: {total}")
                     # Звук: прогон остановлен, нужно вмешательство.
                     _season_alert("fail_fast")
                     break
@@ -503,6 +555,12 @@ def run_analyze(
                     print(f"    Betalone: {pred_betalone}{odds_str}")
             except Exception as exc:
                 print(f"[-] Ошибка {match.match_id}: {exc}")
+                # Матч не сохранён в matches — убираем за собой дочерние
+                # строки, иначе остаются сироты и портится foreign_key_check.
+                removed = cleanup_orphaned_match_rows(match.match_id)
+                if removed:
+                    total = sum(removed.values())
+                    print(f"    [cleanup] удалено сирот: {total} ({', '.join(removed)})")
                 if fail_fast:
                     _season_alert("fail_fast")
                     break
