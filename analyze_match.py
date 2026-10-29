@@ -178,33 +178,42 @@ _ORPHAN_PRONE_TABLES = (
 def cleanup_orphaned_match_rows(match_id: Optional[str] = None) -> dict[str, int]:
     """Удалить дочерние строки, у которых нет родителя в matches.
 
-    match_id — ограничить конкретным матчем; None — вычистить всех сирот.
+    match_id — ограничить конкретным матчем;
+    None      — вычистить ВСЕХ сирот во всех дочерних таблицах.
     Возвращает {таблица: удалено}.
     """
     removed: dict[str, int] = {}
-    if not match_id:
-        return removed
     try:
         with get_db_connection() as conn:
-            exists = conn.execute(
-                "SELECT 1 FROM matches WHERE match_id = ?", (match_id,)
-            ).fetchone()
-            if exists:
-                return removed
             tables = {
                 r[0]
                 for r in conn.execute(
                     "SELECT name FROM sqlite_master WHERE type = 'table'"
                 ).fetchall()
             }
-            for table in _ORPHAN_PRONE_TABLES:
-                if table not in tables:
-                    continue
-                cur = conn.execute(
-                    f'DELETE FROM "{table}" WHERE match_id = ?', (match_id,)
-                )
-                if cur.rowcount:
-                    removed[table] = cur.rowcount
+            targets = [t for t in _ORPHAN_PRONE_TABLES if t in tables]
+
+            if match_id:
+                exists = conn.execute(
+                    "SELECT 1 FROM matches WHERE match_id = ?", (match_id,)
+                ).fetchone()
+                if exists:
+                    return removed
+                for table in targets:
+                    cur = conn.execute(
+                        f'DELETE FROM "{table}" WHERE match_id = ?', (match_id,)
+                    )
+                    if cur.rowcount:
+                        removed[table] = cur.rowcount
+            else:
+                # Все сироты: строка есть в дочерней таблице, но матча нет.
+                for table in targets:
+                    cur = conn.execute(
+                        f'DELETE FROM "{table}" WHERE match_id NOT IN '
+                        f"(SELECT match_id FROM matches)"
+                    )
+                    if cur.rowcount:
+                        removed[table] = cur.rowcount
             conn.commit()
     except Exception:  # noqa: BLE001
         pass

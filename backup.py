@@ -288,8 +288,26 @@ def main() -> int:
             if ok:
                 print("  целостность: ok")
             else:
-                print(f"  [!] целостность: {detail}")
-                problems.append(f"БД повреждена: {detail}")
+                # Сироты появляются, когда анализ падает между записью
+                # дочерних строк и сохранением матча. Это мусор, а не порча
+                # файла — вычищаем и проверяем снова.
+                if "внешних ключей" in detail or "foreign" in detail.lower():
+                    try:
+                        from analyze_match import cleanup_orphaned_match_rows
+
+                        removed = cleanup_orphaned_match_rows(None)
+                        total = sum(removed.values())
+                        if total:
+                            pairs = ", ".join(f"{k}: {v}" for k, v in removed.items())
+                            print(f"  [cleanup] удалено сирот: {total} ({pairs})")
+                            ok, detail = check_db_integrity(db_path)
+                    except Exception as exc:  # noqa: BLE001
+                        print(f"  [!] очистка сирот: {exc}")
+                if ok:
+                    print("  целостность: ok (после очистки сирот)")
+                else:
+                    print(f"  [!] целостность: {detail}")
+                    problems.append(f"БД повреждена: {detail}")
 
     # --- 2. Копия БД
     if do_db and not problems:
