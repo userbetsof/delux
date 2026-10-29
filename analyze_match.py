@@ -331,10 +331,12 @@ def run_analyze(
     *,
     workbook: str = "",
     match_id: str = "",
+    match_ids: Optional[list[str]] = None,
     new: bool = False,
     all_matches: bool = False,
     limit: int = 0,
     only_strategies=None,
+    fail_fast: bool = True,
 ) -> int:
     cfg = DeluxSettings.from_env()
     calc_workbook = workbook or ""
@@ -342,7 +344,18 @@ def run_analyze(
 
     strat_set = _coerce_strategies(only_strategies)
 
-    if match_id:
+    if match_ids:
+        # Явный список (например матчи одного дня): берём всё, что есть в очереди.
+        wanted = [m for m in match_ids if m]
+        by_id = {q.match_id: q for q in list_queued_matches()}
+        matches = []
+        for mid in wanted:
+            queued = by_id.get(mid) or get_queued_match(mid)
+            matches.append(queued or QueuedMatch(match_id=mid, sport=cfg.sport))
+        if limit > 0:
+            matches = matches[:limit]
+        print(f"[*] Явный список: {len(matches)} матчей")
+    elif match_id:
         mid = match_id.strip()
         queued = get_queued_match(mid)
         if queued:
@@ -490,6 +503,9 @@ def run_analyze(
                     print(f"    Betalone: {pred_betalone}{odds_str}")
             except Exception as exc:
                 print(f"[-] Ошибка {match.match_id}: {exc}")
+                if fail_fast:
+                    _season_alert("fail_fast")
+                    break
 
     print(f"\n[+] Готово: {ok}/{len(matches)}")
     return 0 if ok else 1

@@ -29,7 +29,8 @@ echo  13^) WhoScored — точный счёт + фора ^(стратегия #
 echo  14^) Загрузить матч по ID
 echo  15^) Анализ по выбору ^(все / сезон / матч / сезон заново + стратегия^)
 echo  16^) Обнулить рейтинги ^(ELO / Glicko-2 / OpenSkill к исходным^)
-echo  17^) Бэкап ^(git-коммит + снимок БД^)
+echo  17^) Бэкап ^(коммит + push + снимок БД в Google Drive^)
+echo  18^) Анализ конкретного дня ^(-7..+7 от сегодня^)
 echo   0^) Выход
 echo ========================================
 set /p "CHOICE=Выбор: "
@@ -51,6 +52,7 @@ if "%CHOICE%"=="14" goto :single_match
 if "%CHOICE%"=="15" goto :season_url
 if "%CHOICE%"=="16" goto :reset_ratings
 if "%CHOICE%"=="17" goto :backup
+if "%CHOICE%"=="18" goto :day
 if "%CHOICE%"=="0" exit /b 0
 echo Неверный выбор.
 goto :menu
@@ -196,16 +198,59 @@ if /i not "%BKREST%"=="y" (
 %PY% restore.py
 goto :done
 
-:backup_make
+:day
 echo.
-echo [*] Снимок БД в backups\db\, затем git-коммит кода.
-set /p "BKMSG=Сообщение коммита (Enter — по умолчанию): "
-if "%BKMSG%"=="" (
-    %PY% backup.py --tag
-) else (
-    %PY% backup.py --tag -m "%BKMSG%"
+echo [*] Анализ конкретного дня (сдвиг от сегодня).
+echo.
+echo   -7 .. -1  - прошедшие дни   0 = сегодня
+echo    1 ..  7  - будущие дни
+echo.
+echo  1^) Сегодня          2^) Вчера
+echo  3^) Завтра           4^) Свой сдвиг ^(-7..+7^)
+echo  5^) Только список матчей дня
+set /p "DAYMODE=Выбор [1/2/3/4/5]: "
+
+if "%DAYMODE%"=="1" goto :day_today
+if "%DAYMODE%"=="2" goto :day_yesterday
+if "%DAYMODE%"=="3" goto :day_tomorrow
+if "%DAYMODE%"=="5" goto :day_list
+goto :day_custom
+
+:day_today
+set "DAYOFF=0"
+goto :day_run
+
+:day_yesterday
+set "DAYOFF=-1"
+goto :day_run
+
+:day_tomorrow
+set "DAYOFF=1"
+goto :day_run
+
+:day_custom
+echo.
+echo Сдвиг дня от сегодня: -7 ^(неделю назад^) ... 0 ^(сегодня^) ... +7
+set /p "DAYOFF=Сдвиг: "
+if "%DAYOFF%"=="" (
+    echo [-] Не введено
+    goto :done
 )
+
+:day_run
+echo.
+echo [*] Анализ дня, сдвиг %DAYOFF%...
+%PY% analyze_day.py --offset %DAYOFF%
 goto :done
+
+:day_list
+echo.
+set /p "DAYOFF=Сдвиг для списка [-7..+7, Enter=0]: "
+if "%DAYOFF%"=="" set "DAYOFF=0"
+echo.
+%PY% analyze_day.py --offset %DAYOFF% --list-only
+goto :done
+
 :done
 set "ERR=%ERRORLEVEL%"
 echo.
