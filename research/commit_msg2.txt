@@ -1,0 +1,16 @@
+feat: restore a single match from a DB snapshot (no network)
+
+--reset wiped 6mdpltmc down to nothing: no odds, no probabilities, no
+predictions. Re-analysing it was impossible because the feed host is
+currently unusable (37 s per request, then an error).
+
+The data was still in backups/db/matches_20261030_040714.db.gz, so
+scripts/restore_match_from_backup.py pulls one match back out of a
+snapshot: odds, outcome/goal probabilities, strategy predictions, match
+stats, missing players. No network involved.
+
+    py -3 scripts/restore_match_from_backup.py <match_id> --dry-run
+    py -3 scripts/restore_match_from_backup.py <match_id>
+
+Verified on 6mdpltmc: 160 rows restored, all 10 sub-strategies non-zero,
+3 predictions back with their odds and results.

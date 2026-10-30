@@ -231,6 +231,50 @@ def _load_full_cached(match_id: str, info, ms):
     return payload
 
 
+def _tighten_feed_timeout(seconds: int = 12) -> None:
+    """Сократить таймаут фидов: одна зависшая попытка стоит ~170 с.
+
+    Сеть до flashscore.ninja периодически «подвисает» на первом запросе и
+    отвечает только со второй-третьей попытки. Для пакетного пересчёта
+    лучше быстро упасть и повторить, чем ждать три минуты.
+    """
+    import flashscore_feed
+
+    original = flashscore_feed.fetch_feed
+
+    def _wrapped(url, *args, **kwargs):
+        kwargs.setdefault("timeout", seconds)
+        kwargs.setdefault("retries", 3)
+        return original(url, *args, **kwargs)
+
+    flashscore_feed.fetch_feed = _wrapped
+    # Модули анализа импортируют имя напрямую — подменяем и там.
+    try:
+        import analysis_data
+
+        analysis_data.fetch_feed = _wrapped
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _skip_daily_feed_lookup() -> None:
+    """Не искать матч в дневных лентах (f_1_N): это ~1 МБ и 130-150 с каждая.
+
+    load_analysis_data подтягивает дневные ленты, чтобы определить страну,
+    лигу и имена команд, когда страница матча недоступна. Для пересчёта
+    всё это уже есть в БД (matches + leagues + teams), а сами ленты —
+    самая дорогая часть запроса.
+    """
+    import analysis_data as ad
+
+    def _no_meta(match_id, settings, dayzone=0):
+        return ("", "", "", "")
+
+    for name in ("resolve_match_meta_from_feed", "_list_league_match_ids"):
+        if hasattr(ad, name):
+            setattr(ad, name, _no_meta if name.startswith("resolve") else (lambda *a, **k: []))
+
+
 def _skip_slow_page_fetch() -> None:
     """Не ходить на страницу матча: для пересчёта её данные не нужны.
 
@@ -489,6 +533,9 @@ def main() -> int:
     # Страница матча для пересчёта не нужна (её данные уже в БД), а запрос
     # к ней стабильно висит ~30 с. Отключаем эти два вызова.
     _skip_slow_page_fetch()
+
+    # Короткий таймаут фидов: зависший запрос стоит ~170 с, лучше повторить.
+    _tighten_feed_timeout(12)
 
     conn = sqlite3.connect(str(get_database_path()), timeout=60)
     try:
