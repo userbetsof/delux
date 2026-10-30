@@ -991,6 +991,15 @@ def analyze_match(
                         })() for s in standings["away"]
                     ]
 
+                    # 2.5) Форма (последние 5 игр) на момент матча.
+                    # Лента form_* показывает форму СЕЙЧАС, а для исторического
+                    # матча нужна форма на его дату — считаем из матчей команд,
+                    # которые загружаются ниже. Пока берём из payload, если есть;
+                    # иначе пересчитаем после загрузки истории (см. ниже).
+                    hist_payload.form_overall = list(payload.form_overall or [])
+                    hist_payload.form_home = list(payload.form_home or [])
+                    hist_payload.form_away = list(payload.form_away or [])
+
                     # 3) Загружаем исторические матчи команд (pr_ feed)
                     home_key = target.get("home_key", "")
                     away_key = target.get("away_key", "")
