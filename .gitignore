@@ -31,3 +31,6 @@ artifacts/ml/
 mlruns/
 *.cbm
 *.ubj
+
+# Кэш фидов Flashscore (большой, регенерируется)
+data/feed_cache/

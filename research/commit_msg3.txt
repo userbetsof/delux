@@ -1,0 +1,23 @@
+feat: on-disk feed cache — 10x faster recalculation on a narrow link
+
+Diagnosis of the "unstable network": DNS, TCP and TLS to Flashscore all
+complete in 0.3-0.5s, and Google/Cloudflare/GitHub answer in under 1.5s.
+Only the response BODY is slow: 600 KB takes 6-26s (sometimes 206s,
+sometimes an error). Through the German VPN it settles at a steady
+12-15 KB/s instead of spiking - slow but predictable.
+
+YouTube is unaffected because it streams from a nearby CDN, not from
+Flashscore's single European host.
+
+So the fix is to fetch less, not to fetch faster:
+
+- feed_cache.py: every feed response is written to data/feed_cache and
+  served from disk next time. A repeat fetch went from 4.9s to 0.001s.
+- recalc installs the cache over fetch_feed in every loaded module
+  (the name is imported directly in several places).
+- repeat run of an already-seen match: 276s -> 30s per match.
+
+Toggle with DELUX_FEED_CACHE=0, inspect with
+py -3 feed_cache.py --stats, wipe with --clear.
+
+Measured on three matches: all now 10/10 (was 8, 8, 6).

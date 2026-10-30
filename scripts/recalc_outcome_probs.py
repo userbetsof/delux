@@ -257,6 +257,26 @@ def _tighten_feed_timeout(seconds: int = 12) -> None:
         pass
 
 
+def _install_feed_cache() -> None:
+    """Кэшировать ответы фидов на диск (data/feed_cache).
+
+    Канал до Flashscore узкий (12-15 КБ/с) и рвётся, а один матч требует
+    десятков запросов. С кэшем повторный прогон и продолжение после
+    прерывания не ходят в сеть вообще.
+    """
+    try:
+        import feed_cache
+        import flashscore_feed
+
+        original = flashscore_feed.fetch_feed
+        feed_cache.install(original)
+        # Подменяем и в самом модуле-источнике (install проходит по
+        # загруженным модулям, но flashscore_feed.fetch_feed — оригинал).
+        flashscore_feed.fetch_feed = feed_cache.install(original)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[!] кэш фидов не включён: {exc}")
+
+
 def _skip_daily_feed_lookup() -> None:
     """Не искать матч в дневных лентах (f_1_N): это ~1 МБ и 130-150 с каждая.
 
@@ -533,6 +553,9 @@ def main() -> int:
     # Страница матча для пересчёта не нужна (её данные уже в БД), а запрос
     # к ней стабильно висит ~30 с. Отключаем эти два вызова.
     _skip_slow_page_fetch()
+
+    # Кэш фидов на диск: при узком канале и обрывах это главное ускорение.
+    _install_feed_cache()
 
     # Короткий таймаут фидов: зависший запрос стоит ~170 с, лучше повторить.
     _tighten_feed_timeout(12)
