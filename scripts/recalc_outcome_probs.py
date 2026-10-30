@@ -321,6 +321,11 @@ def main() -> int:
 
     from settings import DeluxSettings
 
+    # Фиды печатают служебные строки (переключение на ninja) — гасим их,
+    # иначе лог пересчёта теряется среди них.
+    import contextlib
+    import io
+
     cfg = DeluxSettings.from_env()
 
     conn = sqlite3.connect(str(get_database_path()), timeout=60)
@@ -337,6 +342,10 @@ def main() -> int:
     if args.limit:
         targets = targets[: args.limit]
         print(f"Ограничено до: {len(targets)}")
+    if targets:
+        print("Можно прервать (Ctrl+C) и запустить снова — уже исправленные")
+        print("матчи повторно не обрабатываются.")
+        print()
 
     fixed = 0
     skipped = 0
@@ -344,16 +353,31 @@ def main() -> int:
     started = time.time()
 
     for idx, mid in enumerate(targets, 1):
+        # Прогресс с ETA, чтобы было видно, сколько ждать.
+        done = idx - 1
+        per_match = (time.time() - started) / done if done else 0
+        eta = per_match * (len(targets) - done)
+        eta_txt = (
+            f"осталось ~{eta/60:.0f} мин" if eta >= 60 else f"осталось ~{eta:.0f} с"
+        )
+        print(
+            f"[{idx}/{len(targets)}] {mid} "
+            f"({per_match:.0f} с/матч, {eta_txt})",
+            end="",
+            flush=True,
+        )
+
         try:
-            probs = _recalc_one(mid, cfg)
+            with contextlib.redirect_stdout(io.StringIO()):
+                probs = _recalc_one(mid, cfg)
         except Exception as exc:  # noqa: BLE001
             failed += 1
-            print(f"[{idx}/{len(targets)}] {mid}: ошибка — {exc}")
+            print(f": ошибка — {exc}")
             continue
 
         if not probs:
             skipped += 1
-            print(f"[{idx}/{len(targets)}] {mid}: пропуск (нет данных)")
+            print(": пропуск (нет данных)")
             continue
 
         nonzero = sum(
@@ -366,15 +390,15 @@ def main() -> int:
         )
         if args.dry_run:
             fixed += 1
-            print(f"[{idx}/{len(targets)}] {mid}: [dry-run] ненулевых {nonzero}")
+            print(f": [dry-run] ненулевых {nonzero}")
             continue
 
         if insert_outcome_probabilities_from_values(mid, probs):
             fixed += 1
-            print(f"[{idx}/{len(targets)}] {mid}: записано, ненулевых {nonzero}")
+            print(f": записано, ненулевых {nonzero}")
         else:
             failed += 1
-            print(f"[{idx}/{len(targets)}] {mid}: не записалось")
+            print(": не записалось")
 
     elapsed = time.time() - started
     print()
