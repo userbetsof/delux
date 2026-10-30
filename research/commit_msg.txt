@@ -1,0 +1,14 @@
+fix: recalc must never make data worse, skip odds-less matches
+
+Found while running the full pass:
+
+1) The script wrote any computed result over the existing row, even when
+   the calculation produced FEWER non-zero strategies. Match dxX2NHH9
+   went from 10 non-zero rows to 6. Now it compares with what is already
+   in the DB and only writes when the result improves (0 -> 10 etc.).
+
+2) Matches without bookmaker odds crashed the engine with
+   "NoneType object has no attribute home_id". Such matches are now
+   skipped cleanly - there is nothing to build odds from.
+
+Verified: jJ2OpiEs 0->10, n7kC0fAd 0->10, dxX2NHH9 0->10, no errors.

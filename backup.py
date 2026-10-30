@@ -257,6 +257,12 @@ def main() -> int:
     parser.add_argument("--db-only", action="store_true", help="Только копия БД")
     parser.add_argument("--git-only", action="store_true", help="Только git-коммит")
     parser.add_argument("-m", "--message", default="", help="Сообщение коммита")
+    parser.add_argument(
+        "-M",
+        "--message-file",
+        default="",
+        help="Файл с текстом сообщения коммита (для многострочных)",
+    )
     parser.add_argument("--keep", type=int, default=20, help="Сколько копий БД хранить")
     parser.add_argument("--no-compress", action="store_true", help="Не сжимать копию БД")
     parser.add_argument("--tag", action="store_true", help="Поставить git-тег backup-*")
@@ -270,6 +276,17 @@ def main() -> int:
     db_path = Path(args.db) if args.db else DB_PATH
     started = _stamp()
     problems: list[str] = []
+
+    # Текст коммита из файла: -M удобнее, чем -m с многострочным текстом
+    # (кавычки и переводы строк в командной строке ломаются).
+    if args.message_file:
+        try:
+            args.message = Path(args.message_file).read_text(
+                encoding="utf-8"
+            ).strip()
+        except Exception as exc:  # noqa: BLE001
+            print(f"[!] не прочитан файл сообщения: {exc}")
+            return 1
 
     print("=" * 60)
     print("  Бэкап DeluX")

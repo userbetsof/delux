@@ -35,6 +35,19 @@ except Exception:  # noqa: BLE001
     pass
 
 
+def _current_nonzero(match_id: str) -> int:
+    """Сколько стратегий у матча сейчас имеют ненулевые вероятности."""
+    with sqlite3.connect(str(get_database_path()), timeout=30) as conn:
+        row = conn.execute(
+            "SELECT COUNT(*) FROM outcome_probabilities "
+            "WHERE match_id = ? "
+            "AND (COALESCE(home_win_prob,0) + COALESCE(draw_prob,0) "
+            "     + COALESCE(away_win_prob,0)) > 0",
+            (match_id,),
+        ).fetchone()
+    return int(row[0]) if row else 0
+
+
 def _zero_matches(conn: sqlite3.Connection, strategy_id: int) -> list[str]:
     rows = conn.execute(
         """
@@ -389,6 +402,10 @@ def _recalc_one(match_id: str, cfg) -> list[dict] | None:
         _code, odds_data = load_odds(match_id, cfg.source)
     except Exception:  # noqa: BLE001
         odds_data = None
+    # Без линии БК движок падает ('NoneType' has no attribute 'home_id') —
+    # такие матчи пропускаем, коэффициенты для них взять неоткуда.
+    if odds_data is None:
+        return None
 
     eng = get_calc_engine(cfg)
     res = eng.run(payload, odds_data, list_odds=[])
@@ -533,14 +550,22 @@ def main() -> int:
             + (p.get("away_prob") or 0)
             > 0
         )
+        # Не ухудшаем данные: если сейчас в БД ненулевых больше, чем даёт
+        # расчёт, писать нечего — иначе перезапишем хорошие строки нулями.
+        current = _current_nonzero(mid)
+        if nonzero <= current:
+            skipped += 1
+            print(f": пропуск (в БД уже {current} ненулевых, расчёт дал {nonzero})")
+            continue
+
         if args.dry_run:
             fixed += 1
-            print(f": [dry-run] ненулевых {nonzero}")
+            print(f": [dry-run] было {current}, станет {nonzero}")
             continue
 
         if insert_outcome_probabilities_from_values(mid, probs):
             fixed += 1
-            print(f": записано, ненулевых {nonzero}")
+            print(f": записано, ненулевых {current} -> {nonzero}")
         else:
             failed += 1
             print(": не записалось")
