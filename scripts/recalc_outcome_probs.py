@@ -161,8 +161,91 @@ def _payload_from_snapshot(match_id: str, sport: int, cfg=None):
     return payload
 
 
+def _kickoff_label(start_ts) -> str:
+    """Дата начала матча как 'YYYY.MM.DD HH:MM' — граница «только прошлое»."""
+    if not start_ts:
+        return ""
+    try:
+        import datetime
+
+        return datetime.datetime.fromtimestamp(int(start_ts)).strftime(
+            "%Y.%m.%d %H:%M"
+        )
+    except (TypeError, ValueError, OSError, OverflowError):
+        return ""
+
+
+# Кэш полной загрузки по командам: у матчей одного сезона команды
+# повторяются, и без кэша каждый матч заново тянет pr_ фиды по сети.
+_FULL_CACHE: dict[tuple, object] = {}
+_MAX_CACHE = 80
+
+
+def _team_names_of(match_id: str) -> tuple[str, str]:
+    """Имена хозяев и гостей (для ключа кэша)."""
+    with sqlite3.connect(str(get_database_path()), timeout=30) as conn:
+        conn.row_factory = sqlite3.Row
+        row = conn.execute(
+            "SELECT ht.name AS h, at.name AS a FROM matches m "
+            "JOIN teams ht ON ht.id = m.home_team_id "
+            "JOIN teams at ON at.id = m.away_team_id "
+            "WHERE m.match_id = ?",
+            (match_id,),
+        ).fetchone()
+    if row is None:
+        return "", ""
+    return row["h"] or "", row["a"] or ""
+
+
+def _load_full_cached(match_id: str, info, ms):
+    """load_analysis_data с кэшем по паре команд.
+
+    Берём первый матч каждой пары команд и переиспользуем найденную
+    историю. Даты всё равно обрезаются до кик-оффа текущего матча,
+    поэтому кэш безопасен.
+    """
+    from analysis_data import load_analysis_data
+
+    home, away = _team_names_of(match_id)
+    key = (home, away, getattr(ms, "sport", 1))
+    if key in _FULL_CACHE:
+        return _FULL_CACHE[key]
+
+    payload = load_analysis_data(info, ms)
+    if len(_FULL_CACHE) >= _MAX_CACHE:
+        _FULL_CACHE.clear()
+    _FULL_CACHE[key] = payload
+    return payload
+
+
+def _skip_slow_page_fetch() -> None:
+    """Не ходить на страницу матча: для пересчёта её данные не нужны.
+
+    load_analysis_data начинается с detect_sport_from_match_page и
+    fetch_match_page_ids — оба тянут HTML страницы. На этом хосте они
+    стабильно висят ~30 с и заканчиваются таймаутом. Вид спорта и id
+    участников уже есть в БД, поэтому подменяем эти вызовы на заглушки.
+    """
+    import analysis_data as ad
+
+    def _no_sport(match_id: str):
+        return None
+
+    def _no_ids(match_id, **kwargs):
+        return ("", "", "", "", "")
+
+    ad.detect_sport_from_match_page = _no_sport
+    ad.fetch_match_page_ids = _no_ids
+
+
 def _history_from_snapshot(match_id: str):
     """H2H и матчи команд из снимка — стратегии #1/#4 строят из них форму.
+
+    ВАЖНО про порядок. В снимке матчи лежат от НОВЫХ к старым, а движок
+    берёт home_all[-40:] — то есть «последние 40» в порядке возрастания даты.
+    Если отдать снимок как есть, срез упадёт на самые СТАРЫЕ матчи (2008 год),
+    форма получится нулевой и стратегии #1/#4 вернут 0/0/0.
+    Поэтому сортируем по дате по возрастанию.
 
     Возвращает dict: h2h / home_all / away_all (пустые списки, если нет).
     """
@@ -175,7 +258,16 @@ def _history_from_snapshot(match_id: str):
             "WHERE match_id = ?",
             (match_id,),
         ).fetchone()
-    out: dict = {"h2h": [], "home_all": [], "away_all": []}
+    out: dict = {
+        "h2h": [],
+        "h2h_home": [],
+        "home_all": [],
+        "home_home": [],
+        "home_away": [],
+        "away_all": [],
+        "away_home": [],
+        "away_away": [],
+    }
     if row is None:
         return out
 
@@ -188,12 +280,27 @@ def _history_from_snapshot(match_id: str):
             return {}
         return data if isinstance(data, dict) else {}
 
-    out["h2h"] = list(_load(row["h2h_json"]).get("all") or [])
+    def _sorted(items):
+        """По возрастанию даты (движок срезает хвост как «последние»)."""
+        def _key(item):
+            return str(item.get("date") or "")
+
+        return sorted(
+            (x for x in items if isinstance(x, dict)), key=_key
+        )
+
+    h2h_data = _load(row["h2h_json"])
+    out["h2h"] = _sorted(h2h_data.get("all") or [])
+    out["h2h_home"] = _sorted(h2h_data.get("home") or [])
+
     tm = _load(row["team_matches_json"])
     for side in ("home", "away"):
         block = tm.get(side) or {}
-        if isinstance(block, dict):
-            out[f"{side}_all"] = list(block.get("all") or [])
+        if not isinstance(block, dict):
+            continue
+        # Движку нужны все три среза: all / home / away.
+        for part in ("all", "home", "away"):
+            out[f"{side}_{part}"] = _sorted(block.get(part) or [])
     return out
 
 
@@ -258,9 +365,21 @@ def _recalc_one(match_id: str, cfg) -> list[dict] | None:
                 except Exception:  # noqa: BLE001
                     return None
 
-            payload.h2h = [h for h in (_to_hm(x) for x in hist["h2h"]) if h]
-            payload.home_all = [h for h in (_to_hm(x) for x in hist["home_all"]) if h]
-            payload.away_all = [h for h in (_to_hm(x) for x in hist["away_all"]) if h]
+            def _convert(key):
+                return [h for h in (_to_hm(x) for x in hist.get(key) or []) if h]
+
+            # Раскладка как у load_analysis_data: движок сам делит
+            # home_all на «дома/в гостях», а готовые срезы home_home /
+            # home_away заполнять НЕЛЬЗЯ — иначе форма считается дважды
+            # и стратегии #1/#4 возвращают нули.
+            payload.h2h = _convert("h2h")
+            payload.h2h_home = _convert("h2h_home")
+            payload.home_all = _convert("home_all")
+            payload.away_all = _convert("away_all")
+            payload.home_home = []
+            payload.home_away = []
+            payload.away_home = []
+            payload.away_away = []
         except Exception as exc:  # noqa: BLE001
             print(f"    [!] история из снимка: {exc}")
 
@@ -285,14 +404,26 @@ def _recalc_one(match_id: str, cfg) -> list[dict] | None:
             > 0
         )
 
-    # Быстрого пути не хватило (нужны полные H2H/история) — полная загрузка.
-    if _nonzero_count(probs) < 8:
+    # Быстрого пути не хватило — полная загрузка. ВАЖНО: она отдаёт матчи
+    # команды БЕЗ фильтра по дате (в т.ч. сыгранные позже анализируемого),
+    # поэтому обрезаем историю строго до кик-оффа.
+    # Порог = 10: если хоть одна стратегия нулевая, пробуем полную загрузку.
+    if _nonzero_count(probs) < 10:
         try:
             info = MatchInfo(match_id=match_id)
             info.status = row["match_status"]
             info.start_ts = row["start_ts"]
             full = load_analysis_data(info, ms)
             if full.table_overall or full.form_overall:
+                cut = _kickoff_label(row["start_ts"])
+                if cut:
+                    full.home_all = [
+                        h for h in (full.home_all or []) if str(h.date) < cut
+                    ]
+                    full.away_all = [
+                        h for h in (full.away_all or []) if str(h.date) < cut
+                    ]
+                    full.h2h = [h for h in (full.h2h or []) if str(h.date) < cut]
                 full.settings = ms
                 full.match = info
                 res_full = eng.run(full, odds_data, list_odds=[])
@@ -327,6 +458,20 @@ def main() -> int:
     import io
 
     cfg = DeluxSettings.from_env()
+
+    # Основной хост flashscorekz.com часто отдаёт SSL-таймаут (~30 с на
+    # каждый матч). Для пакетного пересчёта сразу берём рабочее зеркало
+    # .ninja — фиды там те же, но без ожидания.
+    try:
+        import flashscore_feed
+
+        flashscore_feed._MAIN_HOST_DEAD = True
+    except Exception:  # noqa: BLE001
+        pass
+
+    # Страница матча для пересчёта не нужна (её данные уже в БД), а запрос
+    # к ней стабильно висит ~30 с. Отключаем эти два вызова.
+    _skip_slow_page_fetch()
 
     conn = sqlite3.connect(str(get_database_path()), timeout=60)
     try:
