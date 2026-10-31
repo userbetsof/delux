@@ -99,7 +99,13 @@ def _load_constants_from_workbook(
 def load_sheet_constants(
     workbook_path: str, sheet_names: Iterable[str]
 ) -> Dict[str, Dict[str, object]]:
-    """Неформульные значения на листах (стартовые константы)."""
+    """Неформульные значения на листах (стартовые константы).
+
+    ВАЖНО: wanted — это листы, где есть ФОРМУЛЫ. Но константы нужны и на
+    листах без формул (Очные!A1 = «Гавр», Таблица!B2 = «ПСЖ»): от них
+    зависит VLOOKUP в Mill, и без них там выходит #N/A. Поэтому из
+    lookups.db берём ВСЕ листы, а не только «формульные».
+    """
     wanted = set(sheet_names)
     if CONST_CACHE_PATH.exists():
         with open(CONST_CACHE_PATH, encoding="utf-8") as f:
@@ -107,7 +113,8 @@ def load_sheet_constants(
         sheets = cached.get("sheets", {})
         if sheets:
             return {k: v for k, v in sheets.items() if (not wanted or k in wanted)}
-    from_lookups = _constants_from_lookups(wanted)
+    # Здесь фильтр не применяем — нужны константы и «безформульных» листов.
+    from_lookups = _constants_from_lookups(set())
     if from_lookups:
         return from_lookups
     if workbook_path and Path(workbook_path).is_file():

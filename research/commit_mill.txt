@@ -1,0 +1,44 @@
+fix: mill strategy — four root causes found and fixed
+
+mill always returned 0% (or garbage) because four separate problems
+broke its calculation chain.
+
+1) The constants cache never loaded sheet "Таблица". The workbook keeps
+   its team reference table there (B:G), and Mill's VLOOKUP needs it.
+   Added 459 values (data/formulas_cache.json + lookups.db).
+
+2) Text constants were dropped when reading the workbook. Очные!A1
+   holds "Гавр" (the home team) and Mill!P24 = Очные!A1 — with an empty
+   A1 the VLOOKUP searched for "" and returned #N/A. The reader now
+   resolves t="s" cells through sharedStrings.
+
+3) lookups.db held 913 stale calculation results from earlier runs
+   (Mill!R27 = 523, Mill!P24 = "Сан-Франциско Джайентс", …). They
+   overrode the formulas. Purged every cell that has a formula.
+
+4) home_home / home_away were left empty in payload, so sheets
+   ДомаДома / ДомаГости stayed blank → Mill!R29 = 0 → S47 = 0 →
+   X26 = 0 → W37 = 0. Now the snapshot's "all" list is split by venue
+   when the dedicated slices are missing (22 home / 21 away).
+
+Also: load_sheet_constants() filtered by the "formula sheets" list, so
+sheets without formulas (Очные, Таблица) lost their constants. Now it
+takes all sheets from lookups.db.
+
+Verification for match ncRVhYJ7 (Гавр — ПСЖ):
+  Mill!P24 = 'Гавр', P36 = 'ПСЖ'   (were empty)
+  Mill!R27 = 8, R39 = 16           (were #N/A)
+  Mill!S47 = 3.0                   (was 0)
+  Mill!W37 = 9.4%                  (was 0)
+
+Remaining difference from the Excel reference is expected: the
+workbook is filled with the CURRENT league table (PSG 9 matches),
+while the engine reconstructs the table as of the match date
+(PSG 8 matches, no result leak). Confirmed this is the intended
+behaviour.
+
+New scripts:
+  scripts/add_missing_constants.py      sync constants from .xlsm
+  scripts/sync_lookup_constants.py      same, into lookups.db
+  scripts/purge_computed_from_lookups.py drop stale computed values
+  scripts/purge_constants_from_formulas.py keep only "=…" in the cache

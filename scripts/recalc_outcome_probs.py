@@ -378,6 +378,19 @@ def _history_from_snapshot(match_id: str):
         # Движку нужны все три среза: all / home / away.
         for part in ("all", "home", "away"):
             out[f"{side}_{part}"] = _sorted(block.get(part) or [])
+        # В снимке срезы home/away бывают пустыми (только all). Делим all
+        # по полю venue: листы ДомаДома/ДомаГости без этого пустые, а от
+        # них зависит Mill (R29 = ДомаДома!S4 → S47 → X26 → W37).
+        if not out[f"{side}_home"] or not out[f"{side}_away"]:
+            all_rows = out[f"{side}_all"]
+            if not out[f"{side}_home"]:
+                out[f"{side}_home"] = [
+                    m for m in all_rows if str(m.get("venue") or "") == "Дома"
+                ]
+            if not out[f"{side}_away"]:
+                out[f"{side}_away"] = [
+                    m for m in all_rows if str(m.get("venue") or "") == "Гости"
+                ]
     return out
 
 
@@ -421,6 +434,14 @@ def _recalc_one(match_id: str, cfg) -> list[dict] | None:
     payload.match = MatchInfo(match_id=match_id)
     payload.match.status = row["match_status"]
     payload.match.start_ts = row["start_ts"]
+    # Имена команд обязательны: движок пишет их в Очные!A1/B1, оттуда
+    # их берёт Mill!P24 (Очные!A1) и делает VLOOKUP по Таблица. Без имён
+    # VLOOKUP ищет пустую строку и возвращает #N/A — стратегия mill = 0.
+    _home, _away = _team_names_of(match_id)
+    if _home:
+        payload.match.home = _home
+    if _away:
+        payload.match.away = _away
 
     # H2H и матчи команд: стратегии #1/#4 строят из них форму на дату матча.
     if not payload.h2h and not payload.home_all:
@@ -445,18 +466,17 @@ def _recalc_one(match_id: str, cfg) -> list[dict] | None:
             def _convert(key):
                 return [h for h in (_to_hm(x) for x in hist.get(key) or []) if h]
 
-            # Раскладка как у load_analysis_data: движок сам делит
-            # home_all на «дома/в гостях», а готовые срезы home_home /
-            # home_away заполнять НЕЛЬЗЯ — иначе форма считается дважды
-            # и стратегии #1/#4 возвращают нули.
+            # ВАЖНО: home_home / home_away нужны листам ДомаДома/ДомаГости,
+            # от них зависит Mill (R29 = ДомаДома!S4 → S47 → X26 → W37).
+            # Пустыми их оставлять нельзя — mill обнуляется.
             payload.h2h = _convert("h2h")
             payload.h2h_home = _convert("h2h_home")
             payload.home_all = _convert("home_all")
+            payload.home_home = _convert("home_home")
+            payload.home_away = _convert("home_away")
             payload.away_all = _convert("away_all")
-            payload.home_home = []
-            payload.home_away = []
-            payload.away_home = []
-            payload.away_away = []
+            payload.away_home = _convert("away_home")
+            payload.away_away = _convert("away_away")
         except Exception as exc:  # noqa: BLE001
             print(f"    [!] история из снимка: {exc}")
 
