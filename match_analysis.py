@@ -389,26 +389,27 @@ def save_analysis_to_db(
                 ),
             )
 
-        fav_pred = str(results.get("prediction_favorites") or "").strip()
-        if fav_pred:
-            cursor.execute(
-                """
-                INSERT OR REPLACE INTO strategy_predictions
-                (match_id, strategy_id, prediction, odds, notes)
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (
-                    match_id,
-                    FAVORITES_STRATEGY_ID,
-                    fav_pred,
-                    results.get("favorites_odds"),
-                    results.get("favorites_notes"),
-                ),
-            )
+        # Favorites (#5) вынесена в отдельную программу — прогноз не пишем.
+        # fav_pred = str(results.get("prediction_favorites") or "").strip()
+        # if fav_pred:
+        #     cursor.execute(
+        #         """
+        #         INSERT OR REPLACE INTO strategy_predictions
+        #         (match_id, strategy_id, prediction, odds, notes)
+        #         VALUES (?, ?, ?, ?, ?)
+        #         """,
+        #         (
+        #             match_id,
+        #             FAVORITES_STRATEGY_ID,
+        #             fav_pred,
+        #             results.get("favorites_odds"),
+        #             results.get("favorites_notes"),
+        #         ),
+        #     )
 
         for key, sid in (
-            ("stavka", STAVKA_TV_STRATEGY_ID),
-            ("dogs", DOGS_STRATEGY_ID),
+            # ("stavka", STAVKA_TV_STRATEGY_ID),   # #6 — отдельная программа
+            # ("dogs", DOGS_STRATEGY_ID),          # #7 — отдельная программа
             ("whoscored", WHOSCORED_STRATEGY_ID),
             ("xgboost", 10),
         ):
@@ -1225,40 +1226,43 @@ def analyze_match(
     except Exception as form_exc:
         print(f"    [!] форма команд: {form_exc}")
 
-    if strat_on(5):
-        fav = compute_favorites_win_prediction(
-            match.match_id,
-            db_sport,
-            odds_data=odds_data,
-            odds_home=list_odds[0] if list_odds else None,
-            odds_away=list_odds[2] if list_odds else None,
-        )
-        if fav:
-            results["prediction_favorites"] = fav["prediction"]
-            results["favorites_odds"] = fav.get("odds")
-            results["favorites_notes"] = fav.get("notes")
-            band = fav.get("odds_range") or {}
-            print(
-                f"    Favorites (#5)={fav.get('label')} @ {fav.get('odds')} "
-                f"range={band.get('min')}–{band.get('max')}"
-            )
+    # Favorites (#5) вынесена в отдельную программу — не считаем.
+    # if strat_on(5):
+    #     fav = compute_favorites_win_prediction(
+    #         match.match_id,
+    #         db_sport,
+    #         odds_data=odds_data,
+    #         odds_home=list_odds[0] if list_odds else None,
+    #         odds_away=list_odds[2] if list_odds else None,
+    #     )
+    #     if fav:
+    #         results["prediction_favorites"] = fav["prediction"]
+    #         results["favorites_odds"] = fav.get("odds")
+    #         results["favorites_notes"] = fav.get("notes")
+    #         band = fav.get("odds_range") or {}
+    #         print(
+    #             f"    Favorites (#5)={fav.get('label')} @ {fav.get('odds')} "
+    #             f"range={band.get('min')}–{band.get('max')}"
+    #         )
 
-    if strat_on(6):
-        stavka = compute_stavka_tv_prediction(
-            match.match_id,
-            match.home,
-            match.away,
-            db_sport,
-        )
-        if stavka:
-            results["prediction_stavka"] = stavka["prediction"]
-            results["stavka_odds"] = stavka.get("odds")
-            results["stavka_notes"] = stavka.get("notes")
-            print(f"    StavkaTV (#6)={stavka['prediction']} @ {stavka.get('odds')}")
+    # StavkaTV (#6) вынесена в отдельную программу — не считаем.
+    # if strat_on(6):
+    #     stavka = compute_stavka_tv_prediction(
+    #         match.match_id,
+    #         match.home,
+    #         match.away,
+    #         db_sport,
+    #     )
+    #     if stavka:
+    #         results["prediction_stavka"] = stavka["prediction"]
+    #         results["stavka_odds"] = stavka.get("odds")
+    #         results["stavka_notes"] = stavka.get("notes")
+    #         print(f"    StavkaTV (#6)={stavka['prediction']} @ {stavka.get('odds')}")
 
+    # Moneyway/Dogs (#7) вынесена в отдельную программу — не считаем.
     # Догз/Moneyway: на сайте Arbworld данные есть только для будущих матчей,
     # поэтому для завершённых матчей стратегию не считаем вовсе.
-    if db_sport == 1 and strat_on(7) and match_status != 3:
+    if False and db_sport == 1 and strat_on(7) and match_status != 3:
         from dogs_strategy import last_arbworld_error
 
         if arbworld_index is None and last_arbworld_error():

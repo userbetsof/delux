@@ -249,6 +249,8 @@ export default defineEventHandler((event) => {
     // иначе стратегия, у которой пока нет сигналов (например Moneyway/dogs),
     // просто исчезает из «Прибыли по стратегиям», и выглядит как поломка.
     // При мультивыборе стратегий — только выбранные.
+    // Отключённые стратегии (вынесены в отдельную программу) не показываем.
+    const HIDDEN_STRATEGIES = new Set([5, 6, 7]) // Favorites, StavkaTV, Moneyway
     if (tableExists(db, 'strategies')) {
       const allStrategies = rows<{ id: number; name: string | null }>(
         db,
@@ -256,11 +258,20 @@ export default defineEventHandler((event) => {
       )
       for (const s of allStrategies) {
         const sid = Number(s.id)
+        if (HIDDEN_STRATEGIES.has(sid)) {
+          continue
+        }
         if (strategyIds.length && !strategyIds.includes(sid)) {
           continue
         }
         touch(sid, s.name)
       }
+    }
+
+    // Прогнозы отключённых стратегий могли остаться в БД с прошлых прогонов —
+    // убираем их из итогов, чтобы не искажали прибыль.
+    for (const sid of HIDDEN_STRATEGIES) {
+      byMap.delete(sid)
     }
 
     const by_strategy = [...byMap.values()]

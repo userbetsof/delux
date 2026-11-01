@@ -12,7 +12,8 @@ const links = [
   { to: '/matches', title: 'Матчи', icon: 'mdi-soccer' },
   { to: '/queue', title: 'Очередь', icon: 'mdi-format-list-bulleted' },
   { to: '/predictions', title: 'Прогнозы', icon: 'mdi-crystal-ball' },
-  { to: '/moneyway', title: 'Moneyway', icon: 'mdi-chart-timeline-variant' },
+  // Moneyway уходит в отдельную программу — пункт меню скрыт.
+  // { to: '/moneyway', title: 'Moneyway', icon: 'mdi-chart-timeline-variant' },
   { to: '/outcomes', title: 'Стратегии %', icon: 'mdi-percent-outline' },
   { to: '/odds', title: 'Коэффициенты', icon: 'mdi-cash-multiple' },
   { to: '/goals', title: 'Голы %', icon: 'mdi-soccer-field' },

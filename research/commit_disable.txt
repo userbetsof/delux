@@ -1,0 +1,23 @@
+chore: temporarily disable strategies #5 Favorites, #6 StavkaTV, #7 Moneyway
+
+These three will live in a separate program, so they are commented out
+rather than deleted — reverting means uncommenting.
+
+Analysis (match_analysis.py):
+  - favorites / stavka_tv / dogs predictions are no longer computed or
+    written to strategy_predictions
+
+Registry (src/strategies/__init__.py):
+  - STRATEGY_CLASSES now has 7 entries: 1, 2, 3, 4, 8, 9, 10
+  - imports kept (marked F401) so restoring is a one-line change
+
+Admin:
+  - predictions.vue: removed 5/6/7 from the strategy filter
+  - summary.get.ts: HIDDEN_STRATEGIES = {5, 6, 7} excluded from
+    "Прибыль по стратегиям", and any leftover rows for them are dropped
+    from the totals so old runs do not skew the numbers
+  - default.vue: Moneyway page removed from the menu
+
+Tests: test_strategies updated for the new registry shape, now 6/6 pass.
+Full suite: 2 failed (pre-existing ml_runs.sport), 60 passed — down from
+4 failures before this change.

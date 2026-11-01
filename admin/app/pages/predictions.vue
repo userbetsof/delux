@@ -56,14 +56,16 @@ function clearDate() {
   dateTo.value = null
 }
 
+// Отключённые стратегии (уходят в отдельную программу) скрыты из выбора:
+// 5 Favorites, 6 StavkaTV, 7 Moneyway.
 const strategyItems = [
   { title: '1 NTB', value: 1 },
   { title: '2 Betalone', value: 2 },
   { title: '3 Sniper', value: 3 },
   { title: '4 BTS', value: 4 },
-  { title: '5 Favorites', value: 5 },
-  { title: '6 StavkaTV', value: 6 },
-  { title: '7 Moneyway', value: 7 },
+  // { title: '5 Favorites', value: 5 },
+  // { title: '6 StavkaTV', value: 6 },
+  // { title: '7 Moneyway', value: 7 },
   { title: '8 1pr', value: 8 },
   { title: '9 WhoScored', value: 9 },
   { title: '10 XGBoost', value: 10 },
