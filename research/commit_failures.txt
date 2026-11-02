@@ -1,0 +1,33 @@
+feat: log failed matches in season analysis summary
+
+Previously a failed match printed a single line "Ошибка <id>: <exc>" and
+was then lost in the output of a 380-match run. Now every failure is
+collected and reported.
+
+Per match, captured at failure time:
+  - reason: exception type + text
+  - where:  file:line function from the last traceback frame
+
+At the end of the run, when failures exist:
+
+  ==============================================================
+    НЕ УДАЛОСЬ ПРОАНАЛИЗИРОВАТЬ: N
+  ==============================================================
+
+    <match_id>  [idx/total]
+      матч:    Хозяин - Гость
+      лига:    Турнир
+      причина: ValueError: ...
+      место:   analysis_data.py:529 fetch_team_history
+
+    ID для повтора: id1,id2,id3
+    Отчёт: logs/season_failures_YYYYMMDD_HHMMSS.txt
+
+The ID line is ready to feed back into a repeat run. The report file
+keeps the list between runs; logs/ is gitignored because it is
+regenerated every run.
+
+Multi-line exception text is collapsed to one line so the summary keeps
+its alignment.
+
+Tests: 60 passed, 2 pre-existing ml_runs.sport failures.

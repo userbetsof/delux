@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from datetime import datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -246,6 +247,9 @@ def run_analyze_season(
     from archive_old_match import fetch_tournament_matches
     from team_history import format_match_date
 
+    # Метка времени для имени файла-отчёта о сбоях.
+    started_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
     cfg = DeluxSettings.from_env()
     calc_workbook = workbook or ""
     create_database()
@@ -321,6 +325,9 @@ def run_analyze_season(
 
     ok = 0
     failed = 0
+    # Сбои собираем целиком: в конце сезона печатается сводка, иначе при
+    # 380 матчах единичные ошибки теряются в потоке вывода.
+    failures: list[dict] = []
     with get_calc_engine(cfg) as engine:
         for idx, tm in enumerate(todo, 1):
             mid = tm["match_id"]
@@ -367,7 +374,32 @@ def run_analyze_season(
                 print(f"[+] Сохранено в БД: {mid}")
             except Exception as exc:
                 failed += 1
-                print(f"[-] Ошибка {mid}: {exc}")
+                # Причина сбоя: тип, текст и место в коде — без этого по
+                # одной строке «Ошибка <id>» непонятно, что именно упало.
+                import traceback
+
+                tb = traceback.extract_tb(exc.__traceback__)
+                where = ""
+                if tb:
+                    last = tb[-1]
+                    where = f"{os.path.basename(last.filename)}:{last.lineno} {last.name}"
+                reason = f"{type(exc).__name__}: {exc}"
+
+                print(f"[-] Ошибка {mid}: {reason}")
+                if where:
+                    print(f"    место: {where}")
+
+                failures.append(
+                    {
+                        "index": idx,
+                        "match_id": mid,
+                        "league": league,
+                        "teams": f"{home} - {away}",
+                        "reason": reason.replace("\n", " ").strip(),
+                        "where": where,
+                    }
+                )
+
                 if fail_fast:
                     print(f"[!] Прерывание на матче {mid} (прогресс сохранён). "
                           f"Повторный запуск продолжит с этого места.")
@@ -385,6 +417,43 @@ def run_analyze_season(
         _season_alert("errors", times=1)
 
     print(f"\n[+] Готово: ok={ok}, ошибок={failed}, пропущено ранее={skipped_done}")
+
+    # Сводка по сбоям: что упало и почему. Печатается всегда, когда есть
+    # ошибки, — это и есть «текст информации» по неудавшимся матчам.
+    if failures:
+        print(f"\n{'=' * 62}")
+        print(f"  НЕ УДАЛОСЬ ПРОАНАЛИЗИРОВАТЬ: {len(failures)}")
+        print(f"{'=' * 62}")
+        for f in failures:
+            print(f"\n  {f['match_id']}  [{f['index']}/{len(todo)}]")
+            print(f"    матч:  {f['teams']}")
+            print(f"    лига:  {f['league']}")
+            print(f"    причина: {f['reason']}")
+            if f["where"]:
+                print(f"    место:   {f['where']}")
+        print(f"\n{'=' * 62}")
+
+        # Идентификаторы одной строкой — удобно передать в повторный запуск.
+        ids = ",".join(f["match_id"] for f in failures)
+        print(f"  ID для повтора: {ids}")
+        print(f"{'=' * 62}")
+
+        # Файл-отчёт рядом с базой, чтобы не терять список между запусками.
+        try:
+            report = Path("logs") / f"season_failures_{started_stamp}.txt"
+            report.parent.mkdir(parents=True, exist_ok=True)
+            with report.open("w", encoding="utf-8") as fh:
+                fh.write(f"Сбои анализа сезона: {len(failures)}\n")
+                fh.write(f"ok={ok}, ошибок={failed}, пропущено={skipped_done}\n\n")
+                for f in failures:
+                    fh.write(
+                        f"{f['match_id']}\t{f['teams']}\t{f['league']}\t"
+                        f"{f['reason']}\t{f['where']}\n"
+                    )
+            print(f"  Отчёт: {report}")
+        except Exception as log_exc:  # noqa: BLE001
+            print(f"  [!] отчёт не записан: {log_exc}")
+
     return 0 if failed == 0 else 1
 
 
